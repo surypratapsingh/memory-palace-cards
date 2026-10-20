@@ -1,6 +1,13 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-20 22:10 - Lead turn: main folder cleaned
+- Done: FB had written M1 and T5 files in the main folder (old dispatch). Waited until no file changed for 5 min, then moved them: `src/store.ts` + `src/math.test.ts` to `task/M1-maths` (worktree `../mp-M1`), `src/progress.ts` + `src/progress.test.ts` to `task/T5-progress` (worktree `../mp-T5`). Commits use a `Lead: move ...` subject, so mesh reads both as `in-progress` and FB gets CONTINUE jobs. Files checked byte-identical before main was reset. Main folder is clean, so BUILD jobs flow again.
+- State: T1 `review` (FB verifies). M1, T5 `in-progress` (FB). Nothing verified, nothing blocked. No merges this turn.
+- Seen, not acted on (AG checks at M1 verify): moved `store.ts` reads `src.streak.lastDay` on an `unknown` value, which likely fails `npm run build`; it also drops the trailing newline.
+- Next: Lead turn again when anything is `verified`, `blocked` or `lead`. At T1 merge: browser check of the palace.
+- Blockers: none.
+
 ## 2026-10-20 - Queue prompts and git-state coordinator
 - Done: `scripts/mesh.mjs` (status, next AG|FB --wait) + `scripts/mesh.test.mjs` (3 tests). TASKS.md: board with explicit Needs lists, Q1 split into Q1-AG/Q1-FB, strict commit subjects, queue prompts section. Packets start on "verified" instead of "merged". T1 lock test now written by FB at T1 PASS (`src/redteam/T1-lock.test.ts`); T9 updated. Supersedes the previous entry's "Next" (no manual dispatch, no Lead lock test).
 - Found: agents had started under the old dispatch. AG is building T1 in `../mp-T1` (correct). FB started M1 in the main folder (wrong place): uncommitted `src/store.ts` + `src/math.test.ts`. Not committed by the Lead.
