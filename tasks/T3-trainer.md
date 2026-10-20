@@ -44,7 +44,31 @@ Returns an unmount function that removes everything it added (DOM and key listen
 - [ ] Demo: `npm run dev`, open http://localhost:5173/trainer-demo.html. It calls `mountTrainer(document.body, load(), ...)`.
 
 ## Questions
+- None.
+
 ## Report
+- Implemented the trainer flow, FSRS reviews, image editing/reforge, progress summary, keyboard controls, and the 52-card overview grid.
+- Added the standalone `trainer-demo.html` harness and its styles.
+- Added six queue tests covering empty saves, due sort/order, JSON due strings, future dates, invalid keys, and uniqueness across all 52 cards.
+- `npm test`: 15 passed, 0 failed. `npm run build`: passed. `git diff --check`: passed.
+- Browser smoke test at `/trainer-demo.html`: 52 tiles rendered, keyboard Enter learned eight new cards and Space + rating completed a test; stored state reflected the learned SRS entries. Esc removed the trainer DOM and called the exit callback. Edited HTML-like text persisted as literal text and produced no injected element; no console errors observed.
+- The demo imports `src/style.css`, so theme tokens and strength colors are available. The color-safe palette changed the new tile color from `#64748b` to `#8a8a8a`; color-safe pseudo-element markers are limited by the existing shared stylesheet's selectors to fading/solid/gilded strengths (not `new`). Reload persistence and due-review flow should receive independent browser verification from AG.
+- Not yet exercised: all eight cards through a full 8-card recall rating sequence, multiple Again ratings through reloads to Reforge, or a due card injected via devtools.
+- Scope note: `package-lock.json` was restored after `npm install` modified its root metadata; only the declared T3 UI/demo/test files are included.
+
+## Verification (builder checks)
+Verdict: Awaiting AG cross-verification.
+Evidence: `npm test` -> pass 15, fail 0; `npm run build` -> ok; `git diff --check` -> ok; browser checks at `http://127.0.0.1:5173/trainer-demo.html` as noted above.
+Acceptance:
+- ✔ Tests and build pass (15/15; Vite build ok).
+- ✔ Keyboard flow exercised on the browser; eight new cards were learned and one card was revealed/rated; full 8-card sequence not completed.
+- ✔ An image edit persisted immediately and HTML-like content remained a text value (no injected DOM); reload persistence has not been conclusively verified.
+- ✔ Text is rendered using `textContent` / form values; no `innerHTML` usage.
+- ✔ Escape removed trainer DOM and invoked demo exit; listener cleanup also confirmed by code inspection (`removeEventListener`).
+- ✔ `buildQueue` is exported and tested for due-first ordering, oldest-first, max 8 unseen, and adversarial save cases.
+- ✔ Direct Vite route `/trainer-demo.html` rendered the trainer.
+
+Findings: None known; awaiting AG independent verification.
 
 ## Verify (for AG)
 In `../mp-T3`: `npm install`, `npm test`, `npm run build` (paste counts), `npm run dev`, open http://localhost:5173/trainer-demo.html. Red-team `src/redteam/T3.test.ts`: at least 5 attacks on `buildQueue` (empty save, all 52 due, due dates as strings, a due date in the future, srs keys that are not card ids, as in a hand-edited save).

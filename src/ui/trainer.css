@@ -1,34 +1,55 @@
-/* Trainer screen styles - color-safe palette */
-:root {
-  --s-new: #4a90e2;
-  --s-fading: #f5a623;
-  --s-learning: #d0021f;
-  --s-solid: #27ae60;
-  --s-gilded: #f39c12;
+.trainer {
+  min-height: 100vh;
+  padding: 1rem clamp(1rem, 3vw, 2.5rem) 3rem;
+  color: var(--text);
 }
 
-/* Color-blind-safe markers for strength colours */
-.card-face.new::after { content: "N"; }
-.card-face.fading::after { content: "F"; }
-.card-face.learning::after { content: "L"; }
-.card-face.solid::after { content: "S"; }
-.card-face.gilded::after { content: "G"; }
-
-/* Grid overview */
-.tile {
-  width: calc(100% / 13);
-  aspect-ratio: 3/4;
-  float: left;
-  margin: 2px;
-  position: relative;
-  color: var(--s);
-  font-size: 10px;
-  font-weight: bold;
-  text-align: center;
-  text-shadow: none;
+.trainer-overview {
+  display: grid;
+  grid-template-columns: repeat(13, minmax(2.25rem, 1fr));
+  gap: 0.35rem;
+  max-width: 60rem;
+  margin: 0 auto 1rem;
 }
 
-/* Ensure normal flow if CSS fails */
-.overview { padding: 8px; }
-/* Prevent any innerHTML injection risks */
-.tile [data-strength] { display: block; }
+.trainer-tile {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 2.25rem;
+  padding: 0.2rem;
+  color: #fff;
+  border: 1px solid #0005;
+  font-size: 0.75rem;
+  text-shadow: 0 1px 2px #000;
+}
+
+.trainer-progress { text-align: center; color: var(--muted); }
+.trainer > h1, .trainer > h2, .trainer > p, .trainer > label { text-align: center; }
+.trainer > .card-face { display: grid; margin: 1.5rem auto; }
+.trainer-image { max-width: 38rem; margin: 0.75rem auto; text-align: center; font-size: 1.4rem; }
+.trainer-hook { color: var(--muted); text-align: center; }
+.trainer-image-input, .trainer-reforge-input {
+  display: block;
+  width: min(100%, 38rem);
+  margin: 1rem auto;
+  padding: 0.75rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  font: inherit;
+}
+.trainer > button, .trainer-ratings { display: flex; justify-content: center; gap: 0.75rem; margin: 1rem auto; }
+.trainer-ratings { flex-wrap: wrap; }
+.trainer-reforge-input { display: block; }
+.trainer button:focus-visible, .trainer input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 760px) {
+  .trainer-overview { grid-template-columns: repeat(8, minmax(2rem, 1fr)); }
+  .trainer-tile { min-height: 2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trainer *, .trainer *::before, .trainer *::after { scroll-behavior: auto !important; transition: none !important; }
+}

@@ -1,266 +1,308 @@
-import { cardFace } from './cardFace.ts';
-import { CARD_IMAGES } from '../data/cardImages.ts';
-import { save, load, imageFor } from '../store.ts';
 import { DECK } from '../deck.ts';
-import { newSrs, review, isDue, Rating } from '../srs.ts';
-import type { SaveData, CardId } from '../types.ts';
+import { CARD_IMAGES } from '../data/cardImages.ts';
+import { imageFor, save } from '../store.ts';
+import { isDue, newSrs, review, Rating, strength, type Grade } from '../srs.ts';
+import type { CardId, SaveData } from '../types.ts';
+import { cardFace } from './cardFace.ts';
 
-// Build the queue: all cards with srs due (oldest due first), then up to 8 new cards (cards with no srs entry), in DECK order
+type QueueItem = { card: CardId; kind: 'learn' | 'review' };
+type Screen = 'learn' | 'recall' | 'reveal' | 'overview' | 'reforge' | 'end';
+
+/** Due reviews come first, oldest due first, followed by at most eight unseen cards. */
 export function buildQueue(data: SaveData, now: Date): CardId[] {
   const due: CardId[] = [];
-  const newCards: CardId[] = [];
-
-  // Find due and new cards
+  const fresh: CardId[] = [];
   for (const card of DECK) {
-    const srsEntry = data.srs[card];
-    if (srsEntry && isDue(srsEntry, now)) {
-      due.push(card);
-    } else if (!data.srs[card]) {
-      newCards.push(card);
-    }
-  }
-
-  // Sort due cards by due date (oldest first)
-  due.sort((a, b) => {
-    const da = new Date(data.srs[a].due).getTime();
-    const db = new Date(data.srs[b].due).getTime();
-    return da - db;
-  });
-
-  // Add up to 8 new cards (cards with no srs entry), in DECK order
-  const result: CardId[] = [...due];
-  for (const card of newCards) {
-    if (result.length >= 52) break;
-    result.push(card);
-  }
-  return result;
-}
-
-// Strength name from SRS state
-function strengthName(srsEntry: any): 'new' | 'fading' | 'learning' | 'solid' | 'gilded' {
-  if (!srsEntry) return 'new';
-  if (srsEntry.state === 'new') return 'new';
-  const recallVal = Math.round(srsEntry.due ? 1 : 0); // simplified
-  if (recallVal < 0.8) return 'fading';
-  if (srsEntry.stability >= 180) return 'gilded';
-  if (srsEntry.stability >= 30) return 'solid';
-  return 'learning';
-}
-
-// Mount the trainer screen
-// Returns an unmount function that removes everything it added (DOM and key listeners)
-export function mountTrainer(root: HTMLElement, data: SaveData, onExit: (data: SaveData) => void): () => void {
-  let keyListener: () => void;
-  let queue: CardId[] = buildQueue(data, new Date());
-  let currentCard: CardId | null = null;
-  let testMode: 'recall' | 'reveal' = 'recall';
-  let lapseCount: Record<CardId, number> = {};
-  let newCardInput: HTMLInputElement | null = null;
-
-  const savedata = { ...data };
-
-  function render() {
-    root.innerHTML = '';
-
-    // Render overview grid: 52 tiles, one per card in DECK order
-    const overview = document.createElement('div');
-    overview.className = 'overview';
-
-    for (let i = 0; i < 52; i++) {
-      const card = DECK[i];
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      tile.textContent = card;
-
-      // Set data-strength attribute
-      const srsEntry = savedata.srs[card];
-      const str = srsEntry ? strengthName(srsEntry) : 'new';
-      tile.dataset.strength = str;
-
-      // Set background color based on strength
-      const strengthColors: Record<string, string> = {
-        new: '#4a90e2',
-        fading: '#f5a623',
-        learning: '#d0021f',
-        solid: '#27ae60',
-        gilded: '#f39c12',
-      };
-      tile.style.backgroundColor = strengthColors[str] || '#ccc';
-
-      // Click handler to show card image (no rating)
-      tile.addEventListener('click', () => showCard(card, undefined));
-      overview.appendChild(tile);
-    }
-
-    root.appendChild(overview);
-
-    // Render progress text: "X left" showing cards remaining to learn
-    const progressText = document.createElement('div');
-    progressText.className = 'progress-text';
-    const newCardsCount = Object.keys(savedata.srs).length - Object.keys(savedata.srs).filter(
-      k => savedata.srs[k as keyof SaveData] && (savedata.srs[k as keyof SaveData] as any).state !== 'new'
-    ).length;
-    // Simpler: count cards without srs entry or with new state
-    const cardsToLearn = DECK.filter(c => !savedata.srs[c] || (savedata.srs[c] && (savedata.srs[c] as any).state === 'new')).length;
-    progressText.textContent = `${cardsToLearn} left`;
-    root.appendChild(progressText);
-
-    // Show current card if in test mode
-    if (currentCard) {
-      const cardEl = document.createElement('div');
-      cardEl.className = 'card-face';
-      cardEl.textContent = currentCard;
-      root.appendChild(cardEl);
-
-      // Show image/reveal
-      if (testMode === 'reveal') {
-        const cardImage = CARD_IMAGES.find((c: any) => c.card === currentCard);
-        if (cardImage) {
-          // Use textContent for the image hook, not innerHTML
-          ;(cardEl as any).hookText = cardImage.hook;
-          cardEl.dataset.hook = cardImage.hook;
-          // Show the saved image or default
-          const img = document.createElement('img');
-          img.src = savedata.images[currentCard] || cardImage.image;
-          img.alt = cardImage ? cardImage.hook : '';
-          img.style.maxWidth = '100%';
-          img.style.maxHeight = '200px';
-          root.appendChild(img);
-        }
-        // Rating buttons
-        const buttons = document.createElement('div');
-        [1, 2, 3, 4].forEach((grade: number) => {
-          const btn = document.createElement('button');
-          btn.textContent = grade;
-          btn.addEventListener('click', () => rateCard(grade));
-          buttons.appendChild(btn);
-        });
-        // Again button
-        const againBtn = document.createElement('button');
-        againBtn.textContent = 'Again';
-        againBtn.addEventListener('click', () => rateCard(1));
-        buttons.appendChild(againBtn);
-        root.appendChild(buttons);
-      } else {
-        // Recall mode: hint to press Space to reveal
-        const hint = document.createElement('p');
-        hint.textContent = 'Press Space to reveal image.';
-        root.appendChild(hint);
-      }
-    }
-  }
-
-  function showCard(card: CardId, grade: Rating | undefined) {
-    currentCard = card;
-    testMode = 'recall';
-    render();
-  }
-
-  function rateCard(grade: number) {
-    if (!currentCard) return;
-    const srsEntry = savedata.srs[currentCard];
-    if (srsEntry) {
-      // Track lapses for Reforge prompt
-      ;(srsEntry as any).lapses = ((srsEntry as any).lapses || 0) + 1;
-      // Reforge prompt: if lapses >= 4, show "This image isn't sticking"
-      if ((srsEntry as any).lapses >= 4) {
-        showReforgePrompt = true;
-        render();
-        return;
-      }
+    const state = data.srs?.[card];
+    if (state) {
+      if (isDue(state, now)) due.push(card);
     } else {
-      savedata.srs[currentCard] = newSrs();
+      fresh.push(card);
     }
-    // Apply FSRS review
-    savedata.srs[currentCard] = review(savedata.srs[currentCard] || newSrs(), grade === 4 ? Rating.Easy : grade === 3 ? Rating.Good : grade === 2 ? Rating.Hard : Rating.Again, new Date());
-    // Put card back at end of queue as test
-    queue = queue.filter(c => c !== currentCard);
-    queue.push(currentCard);
-    currentCard = null;
-    testMode = 'recall';
+  }
+  due.sort((a, b) => new Date(data.srs[a]!.due).getTime() - new Date(data.srs[b]!.due).getTime());
+  return [...due, ...fresh.slice(0, 8)];
+}
+
+export function mountTrainer(root: HTMLElement, data: SaveData, onExit: (data: SaveData) => void): () => void {
+  const shell = document.createElement('main');
+  shell.className = 'trainer';
+  shell.setAttribute('aria-label', 'Card image trainer');
+  root.append(shell);
+
+  const now = new Date();
+  const queue: QueueItem[] = buildQueue(data, now).map((card) => ({
+    card,
+    kind: data.srs[card] ? 'review' : 'learn',
+  }));
+  let current: QueueItem | null = null;
+  let screen: Screen = queue.length ? (queue[0].kind === 'learn' ? 'learn' : 'recall') : 'end';
+  let reviewed = 0;
+  let againCount = 0;
+  let learned = 0;
+  let reforgeCard: CardId | null = null;
+  let overviewCard: CardId | null = null;
+  let returnScreen: Screen = screen;
+  let closed = false;
+
+  const persist = () => save(data);
+  const next = () => {
+    current = queue.shift() ?? null;
+    screen = current ? current.kind === 'learn' ? 'learn' : 'recall' : 'end';
     render();
-  }
-
-  function showReforgePromptUI() {
-    // This is handled in the render - showing the prompt when lapses >= 4
-    // The "Make it yours" input appears focused
-    if (!newCardInput) {
-      const prompt = document.createElement('div');
-      prompt.className = 'reforge-prompt';
-      const promptText = document.createElement('p');
-      promptText.textContent = 'This image isn\'t sticking. Make it stranger:';
-      prompt.appendChild(promptText);
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.value = savedata.images[currentCard] || '';
-      prompt.appendChild(input);
-      const saveBtn = document.createElement('button');
-      saveBtn.textContent = 'Save';
-      saveBtn.addEventListener('click', () => {
-        savedata.images[currentCard] = input.value;
-        newCardInput = null;
-        showReforgePrompt = false;
-        render();
-      });
-      prompt.appendChild(saveBtn);
-      root.appendChild(prompt);
-      newCardInput = input;
-    }
-  }
-
-  function exitTrainer() {
-    save(savedata, localStorage);
-    onExit(savedata);
-  }
-
-  // Initial render
-  render();
-
-  // Setup keyboard handler - no innerHTML used anywhere
-  const keydownHandler = (e: KeyboardEvent) => {
-    if (!currentCard) {
-      // Escape anywhere to exit
-      if (e.key === 'Escape') {
-        exitTrainer();
-        return;
-      }
-      // In recall mode, 1-4 to start rating a new card from queue
-      if (e.key >= '1' && e.key <= '4' && testMode === 'recall') {
-        const card = queue[0];
-        if (card) {
-          queue.shift();
-          currentCard = card;
-          testMode = 'reveal';
-          render();
-        }
-      }
-      return;
-    }
-
-    if (e.key === 'Escape') {
-      exitTrainer();
-      return;
-    }
-
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault();
-      if (testMode === 'reveal') {
-        rateCard(4); // Reveal and rate Easy
-      } else if (testMode === 'recall') {
-        // In recall mode without current card, handled above
-      }
-      return;
-    }
-
-    if (e.key >= '1' && e.key <= '4') {
-      if (currentCard) {
-        rateCard(parseInt(e.key, 10));
-      }
-      return;
-    }
+  };
+  const updateImage = (card: CardId, value: string) => {
+    data.images[card] = value;
+    persist();
   };
 
-  document.addEventListener('keydown', keydownHandler);
+  function renderOverview(): HTMLElement {
+    const overview = document.createElement('nav');
+    overview.className = 'trainer-overview';
+    overview.setAttribute('aria-label', 'Card progress overview');
+    for (const card of DECK) {
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'trainer-tile';
+      tile.textContent = card;
+      tile.setAttribute('aria-label', `Show ${card} image`);
+      const state = data.srs?.[card];
+      tile.dataset.strength = state ? strength(state, new Date()) : 'new';
+      tile.style.backgroundColor = 'var(--s)';
+      tile.addEventListener('click', () => showOverviewCard(card));
+      overview.append(tile);
+    }
+    return overview;
+  }
 
-  return exitTrainer;
+  function addImageDisplay(card: CardId, includeHook: boolean): void {
+    const image = document.createElement('p');
+    image.className = 'trainer-image';
+    image.textContent = imageFor(data, card);
+    shell.append(image);
+    if (includeHook) {
+      const definition = CARD_IMAGES.find((entry) => entry.card === card);
+      if (definition) {
+        const hook = document.createElement('p');
+        hook.className = 'trainer-hook';
+        hook.textContent = definition.hook;
+        shell.append(hook);
+      }
+    }
+  }
+
+  function showOverviewCard(card: CardId): void {
+    if (screen !== 'overview') returnScreen = screen;
+    overviewCard = card;
+    screen = 'overview';
+    render();
+  }
+
+  function completeLearn(): void {
+    if (!current || current.kind !== 'learn') return;
+    data.srs[current.card] = newSrs();
+    learned++;
+    persist();
+    queue.push({ card: current.card, kind: 'review' });
+    next();
+  }
+
+  function saveReforge(): void {
+    if (!reforgeCard) return;
+    const card = reforgeCard;
+    const input = shell.querySelector<HTMLInputElement>('.trainer-reforge-input');
+    if (input) updateImage(card, input.value);
+    reforgeCard = null;
+    queue.push({ card, kind: 'review' });
+    next();
+  }
+
+  function rate(rating: Grade): void {
+    if (!current || current.kind !== 'review' || screen !== 'reveal') return;
+    const card = current.card;
+    const state = data.srs[card];
+    if (!state) return;
+    const updated = review(state, rating, new Date());
+    data.srs[card] = updated;
+    reviewed++;
+    if (rating === Rating.Again) againCount++;
+    persist();
+    if (rating === Rating.Again && updated.lapses >= 4) {
+      reforgeCard = card;
+      screen = 'reforge';
+      render();
+      shell.querySelector<HTMLInputElement>('.trainer-reforge-input')?.focus();
+      return;
+    }
+    if (rating === Rating.Again) queue.push({ card, kind: 'review' });
+    next();
+  }
+
+  function addRateButtons(): void {
+    const ratings: { value: Grade; label: string; key: string }[] = [
+      { value: Rating.Again as Grade, label: 'Again', key: '1' },
+      { value: Rating.Hard as Grade, label: 'Hard', key: '2' },
+      { value: Rating.Good as Grade, label: 'Good', key: '3' },
+      { value: Rating.Easy as Grade, label: 'Easy', key: '4' },
+    ];
+    const buttons = document.createElement('div');
+    buttons.className = 'trainer-ratings';
+    for (const rating of ratings) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = `${rating.key} · ${rating.label}`;
+      button.addEventListener('click', () => rate(rating.value));
+      buttons.append(button);
+    }
+    shell.append(buttons);
+  }
+
+  function render(): void {
+    shell.replaceChildren();
+    shell.append(renderOverview());
+    const progress = document.createElement('p');
+    progress.className = 'trainer-progress';
+    progress.setAttribute('aria-live', 'polite');
+    progress.textContent = `${queue.length + (current ? 1 : 0)} left`;
+    shell.append(progress);
+
+    if (screen === 'end') {
+      const title = document.createElement('h1');
+      title.textContent = 'Session complete';
+      const summary = document.createElement('p');
+      summary.textContent = `Reviewed ${reviewed} · Again ${againCount} · New learned ${learned}`;
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.textContent = 'Back';
+      back.addEventListener('click', exit);
+      shell.append(title, summary, back);
+      return;
+    }
+
+    if (screen === 'overview') {
+      if (overviewCard) {
+        shell.append(cardFace(overviewCard));
+        const title = document.createElement('h2');
+        title.textContent = 'Card image';
+        shell.append(title);
+        addImageDisplay(overviewCard, true);
+      }
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.textContent = 'Continue';
+      back.addEventListener('click', () => {
+        overviewCard = null;
+        screen = returnScreen;
+        render();
+      });
+      shell.append(back);
+      return;
+    }
+
+    if (!current) return;
+    shell.append(cardFace(current.card));
+
+    if (screen === 'learn') {
+      const heading = document.createElement('h1');
+      heading.textContent = 'Learn this image';
+      shell.append(heading);
+      addImageDisplay(current.card, true);
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'trainer-image-input';
+      input.setAttribute('aria-label', 'Make it yours');
+      input.placeholder = 'Make it yours';
+      input.value = imageFor(data, current.card);
+      input.addEventListener('input', () => updateImage(current!.card, input.value));
+      shell.append(input);
+      const gotIt = document.createElement('button');
+      gotIt.type = 'button';
+      gotIt.textContent = 'Got it';
+      gotIt.addEventListener('click', completeLearn);
+      shell.append(gotIt);
+      return;
+    }
+
+    if (screen === 'recall') {
+      const hint = document.createElement('p');
+      hint.textContent = 'Recall the image, then press Space to reveal.';
+      shell.append(hint);
+      return;
+    }
+
+    if (screen === 'reveal') {
+      addImageDisplay(current.card, true);
+      addRateButtons();
+      return;
+    }
+
+    if (screen === 'reforge') {
+      const prompt = document.createElement('label');
+      prompt.textContent = "This image isn't sticking. Make it stranger:";
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'trainer-reforge-input';
+      input.setAttribute('aria-label', 'Make the image stranger');
+      input.value = imageFor(data, current.card);
+      input.addEventListener('input', () => updateImage(current!.card, input.value));
+      prompt.append(input);
+      shell.append(prompt);
+      const saveButton = document.createElement('button');
+      saveButton.type = 'button';
+      saveButton.textContent = 'Save image';
+      saveButton.addEventListener('click', saveReforge);
+      shell.append(saveButton);
+    }
+  }
+
+  function exit(): void {
+    if (closed) return;
+    persist();
+    unmount();
+    onExit(data);
+  }
+
+  const onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      exit();
+      return;
+    }
+    const target = event.target;
+    const editing = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLElement && target.isContentEditable);
+    if (screen === 'learn' && editing) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        completeLearn();
+      }
+      return;
+    }
+    if (!current) return;
+    if (screen === 'learn' && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      completeLearn();
+    } else if (screen === 'recall' && event.key === ' ') {
+      event.preventDefault();
+      screen = 'reveal';
+      render();
+    } else if (screen === 'reveal' && ['1', '2', '3', '4'].includes(event.key)) {
+      event.preventDefault();
+      rate(Number(event.key) as Grade);
+    } else if (screen === 'reforge' && event.key === 'Enter') {
+      event.preventDefault();
+      saveReforge();
+    }
+  };
+  document.addEventListener('keydown', onKeyDown);
+  next();
+
+  function unmount(): void {
+    if (closed) return;
+    closed = true;
+    document.removeEventListener('keydown', onKeyDown);
+    shell.remove();
+  }
+
+  return unmount;
 }

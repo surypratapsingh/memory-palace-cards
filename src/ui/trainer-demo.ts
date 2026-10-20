@@ -1,30 +1,15 @@
-import { mountTrainer, buildQueue } from './trainer.ts';
-import { load } from '../store.ts';
+import { load, save } from '../store.ts';
 import type { SaveData } from '../types.ts';
+import { mountTrainer } from './trainer.ts';
+import '../style.css';
+import './trainer.css';
 
-const body = document.body;
-const saveData = load();
 const onExit = (data: SaveData) => {
-  console.log('Trainer exited', data);
+  save(data);
+  document.body.replaceChildren();
+  const message = document.createElement('p');
+  message.textContent = 'Trainer closed. You can reload to start again.';
+  document.body.append(message);
 };
 
-const unmount = mountTrainer(body, saveData, onExit);
-
-// Demo: learn 8 new cards
-const queue = buildQueue(saveData, new Date());
-console.log('Initial queue size:', queue.length);
-
-// Simulate learning 8 cards with keyboard
-// Enter to start, Space to reveal, 1-4 to rate
-let cardIndex = 0;
-
-function nextCard() {
-  if (cardIndex < queue.length) {
-    const card = queue[cardIndex];
-    console.log('Showing card:', card);
-    cardIndex++;
-    setTimeout(nextCard, 1000);
-  }
-}
-
-setTimeout(nextCard, 500);
+mountTrainer(document.body, load(), onExit);
