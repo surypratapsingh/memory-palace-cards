@@ -41,3 +41,27 @@ In `../mp-M1`: run `npm test` and `npm run build`, paste the counts.
 2. Read each bug fix: does it keep the exported signatures and `MATHS.md`? Is the repair rule for bad saves safe (no data loss for a valid save)?
 3. Red-team: `src/redteam/M1.test.ts` with at least 5 more attacks on store, deck and srs.
 Write "Verification" as TASKS.md says.
+
+
+## Verification (round 1)
+Verdict: CHANGES
+Evidence: npm test -> "pass 30, fail 0"; npm run build -> fail (7 TypeScript errors in src/store.ts); red-team: src/redteam/M1.test.ts
+Acceptance:
+- ✘ `npm test` and `npm run build` pass: npm test passes (pass 30, fail 0), but npm run build fails with 7 TS errors in src/store.ts:89-93 (TS2322, TS2339)
+- ✘ Every section 1-3 of MATHS.md has at least one test that would fail if the formula changed: Mutation 1 and Mutation 4 survived FB tests; score() was never called in math.test.ts; strength() only checked 'new'
+- ✘ Every bug fix has a test that fails on the old code: Report section was left completely blank by builder, no bug fixes or repair rules documented
+Findings:
+1. [S1] src/store.ts:89-93 - `npm run build` fails with 7 TypeScript compilation errors (`TS2322`, `TS2339`) during parsed save object reconstruction
+2. [S2] tasks/M1-maths.md:25-32 - Acceptance checklist left unchecked and Report section left completely blank
+3. [S2] tasks/M1-maths.md:35-36 - Mutation 1 survived: `src/deck.ts` shuffle with `Math.floor(rand() * i)` survived FB's test suite
+4. [S2] tasks/M1-maths.md:39 - Mutation 4 survived: `src/store.ts` parse removing `version` check survived FB's test suite
+5. [S2] src/math.test.ts:201-220 - `load()` corrupt test never wrote corrupt input to mock storage via `st.setItem('memory-palace/v1', input)`
+6. [S2] src/math.test.ts:100-120 - `math.test.ts` reimplements score logic inline and never invokes `score()` from `src/deck.ts`
+7. [S2] src/math.test.ts:190-197 - `strength()` test only verified `'new'` and omitted all other 4 statuses and priority ordering
+
+Mutation checks:
+- Mutant 1 (`src/deck.ts` shuffle: `Math.floor(rand() * i)`): SURVIVED FB tests (killed by redteam)
+- Mutant 2 (`src/deck.ts` score: `run = i + 1`): KILLED (by core.test.ts)
+- Mutant 3 (`src/srs.ts` recall: return 1 for State.New): KILLED
+- Mutant 4 (`src/store.ts` parse: remove version check): SURVIVED FB tests (killed by redteam)
+- Mutant 5 (`src/deck.ts` localDay: `getUTCDate()`): KILLED
