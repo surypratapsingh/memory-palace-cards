@@ -44,7 +44,8 @@ export function stateFrom(t, branchExists, subjects, main) {
 
 /** Priority: fix own work, continue own build, verify the other agent, start the next own build. */
 export function pickJob(agent, tasks, st) {
-  const find = (state, role) => tasks.find((t) => t[role] === agent && st.get(t.id).state === state);
+  const missing = (t) => t.needs.filter((id) => !READY.includes(st.get(id)?.state));
+  const find = (state, role) => tasks.find((t) => t[role] === agent && st.get(t.id).state === state && !missing(t).length);
   const now = find('fix', 'build') ? ['FIX', find('fix', 'build')]
     : find('in-progress', 'build') ? ['CONTINUE', find('in-progress', 'build')]
     : find('review', 'verify') ? ['VERIFY', find('review', 'verify')]
@@ -52,10 +53,9 @@ export function pickJob(agent, tasks, st) {
   if (now) return { kind: now[0], t: now[1] };
   const why = [];
   for (const t of tasks) {
-    if (t.build !== agent || st.get(t.id).state !== 'todo') continue;
-    const missing = t.needs.filter((id) => !READY.includes(st.get(id)?.state));
-    if (!missing.length) return { kind: 'BUILD', t };
-    why.push(`${t.id} needs ${missing.map((id) => `${id} (${st.get(id)?.state ?? 'not on board'})`).join(', ')}`);
+    if (t.build !== agent || !['todo', 'in-progress'].includes(st.get(t.id).state)) continue;
+    if (!missing(t).length) return { kind: 'BUILD', t };
+    why.push(`${t.id} needs ${missing(t).map((id) => `${id} (${st.get(id)?.state ?? 'not on board'})`).join(', ')}`);
   }
   const open = tasks.filter((t) => (t.build === agent || t.verify === agent) && !READY.includes(st.get(t.id).state));
   if (!open.length) return { kind: 'ALL DONE' };
@@ -95,15 +95,15 @@ function show(job, agent, tasks, st) {
   const packet = list(git('ls-tree', '--name-only', 'main', 'tasks/')).find((f) => f.startsWith(`tasks/${t.id.split('-')[0]}-`));
   const round = st.get(t.id).round;
   const out = [`JOB: ${job.kind} ${t.id} as ${agent} | packet ${packet} | branch ${t.branch} | folder ${dir}`, 'Run:'];
+  // Verified dependencies not in main yet; merging one twice is a no-op.
+  const merges = ['BUILD', 'CONTINUE'].includes(job.kind) ? t.needs.filter((id) => st.get(id).state !== 'done') : [];
+  const mergeLines = merges.map((id) => `  git merge --no-edit ${tasks.find((d) => d.id === id).branch}    (verified dependency, not in main yet)`);
   if (job.kind === 'BUILD') {
-    out.push(`  git -C "${root}" worktree add "${dir}" -b ${t.branch} main`, `  cd "${dir}"`);
-    for (const id of t.needs.filter((id) => st.get(id).state !== 'done')) {
-      out.push(`  git merge --no-edit ${tasks.find((d) => d.id === id).branch}    (verified dependency, not in main yet)`);
-    }
+    out.push(`  git -C "${root}" worktree add "${dir}" -b ${t.branch} main`, `  cd "${dir}"`, ...mergeLines);
     out.push('  npm install', `Then build ${t.id} exactly as ${packet} says.`, `When done: git add -A && git commit -m "${t.id}: <one-line summary>"`);
   } else {
     if (!existsSync(dir)) out.push(`  git -C "${root}" worktree add "${dir}" ${t.branch}`);
-    out.push(`  cd "${dir}"`, '  npm install');
+    out.push(`  cd "${dir}"`, ...mergeLines, '  npm install');
     if (job.kind === 'CONTINUE') out.push(`Your branch exists but has no "${t.id}: " commit yet. Finish the build as ${packet} says.`, `When done: git add -A && git commit -m "${t.id}: <one-line summary>"`);
     if (job.kind === 'FIX') out.push(`Read the newest "Verification" section or Lead note in ${packet}. Reply under every finding (FIXED / DEFER Q1 / DISPUTE), fix the code, make every red-team test pass.`, `When done: git add -A && git commit -m "${t.id}: fix round ${round}"`);
     if (job.kind === 'VERIFY') out.push(`Verify round ${round + 1}: do the "Verify" section of ${packet} and "The mesh" in TASKS.md. Try to break it. Do not change the builder's code.`, `When done: git add src/redteam tasks docs && git commit -m "V-${t.id} round ${round + 1}: PASS"   (or ": CHANGES")`);

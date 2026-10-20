@@ -43,6 +43,10 @@ test('jobs: fix, continue, verify, build, wait, done', () => {
   set('M1', 'verified');
   set('T1', 'verified');
   assert.equal(pickJob('AG', tasks, st).t.id, 'T4', 'T4 unblocked by verified T1');
+  set('T12', 'in-progress');
+  assert.notEqual(pickJob('FB', tasks, st).t?.id, 'T12', 'no CONTINUE while T3 is not verified');
+  set('T3', 'verified');
+  assert.deepEqual([pickJob('FB', tasks, st).kind, pickJob('FB', tasks, st).t.id], ['CONTINUE', 'T12']);
   for (const t of tasks) if (t.build === 'AG' || t.verify === 'AG') set(t.id, 'done');
   set('T4', 'review');
   assert.equal(pickJob('AG', tasks, st).kind, 'WAIT');
