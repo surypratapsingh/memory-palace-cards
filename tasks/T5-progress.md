@@ -79,3 +79,26 @@ In `wt/T5`: `npm test`, `npm run build`, paste counts. Then:
 3. **Mutation check** (undo each with `git checkout -- src`): change `wins === 2` to `wins === 3`; change the freeze cap 2 to 3; drop the `g < 0` rule. Each must make a test fail.
 4. Red-team `src/redteam/T5.test.ts`: at least 5 attacks, for example a drill with 0 cards, answers shorter than the sequence, `memorizeMs` of 59999 and 60000, `seed` that is not a date, streak across 3 years.
 Write "Verification" as TASKS.md says.
+
+
+## Verification (round 1)
+Verdict: PASS
+Evidence: npm test -> "pass 53, fail 0"; npm run build -> ok (built in 90ms); red-team: src/redteam/T5.test.ts
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: npm test passes (pass 53, fail 0); npm run build succeeds cleanly in 90ms with 0 errors
+- ✔ All signatures exactly as above: levelOf, isPerfect, unlockedLevel, Stair, stepLevel, recommendedLevel, personalBests, dayDiff, updateStreak, rankTitle, shareText all exported with exact types in src/progress.ts
+Findings: none
+
+Attacks tried that failed:
+1. Empty sequence / 0 cards passed to levelOf (-1), isPerfect (true), unlockedLevel (0), recommendedLevel (0), personalBests ({}), shareText ("0 cards · 0/0 · run 0 · 0:01")
+2. Partial answers (shorter than sequence): 5 of 13 answered, run 5, correct 5, isPerfect false, shareText generates 5 '🟩' and 8 '🟥'
+3. memorizeMs time boundaries: 0ms -> 0:00, 999ms -> 0:00, 59999ms -> 0:59, 60000ms -> 1:00, 60999ms -> 1:00, 3661000ms -> 61:01
+4. Daily vs Practice mode headers: daily flag controls header even if seed is arbitrary string; practice mode never leaks date/seed; neither leaks card IDs or suits
+5. 3-year streak simulation across leap year 2028: consecutive days earn freezes up to cap 2; 2-day gaps consume freezes; multi-day gap without freezes resets count to 1; streak object never mutated
+6. rankTitle boundary and extreme values: -999, -1, 0, 7, 8, 100, and NaN properly return 'Newcomer', 'Novice', or 'Palace Keeper'
+7. dayDiff leap day precision: 2028-02-28 to 2028-03-01 === 2, 2027-02-28 to 2027-03-01 === 1, year transitions 2025-12-31 to 2026-01-01 === 1
+
+Mutation checks:
+- Mutant 1 (wins === 2 to wins === 3): KILLED (5 tests failed)
+- Mutant 2 (freeze cap 2 to 3): KILLED (updateStreak test failed)
+- Mutant 3 (drop g < 0 rule): KILLED (updateStreak g < 0 test failed)
