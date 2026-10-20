@@ -1,6 +1,6 @@
 # T4 - Drill: memorize and recall in 3D
 
-- Build: AG | Verify: FB | Est. 3h | Wave 2 (start after T1 is merged into main) | Branch: `task/T4-drill` | Worktree: `../mp-T4`
+- Build: AG | Verify: FB | Est. 3h | Wave 2 (start after T1 is verified) | Branch: `task/T4-drill` | Worktree: `../mp-T4`
 
 ## Goal
 The core game: the player memorizes a shuffled sequence of N cards by gliding locus to locus in the palace, then recalls the order at each locus.

@@ -66,6 +66,7 @@ A desktop web game where you walk a 3D memory palace and use it to memorize the 
 - [x] M0 Research and plan
 - [x] T0 Foundation: scaffold, contracts, deck, SRS, store, tests
 - [x] Mesh replan for AG + FB, MATHS.md, GitHub repo
+- [x] Queue coordinator `scripts/mesh.mjs` and identical queue prompts
 - [ ] Wave 1: M1 maths audit, T1 3D palace, T5 progress + staircase, T2 card images, T3 trainer
 - [ ] Wave 2: T8a living rules, T12 settings, T4 drill, T6 home
 - [ ] Wave 3: T7 integration (playable v1), T10 deploy

@@ -1,6 +1,6 @@
 # T12 - Settings screen and accessibility
 
-- Build: FB | Verify: AG | Est. 1.5h | Wave 2 (start after T3 is merged; it edits the trainer) | Branch: `task/T12-settings` | Worktree: `../mp-T12`
+- Build: FB | Verify: AG | Est. 1.5h | Wave 2 (start after T3 is verified; it edits the trainer) | Branch: `task/T12-settings` | Worktree: `../mp-T12`
 
 ## Goal
 Let players tune motion, sound, colours and captions, and make the 2D screens usable for everyone. Maths in `MATHS.md` section 10.

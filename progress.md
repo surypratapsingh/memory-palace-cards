@@ -1,6 +1,13 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-20 - Queue prompts and git-state coordinator
+- Done: `scripts/mesh.mjs` (status, next AG|FB --wait) + `scripts/mesh.test.mjs` (3 tests). TASKS.md: board with explicit Needs lists, Q1 split into Q1-AG/Q1-FB, strict commit subjects, queue prompts section. Packets start on "verified" instead of "merged". T1 lock test now written by FB at T1 PASS (`src/redteam/T1-lock.test.ts`); T9 updated. Supersedes the previous entry's "Next" (no manual dispatch, no Lead lock test).
+- Found: agents had started under the old dispatch. AG is building T1 in `../mp-T1` (correct). FB started M1 in the main folder (wrong place): uncommitted `src/store.ts` + `src/math.test.ts`. Not committed by the Lead.
+- In progress: moving FB's M1 work to branch `task/M1-maths` in `../mp-M1` once FB's current session stops writing.
+- Next: Lead turn = `node scripts/mesh.mjs status`; if the main folder is dirty with agent work, move it to the task branch; merge verified tasks; answer blocked/lead tasks; push. Agents run the queue prompts in TASKS.md.
+- Blockers: none.
+
 ## 2026-10-20 - Mesh replan for Antigravity + Freebuff, MATHS.md, GitHub
 - Done: Replaced the Sonnet/Haiku assignment with a two-lane mesh: AG builds 3D/UI, FB builds logic/maths/settings/integration/CI, each verifies the other (TASKS.md "The mesh": red-team tests, mutation checks, severity, evidence, mesh score). New packets: M1 maths audit, T8a living rules, T8b living palace, T9, T10, T11 first 90 s, T12 settings, Q1 bug bash; T1-T7 rewritten. MATHS.md written and numbers checked against the code. Contracts: SaveData.settings, showCard opacity, setGlideMs, save() never throws, strength colour tokens in style.css. 6 tests pass, build passes. Old unrelated README moved to docs/agent-orchestrator-README.md. GitHub repo created (private) and pushed.
 - In progress: nothing.

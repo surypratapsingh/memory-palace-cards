@@ -1,6 +1,6 @@
 # T7 - Integration: playable v1
 
-- Build: FB | Verify: AG (browser playtest) + Lead (code review) | Est. 2.5h | Wave 3 (start after T2, T3, T4, T5, T6, T12 are merged) | Branch: `task/T7-integrate` | Worktree: `../mp-T7`
+- Build: FB | Verify: AG (browser playtest) + Lead (code review) | Est. 2.5h | Wave 3 (start after T2, T3, T4, T5, T6, T12 are verified) | Branch: `task/T7-integrate` | Worktree: `../mp-T7`
 
 ## Goal
 Wire all screens into one app at `index.html`.

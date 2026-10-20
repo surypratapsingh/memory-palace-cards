@@ -113,3 +113,9 @@ Format per entry:
 - Context: User asked for a GitHub repo without saying public or private. Private is the safe default.
 - Alternatives rejected: public (can be switched any time by the user).
 - Consequences: GitHub Pages (T10) needs a paid plan on a private repo; T10 reports if it is not available.
+
+## 2026-10-20 - Queue coordination by git state (scripts/mesh.mjs)
+- Decision: Agents get every job from `node scripts/mesh.mjs next AG|FB --wait`. Task state comes from strict commit subjects on each task branch (`T1: ...`, `T1: fix round n`, `V-T1 round n: PASS|CHANGES`, `BLOCKED T1: ...`, `LEAD T1: ...`). A dependency counts as met when it is verified, not only merged; the new branch merges the verified dependency branches. Priority per agent: fix own work, continue own build, verify the other agent, start the next build, else wait.
+- Context: User puts many identical prompts in each agent's queue and wants agents to wait for and coordinate with each other without editing task IDs.
+- Alternatives rejected: one prompt per task ID (user found it confusing); a shared status file edited by agents (races and merge conflicts); the Lead hands out every job (Lead becomes the bottleneck); dependencies met only after a Lead merge (agents idle until the Lead runs).
+- Consequences: Commit subjects must be exact. The main folder must stay clean: while it has uncommitted changes, no new BUILD jobs are handed out. The T1 lock test moves to FB's T1 verification (`src/redteam/T1-lock.test.ts`) because the Lead may not merge T1 before T9 starts.

@@ -1,6 +1,6 @@
 # T8b - Living palace in the game
 
-- Build: AG | Verify: FB | Est. 2h | Wave 4 (start after T7 and T8a are merged) | Branch: `task/T8b-living` | Worktree: `../mp-T8b`
+- Build: AG | Verify: FB | Est. 2h | Wave 4 (start after T7 and T8a are verified) | Branch: `task/T8b-living` | Worktree: `../mp-T8b`
 
 ## Goal
 The palace visibly reacts to the player's memory, without ever moving a locus (decisions.md). Uses the pure rules from `src/living.ts` (T8a).

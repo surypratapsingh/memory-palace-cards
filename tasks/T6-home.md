@@ -1,6 +1,6 @@
 # T6 - Home screen
 
-- Build: AG | Verify: FB | Est. 2.5h | Wave 2 (start after T5 is merged into main) | Branch: `task/T6-home` | Worktree: `../mp-T6`
+- Build: AG | Verify: FB | Est. 2.5h | Wave 2 (start after T5 is verified) | Branch: `task/T6-home` | Worktree: `../mp-T6`
 
 ## Goal
 The screen players see every day. It must make the next action obvious and show progress, so people come back (see "Retention" in plan.md).

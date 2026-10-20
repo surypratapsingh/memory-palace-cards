@@ -1,6 +1,6 @@
 # T10 - Deploy: CI and GitHub Pages
 
-- Build: FB | Verify: AG | Est. 1h | Wave 3 (start after T7 is merged) | Branch: `task/T10-deploy` | Worktree: `../mp-T10`
+- Build: FB | Verify: AG | Est. 1h | Wave 3 (start after T7 is verified) | Branch: `task/T10-deploy` | Worktree: `../mp-T10`
 
 ## Goal
 Every push to `main` runs the tests and publishes the game.

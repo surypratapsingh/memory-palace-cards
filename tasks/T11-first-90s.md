@@ -1,6 +1,6 @@
 # T11 - First 90 seconds (onboarding)
 
-- Build: AG | Verify: FB | Est. 1.5h | Wave 4 (start after T8b is merged) | Branch: `task/T11-first-90s` | Worktree: `../mp-T11`
+- Build: AG | Verify: FB | Est. 1.5h | Wave 4 (start after T8b is verified) | Branch: `task/T11-first-90s` | Worktree: `../mp-T11`
 
 ## Goal
 A new player proves the method works on them within 90 seconds, with no setup and no reading wall (plan.md, Retention 1).

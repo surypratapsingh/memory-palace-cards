@@ -80,4 +80,5 @@ In `../mp-T1`: `npm install`, `npm test`, `npm run build`, paste counts.
 2. **Mutation check**: move one locus 1 m toward its neighbour, run `npm test`, confirm `palace.test.ts` fails, undo with `git checkout -- src`. Same for changing the `4t³` branch of `easeInOutCubic` to `3t³`.
 3. **Code review of `src/scene/`**: count `addEventListener` vs `removeEventListener`; `setAnimationLoop(null)`, `renderer.dispose()`, `ResizeObserver.disconnect()` in `dispose`; textures from canvases disposed when a card is replaced (GPU leak); a second `glideTo` during a glide resolves the first promise; `glideMs = 0` path; imports only from the allowed list; no `any` without a reason.
 4. Look at the 4 screenshots: rooms easy to tell apart? Neighbouring objects different?
+5. **Lock test** (only in the round you PASS): write `src/redteam/T1-lock.test.ts` that freezes every locus as a literal table (index, room, name, kind, pos, face), copied from the PASSing code, and asserts `LOCI` deep-equals it. From then on, any move of a locus fails `npm test` (T9 depends on this).
 Write "Verification" as TASKS.md says. The Lead does the browser check at merge.
