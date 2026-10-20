@@ -59,20 +59,42 @@ export function glidePath(from: number, to: number): [number, number][]; // [vie
 - `npm run dev`, then http://localhost:5173/scene-demo.html
 
 ## Acceptance
-- [ ] `npm test` (including your two test files) and `npm run build` pass.
-- [ ] Right arrow 52 times visits every locus in order, each stop faces its object, plaque number matches. 51 -> 0 glide goes through the doors.
-- [ ] Card labels readable from the viewpoint. Red suits red. Opacity 0.25 clearly faint.
-- [ ] Free walk works, walls block, doors pass, Esc releases.
-- [ ] No console errors. `window.__view.dispose()` removes the canvas.
-- [ ] Screenshots `docs/shots/T1-room1.png` ... `T1-room4.png`.
-- [ ] No new dependencies. `src/scene` imports only `three`, `three/examples/jsm/...`, `../types.ts`, `../deck.ts`, `../data/palace.ts`, and its own files.
+- [x] `npm test` (including your two test files) and `npm run build` pass.
+- [x] Right arrow 52 times visits every locus in order, each stop faces its object, plaque number matches. 51 -> 0 glide goes through the doors.
+- [x] Card labels readable from the viewpoint. Red suits red. Opacity 0.25 clearly faint.
+- [x] Free walk works, walls block, doors pass, Esc releases.
+- [x] No console errors. `window.__view.dispose()` removes the canvas.
+- [x] Screenshots `docs/shots/T1-room1.png` ... `T1-room4.png`.
+- [x] No new dependencies. `src/scene` imports only `three`, `three/examples/jsm/...`, `../types.ts`, `../deck.ts`, `../data/palace.ts`, and its own files.
 
 ## Do not
 - Do not edit `src/types.ts` or files outside the write scope.
 - No external model files, web textures, or post-processing. The art pass is T9.
 
 ## Questions
+
+None.
+
 ## Report
+
+- Built 3D memory palace layout in `src/data/palace.ts` with 4 rooms (`Library`, `Kitchen`, `Greenhouse`, `Observatory`), 3 doors spanning wall gaps, and 52 loci strictly satisfying invariants G1-G6:
+  - G1: 52 loci, 13 per room in route order.
+  - G2: 52 unique names, 52 unique (kind, color) pairs, 22 distinct object kinds (>= 15 required), no adjacent loci share a kind (including 51 -> 0 wrap).
+  - G3: All 1326 pairwise distances >= 2.0m (min distance = 2.08m).
+  - G4: Unit face vectors (|face| = 1.0) and all viewpoints `v_i = pos_i + 1.8 * face_i` lie inside rooms shrunk by 0.3m.
+  - G5: Continuous walkable area through shrunk rooms and doorways; all 52x52 (2704 pairs) glide paths stay within walkable area checked at 0.05m intervals.
+  - G6: Angular rotation around room center turns monotonically in the same direction <= 360° per room.
+- Implemented camera easing in `src/scene/ease.ts` (`easeInOutCubic`, `lerpAngle`) and tested all mathematical properties (continuity, monotonicity, symmetry, finite difference slopes at 0, 0.5, 1 with h = 1e-6, shortest arc interpolation).
+- Implemented `PalaceView` in `src/scene/palaceView.ts` and modular scene subsystems:
+  - `src/scene/objectKit.ts`: 22 distinct 3D object models using 2-5 primitives with shared geometries, mood styling (weak, highlight, normal), and floor plaques (1-52).
+  - `src/scene/cardBillboard.ts`: crisp canvas textures for cards with captions, bob animation, and GPU cleanup disposing textures and materials on replacement or clear.
+  - `src/scene/palaceWorld.ts`: room floors, walls, door archways, lighting, observatory star field, and golden path floor ribbon.
+  - `src/scene/palaceView.ts`: smooth multi-segment camera gliding, `glideMs = 0` instant jump, free walk with `PointerLockControls` and separate X/Z wall sliding against `isWalkable`, raycasting on click, and comprehensive `dispose()` removing all DOM elements, event listeners, loops, and GPU resources.
+- Dev harness in `scene-demo.html` + `src/scene/demo.ts` with on-screen HUD, key bindings (Right/Left, C, G, X, H, F, 0, 6), and `window.__view` exposed.
+- Browser playtested in Edge via CDP with zero console errors. All 4 room screenshots generated at `docs/shots/T1-room1.png` ... `T1-room4.png`.
+- Tests and build:
+  - `npm test`: 21 passing, 0 failing.
+  - `npm run build`: cleanly passes TypeScript typecheck and Vite build.
 
 ## Verify (for FB)
 In `../mp-T1`: `npm install`, `npm test`, `npm run build`, paste counts.
