@@ -46,16 +46,6 @@ None.
 6. [S2] Score() not called — FIXED: §2 now calls imported `score()` over 1000 fixed-seed pairs and checks formula invariants.
 7. [S2] Strength values/priority — FIXED: §3 constructs all five statuses and verifies fading priority.
 
-## Verification (round 3)
-Verdict: CHANGES
-Evidence: `npm test` -> 34 tests, 34 pass, 0 fail; `npm run build` -> `tsc && vite build` succeeded; `git diff --check` -> clean. Mutation checks: Sattolo shuffle mutant killed (five tests failed); removal of version validation mutant killed (two tests failed). Red-team `src/redteam/M1.test.ts` passes.
-Acceptance:
-- ✔ `npm test` and `npm run build` pass: 34/34 tests, build succeeds.
-- ✔ Sections 1-3 have formula-sensitive tests: three shuffle distributions, actual `score()` invariants, FSRS recall invariants and strength priority tests.
-- ✔ M1 store handling and repairs documented; corrupt loads, storage read/write failures, and save defaults are tested.
-Findings: No open round-2 findings. CHANGES verdict retained because independent AG verification and the remaining required mutation checks (score, State.New recall, localDay) are pending.
-Attacks tried that failed: (1) Sattolo shuffle mutant fails the §1 identity-permutation and chi-square tests; (2) removing version validation fails invalid-version import tests; (3) null/array optional fields and `srs` arrays are rejected; (4) corrupt-load cases return typed fresh saves and preserve corrupt input; (5) FSRS strength test confirms fading overrides high stability.
-
 ## Verify (for AG)
 In `../mp-M1`: run `npm test` and `npm run build`, paste the counts.
 1. **Mutation check** (tests the tests). Make each change below alone, run `npm test`, confirm at least one test fails, then undo with `git checkout -- src`. Report "killed" or "survived" for each. A survived mutant is an S2 finding against FB.
@@ -108,3 +98,27 @@ Findings:
 5. [S2] src/math.test.ts:201-220 - OPEN: load() corrupt test does not populate mock storage
 6. [S2] src/math.test.ts:100-120 - OPEN: score() from src/deck.ts is never called in math.test.ts
 7. [S2] src/math.test.ts:190-197 - OPEN: strength() only tests 'new', omits other 4 statuses and priority order
+
+## Verification (round 3)
+Verdict: PASS
+Evidence: npm test -> "pass 34, fail 0"; npm run build -> ok (built in 101ms); red-team: src/redteam/M1.test.ts (7 attacks passing)
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: 34 tests passing, 0 failing; build succeeds cleanly with 0 errors
+- ✔ Every section 1-3 of MATHS.md has at least one test that would fail if the formula changed: §1 52-bin chi-square, AS position, Daily Deck, and identity permutation; §2 score() called on 1000 pairs; §3 bracket, monotone, range, JSON round trip, and 5-state strength priority
+- ✔ Every bug fix has a test that fails on the old code: Bad-save policy documented under Report; build typing fix verified; corrupt load test properly verifies mock storage
+Findings: none (all 7 round 1/2 findings confirmed FIXED)
+
+Attacks tried that failed:
+1. Sattolo shuffle mutant (Math.floor(rand() * i)) killed by §1 identity permutation, §1 chi-square, and red-team chi-square tests (5 tests failed)
+2. Score mutant (run = i + 1) killed by §2 score() test and red-team score invariant tests (3 tests failed)
+3. FSRS recall mutant (return 1 for State.New) killed by §3 range test and core srs test (2 tests failed)
+4. Version check removal mutant killed by §7 importJson and red-team invalid-version tests (3 tests failed)
+5. localDay mutant (getUTCDate()) killed by §8 localDay and core deal deterministic tests (2 tests failed)
+6. Red-team store attacks with corrupt JSON, missing fields, wrong version numbers, and string versions properly handled
+
+Mutation checks:
+- Mutant 1 (`src/deck.ts` shuffle: `Math.floor(rand() * i)`): KILLED (5 tests failed)
+- Mutant 2 (`src/deck.ts` score: `run = i + 1`): KILLED (3 tests failed)
+- Mutant 3 (`src/srs.ts` recall: return 1 for State.New): KILLED (2 tests failed)
+- Mutant 4 (`src/store.ts` parse: remove version check): KILLED (3 tests failed)
+- Mutant 5 (`src/deck.ts` localDay: `getUTCDate()`): KILLED (2 tests failed)
