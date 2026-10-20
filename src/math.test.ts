@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DECK, deal, isCardId, localDay, score, shuffle } from './deck.ts';
+import { DECK, deal, isCardId, localDay, rng, score, shuffle } from './deck.ts';
 import { Rating, isDue, newSrs, recall, review, strength } from './srs.ts';
 import { emptySave, importJson, load, save, setSaveErrorHandler } from './store.ts';
 
@@ -20,31 +20,35 @@ function chiSquare(counts: readonly number[], expected: number): number {
   return sum;
 }
 
-function countFirstCardSuits(n: number): number[] {
-  const counts = [0, 0, 0, 0]; // S, H, D, C
-  for (let i = 0; i < n; i++) {
-    const card = deal(1, 's' + i)[0];
-    if (card) {
-      const suit = card[1] as 'S' | 'H' | 'D' | 'C';
-      if (suit === 'S') counts[0]++;
-      else if (suit === 'H') counts[1]++;
-      else if (suit === 'D') counts[2]++;
-      else if (suit === 'C') counts[3]++;
-    }
-  }
+function cardCounts(cards: readonly string[]): number[] {
+  const indices = new Map(DECK.map((card, index) => [card, index]));
+  const counts = new Array(DECK.length).fill(0);
+  for (const card of cards) counts[indices.get(card)!]++;
   return counts;
 }
 
-// §1: first card of deal(1, 's'+i), i < 10400, chi-square ≤ 87.97
-test('§1 first card of deal(1, seed) uniform (chi-square ≤ 87.97)', () => {
-  const counts = countFirstCardSuits(10400);
-  const e = 10400 / 4; // 2600 per suit
-  let sum = 0;
-  for (const c of counts) {
-    const d = c - e;
-    sum += (d * d) / e;
-  }
-  assert.ok(sum <= 87.97, `chi-square = ${sum.toFixed(2)} exceeds 87.97`);
+function dailySeed(i: number): string {
+  const date = new Date(2026, 0, 1);
+  date.setDate(date.getDate() + i);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+// §1 three distributions from the MATHS.md table, all across 52 card bins
+test('§1 first card distribution matches the 52-bin chi-square bound', () => {
+  const cards = Array.from({ length: 10400 }, (_, i) => deal(1, 's' + i)[0]);
+  assert.ok(chiSquare(cardCounts(cards), 200) <= 87.97);
+});
+
+test('§1 AS position distribution matches the 52-bin chi-square bound', () => {
+  const counts = new Array(52).fill(0);
+  for (let i = 0; i < 10400; i++) counts[deal(52, 'p' + i).indexOf('AS')]++;
+  assert.ok(chiSquare(counts, 200) <= 87.97);
+});
+
+test('§1 daily-deck first card distribution matches the 52-bin chi-square bound', () => {
+  const cards = Array.from({ length: 1092 }, (_, i) => deal(1, dailySeed(i))[0]);
+  assert.ok(chiSquare(cardCounts(cards), 21) <= 87.97);
 });
 
 // §1 neighbour independence: same-suit rate within ±0.015 of 12/51
@@ -87,35 +91,32 @@ test('§1 deal(52, seed) is a permutation of DECK', () => {
   }
 });
 
-// §1 shuffle does not change its input
-test('§1 shuffle does not change its input', () => {
+// §1 shuffle does not mutate input and permits fixed points (unlike Sattolo's algorithm)
+test('§1 shuffle copies its input and permits the identity permutation', () => {
   const items = ['a', 'b', 'c', 'd'];
-  const rand = () => 0.5;
-  const shuffled = shuffle(items, rand);
-  assert.deepEqual(new Set(shuffled), new Set(items));
+  const shuffled = shuffle(items, () => 0.999999);
+  assert.deepEqual(items, ['a', 'b', 'c', 'd']);
+  assert.deepEqual(shuffled, items);
+  assert.notStrictEqual(shuffled, items);
 });
 
 /* ── §2 Score correctness ──────────────────────────────────────────────────── */
 
-test('§2 on 1000 random sequence/answer pairs: 0 ≤ run ≤ correct ≤ total, run is first mismatch', () => {
+test('§2 score() on 1000 seeded sequence/answer pairs satisfies the invariants', () => {
+  const random = rng('M1-score-invariants');
   for (let i = 0; i < 1000; i++) {
-    const seq = deal(52, 'score' + i);
-    const answers: typeof seq[] = [];
-    let runFound = -1;
-    let correct = 0;
-    for (let j = 0; j < seq.length; j++) {
-      const wrong = Math.random() > 0.5;
-      const ans = wrong ? null : seq[j];
-      answers.push(ans);
-      if (ans === seq[j]) correct++;
-      else if (runFound < 0) runFound = j;
-    }
-    if (runFound < 0) runFound = seq.length;
-    assert.ok(0 <= runFound && runFound <= correct && correct <= seq.length,
-      `0 ≤ run ≤ correct ≤ total failed: run=${runFound}, correct=${correct}, total=${seq.length}`);
-    const expectedRun = answers.slice(0).findIndex((a: typeof answers[number], idx: number) => a !== seq[idx]);
-    if (expectedRun < 0) expectedRun = seq.length;
-    assert.strictEqual(runFound, expectedRun, `run not index of first mismatch on iteration ${i}`);
+    const sequence = deal(52, 'score' + i);
+    const answers = sequence.map((card) => {
+      const choice = random();
+      return choice < 0.5 ? card : choice < 0.75 ? null : 'AS';
+    });
+    const result = score(sequence, answers);
+    const expectedCorrect = answers.reduce((count, answer, index) => count + Number(answer === sequence[index]), 0);
+    const mismatch = answers.findIndex((answer, index) => answer !== sequence[index]);
+    assert.equal(result.total, sequence.length);
+    assert.equal(result.correct, expectedCorrect);
+    assert.equal(result.run, mismatch < 0 ? sequence.length : mismatch);
+    assert.ok(0 <= result.run && result.run <= result.correct && result.correct <= result.total);
   }
 });
 
@@ -185,15 +186,29 @@ test('§3 recall after JSON round trip equals recall on original within 1e-12', 
     `recall diff after round trip: ${Math.abs(rOriginal - rRoundTrip).toFixed(12)}`);
 });
 
-/* ── §3 strength() returns 5 values ────────────────────────────────────────── */
-
-test('§3 strength() returns each of the 5 values', () => {
+/* ── §3 strength() returns 5 values in the specified priority order ─────────── */
+test('§3 strength() returns new, fading, gilded, solid, and learning in priority order', () => {
   const t0 = new Date('2026-01-01T10:00:00Z');
-  const sNew = newSrs(t0);
-  assert.equal(strength(sNew), 'new', 'new card should be "new"');
-  let s = review(sNew, Rating.Good, t0);
-  assert.ok(strength(s) === 'fading' || strength(s) === 'learning',
-    `reviewed card strength should be "fading" or "learning", got "${strength(s)}"`);
+  const fresh = newSrs(t0);
+  assert.equal(strength(fresh, t0), 'new');
+
+  const faded = review(fresh, Rating.Easy, t0);
+  faded.stability = 200;
+  const farFuture = new Date('2028-01-01T10:00:00Z');
+  assert.ok(recall(faded, farFuture) < 0.8);
+  assert.equal(strength(faded, farFuture), 'fading');
+
+  const gilded = review(fresh, Rating.Easy, t0);
+  gilded.stability = 180;
+  assert.equal(strength(gilded, t0), 'gilded');
+
+  const solid = review(fresh, Rating.Good, t0);
+  solid.stability = 30;
+  assert.equal(strength(solid, t0), 'solid');
+
+  const learning = review(fresh, Rating.Good, t0);
+  learning.stability = 5;
+  assert.equal(strength(learning, t0), 'learning');
 });
 
 /* ── Store attacks ──────────────────────────────────────────────────────────── */
@@ -208,41 +223,84 @@ test('§7 load() must never throw', () => {
     '"x"',
     '{}',
     '{"version":1}',
+    '{"version":1,"srs":null,"drills":[]}',
+    '{"version":1,"srs":{},"drills":{}}',
+    '{"version":1,"srs":{},"drills":[],"images":[]}',
+    '{"version":1,"srs":{},"drills":[],"locusStats":5}',
+    '{"version":1,"srs":{},"drills":[],"streak":"x"}',
+    '{"version":1,"srs":{},"drills":[],"settings":null}',
+    '{"version":1,"srs":[],"drills":[]}',
+    '{"version":1,"srs":{},"drills":[],"settings":[]}',
+    '{"version":1,"srs":{},"drills":[],"version":"1"}',
   ];
   for (const input of corruptInputs) {
     st.m.clear();
+    st.setItem('memory-palace/v1', input);
     try {
-      load(st);
+      const loaded = load(st);
+      assert.equal(typeof loaded.version, 'number');
+      assert.ok(loaded.images && typeof loaded.images === 'object' && !Array.isArray(loaded.images));
+      assert.ok(loaded.srs && typeof loaded.srs === 'object' && !Array.isArray(loaded.srs));
+      assert.ok(Array.isArray(loaded.drills));
+      assert.ok(loaded.locusStats && typeof loaded.locusStats === 'object' && !Array.isArray(loaded.locusStats));
+      assert.ok(loaded.streak && typeof loaded.streak.lastDay === 'string');
+      assert.ok(loaded.settings && typeof loaded.settings.glideMs === 'number');
+      assert.equal(st.m.get('memory-palace/v1/corrupt'), input);
     } catch (e) {
       assert.fail(`load() threw on input "${input.substring(0, 20)}": ${e}`);
     }
   }
 });
 
+test('§7 load() returns a fresh save if storage reads or corrupt backups throw', () => {
+  const unreadable = { getItem: () => { throw new Error('blocked'); }, setItem: () => {} };
+  assert.deepEqual(load(unreadable), emptySave());
+
+  const backupFails = {
+    getItem: () => '{broken',
+    setItem: () => { throw new Error('quota'); },
+  };
+  assert.deepEqual(load(backupFails), emptySave());
+});
+
+test('§7 valid minimal save is repaired with correctly typed defaults and preserves valid values', () => {
+  const repaired = importJson('{"version":1,"srs":{},"drills":[],"settings":{"sound":true}}');
+  assert.equal(repaired.version, 1);
+  assert.ok(!Array.isArray(repaired.images));
+  assert.deepEqual(repaired.srs, {});
+  assert.deepEqual(repaired.drills, []);
+  assert.deepEqual(repaired.locusStats, {});
+  assert.deepEqual(repaired.streak, { lastDay: '', count: 0, freezes: 0 });
+  assert.deepEqual(repaired.settings, { glideMs: 600, sound: true, colorSafe: false, captions: true });
+});
+
 test('§7 importJson throws Error("Not a memory palace save file") for bad inputs', () => {
   const st = fakeStorage();
   const badInputs = [
     '{broken',
+    'null',
     '[]',
     '42',
-    '{"version":2}',
+    '"x"',
     '{}',
-    '{"version":1,"srs":null}',
-    '{"version":1,"drills":{}}',
-    '{"version":1,"images":[]}',
-    '{"version":1,"locusStats":5}',
-    '{"version":1,"streak":"x"}',
-    '{"version":1,"settings":null}',
-    '{"version":"1"}',
+    '{"version":1}',
+    '{"version":2,"srs":{},"drills":[]}',
+    '{"version":"1","srs":{},"drills":[]}',
+    '{"version":1,"srs":null,"drills":[]}',
+    '{"version":1,"srs":{},"drills":{}}',
+    '{"version":1,"srs":{},"drills":[],"images":[]}',
+    '{"version":1,"srs":{},"drills":[],"locusStats":5}',
+    '{"version":1,"srs":{},"drills":[],"streak":"x"}',
+    '{"version":1,"srs":{},"drills":[],"settings":null}',
+    '{"version":1,"srs":[],"drills":[]}',
+    '{"version":1,"srs":{},"drills":[],"settings":[]}',
   ];
   for (const input of badInputs) {
-    try {
-      importJson(input);
-      assert.fail(`importJson should throw on "${input.substring(0, 20)}"`);
-    } catch (e) {
-      assert.ok(e instanceof Error && e.message === 'Not a memory palace save file',
-        `importJson should throw "Not a memory palace save file", got: ${e.message}`);
-    }
+    assert.throws(
+      () => importJson(input),
+      (error: unknown) => error instanceof Error && error.message === 'Not a memory palace save file',
+      `importJson should reject ${input.substring(0, 40)} with the standard error`,
+    );
   }
 });
 

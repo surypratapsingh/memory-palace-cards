@@ -23,12 +23,38 @@ Name each test after its `MATHS.md` section, for example `test('§1 first card i
 Tests that find a bug you cannot fix inside the write scope: keep them, mark with `{ todo: 'Lead: <one line>' }` so the suite stays green, and list them under "Report".
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass.
-- [ ] Every section 1-3 of `MATHS.md` has at least one test that would fail if the formula changed.
-- [ ] Every bug fix has a test that fails on the old code (say which in "Report").
+- [x] `npm test` and `npm run build` pass.
+- [x] Every section 1-3 of `MATHS.md` has at least one test that would fail if the formula changed.
+- [x] Every bug fix has a test that fails on the old code (say which in "Report").
 
 ## Questions
+None.
+
 ## Report
+- Bad-save policy: reject malformed JSON, non-object roots, incorrect/missing version, missing or invalid `srs`, and missing or invalid `drills`. Optional `images`, `locusStats`, `streak`, and `settings` may be omitted and repaired to typed defaults; if supplied as `null`, an array, or another invalid type, reject. On `load`, corrupt input is backed up under `memory-palace/v1/corrupt` when storage permits, then play starts with `emptySave`; a storage read/backup failure never prevents starting fresh (covered by §7 storage failure test). Valid supplied values (including user settings) are retained.
+- The store-build repair in `src/store.ts` was required because parsed `streak` and `locusStats` values were not narrowed/cast to their SaveData contract. The accepted fix is verified by `npm run build`; test coverage below exercises parse errors and defaults, but does not directly make the old type-only compile failure fail at runtime.
+- Red-team fix: the initial corrupt-load test forgot to populate storage. It now sets `memory-palace/v1` for every input and checks the returned typed save and preserved corrupt backup.
+- Score test now calls `score()` for 1000 pairs generated with the project's fixed-seed `rng`; the fixed-seed check checks actual behavior, not duplicated scoring logic.
+- Strength test constructs `new`, `fading`, `gilded`, `solid`, and `learning` states and checks priority (fading overrides high stability).
+
+### Builder replies to Verification (round 2)
+1. [S1] `src/store.ts:89-93` — FIXED in `5020d65`; compilation succeeds.
+2. [S2] Acceptance and report documentation — FIXED here; checklist completed and bad-save policy/fix rationale recorded.
+3. [S2] Mutation 1 (Sattolo shuffle) — FIXED in `§1 shuffle copies its input and permits the identity permutation`: rand near 1 must leave the final position fixed, so `floor(rand()*i)` fails.
+4. [S2] Mutation 4 (remove version check) — FIXED in `§7 importJson ...`: tests reject full saves with wrong/string version and explicitly require the version 1 minimal save to be valid.
+5. [S2] Corrupt load harness — FIXED: each input is inserted via `st.setItem`, and tests assert fresh typed save plus corrupt backup.
+6. [S2] Score() not called — FIXED: §2 now calls imported `score()` over 1000 fixed-seed pairs and checks formula invariants.
+7. [S2] Strength values/priority — FIXED: §3 constructs all five statuses and verifies fading priority.
+
+## Verification (round 3)
+Verdict: CHANGES
+Evidence: `npm test` -> 34 tests, 34 pass, 0 fail; `npm run build` -> `tsc && vite build` succeeded; `git diff --check` -> clean. Mutation checks: Sattolo shuffle mutant killed (five tests failed); removal of version validation mutant killed (two tests failed). Red-team `src/redteam/M1.test.ts` passes.
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: 34/34 tests, build succeeds.
+- ✔ Sections 1-3 have formula-sensitive tests: three shuffle distributions, actual `score()` invariants, FSRS recall invariants and strength priority tests.
+- ✔ M1 store handling and repairs documented; corrupt loads, storage read/write failures, and save defaults are tested.
+Findings: No open round-2 findings. CHANGES verdict retained because independent AG verification and the remaining required mutation checks (score, State.New recall, localDay) are pending.
+Attacks tried that failed: (1) Sattolo shuffle mutant fails the §1 identity-permutation and chi-square tests; (2) removing version validation fails invalid-version import tests; (3) null/array optional fields and `srs` arrays are rejected; (4) corrupt-load cases return typed fresh saves and preserve corrupt input; (5) FSRS strength test confirms fading overrides high stability.
 
 ## Verify (for AG)
 In `../mp-M1`: run `npm test` and `npm run build`, paste the counts.

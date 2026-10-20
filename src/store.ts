@@ -35,7 +35,7 @@ function parse(text: string): SaveData {
   }
 
   // srs must be an object, not null (typeof null === 'object', so explicit null check)
-  if (obj.srs === null || typeof obj.srs !== 'object') {
+  if (obj.srs === null || typeof obj.srs !== 'object' || Array.isArray(obj.srs)) {
     throw new Error('Not a memory palace save file');
   }
 
@@ -45,17 +45,17 @@ function parse(text: string): SaveData {
   }
 
   // images must be an object (not null, not array) when present
-  if (obj.images != null && (typeof obj.images !== 'object' || Array.isArray(obj.images))) {
+  if (Object.hasOwn(obj, 'images') && (obj.images === null || typeof obj.images !== 'object' || Array.isArray(obj.images))) {
     throw new Error('Not a memory palace save file');
   }
 
   // locusStats must be an object (not null, not array) when present
-  if (obj.locusStats != null && (typeof obj.locusStats !== 'object' || Array.isArray(obj.locusStats))) {
+  if (Object.hasOwn(obj, 'locusStats') && (obj.locusStats === null || typeof obj.locusStats !== 'object' || Array.isArray(obj.locusStats))) {
     throw new Error('Not a memory palace save file');
   }
 
   // streak must be an object with required fields when present
-  if (obj.streak != null && typeof obj.streak !== 'object') {
+  if (Object.hasOwn(obj, 'streak') && (obj.streak === null || typeof obj.streak !== 'object' || Array.isArray(obj.streak))) {
     throw new Error('Not a memory palace save file');
   }
   if (obj.streak != null) {
@@ -73,7 +73,7 @@ function parse(text: string): SaveData {
   }
 
   // settings must be an object when present
-  if (obj.settings != null && typeof obj.settings !== 'object') {
+  if (Object.hasOwn(obj, 'settings') && (obj.settings === null || typeof obj.settings !== 'object' || Array.isArray(obj.settings))) {
     throw new Error('Not a memory palace save file');
   }
 
@@ -102,12 +102,20 @@ function parse(text: string): SaveData {
 
 /** Never throws. A corrupt save is kept under KEY + "/corrupt" so it is not lost, then play starts fresh. */
 export function load(storage: Storage = localStorage): SaveData {
-  const text = storage.getItem(KEY);
-  if (!text) return emptySave();
   try {
-    return parse(text);
+    const text = storage.getItem(KEY);
+    if (!text) return emptySave();
+    try {
+      return parse(text);
+    } catch {
+      try {
+        storage.setItem(KEY + '/corrupt', text);
+      } catch {
+        // A failed backup must not prevent play from starting with a fresh save.
+      }
+      return emptySave();
+    }
   } catch {
-    storage.setItem(KEY + '/corrupt', text);
     return emptySave();
   }
 }
