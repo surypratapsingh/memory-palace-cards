@@ -1,5 +1,5 @@
 import { CARD_IMAGES } from './data/cardImages.ts';
-import type { CardId, SaveData } from './types.ts';
+import type { CardId, SaveData, SrsState } from './types.ts';
 
 const KEY = 'memory-palace/v1';
 
@@ -7,8 +7,8 @@ type Storage = Pick<globalThis.Storage, 'getItem' | 'setItem'>;
 
 export const emptySave = (): SaveData => ({
   version: 1,
-  images: {},
-  srs: {},
+  images: {} as Record<CardId, string>,
+  srs: {} as Record<CardId, SrsState>,
   drills: [],
   locusStats: {},
   streak: { lastDay: '', count: 0, freezes: 0 },
@@ -60,16 +60,14 @@ function parse(text: string): SaveData {
   }
   if (obj.streak != null) {
     // TypeScript narrowing: streak is guaranteed to be an object here
-    const s: { lastDay: string; count: number; freezes: number } = (
-      obj.streak as { lastDay: string; count: number; freezes: number }
-    );
-    if (typeof s.lastDay !== 'string') {
+    const streakObj: { lastDay: string; count: number; freezes: number } = obj.streak as { lastDay: string; count: number; freezes: number };
+    if (typeof streakObj.lastDay !== 'string') {
       throw new Error('Not a memory palace save file');
     }
-    if (typeof s.count !== 'number') {
+    if (typeof streakObj.count !== 'number') {
       throw new Error('Not a memory palace save file');
     }
-    if (typeof s.freezes !== 'number') {
+    if (typeof streakObj.freezes !== 'number') {
       throw new Error('Not a memory palace save file');
     }
   }
@@ -83,14 +81,14 @@ function parse(text: string): SaveData {
   const src = d as Record<string, unknown>;
   const result: SaveData = {
     version: 1,
-    images: src.images != null && typeof src.images === 'object' ? src.images : {},
-    srs: src.srs != null && typeof src.srs === 'object' ? src.srs : {},
+    images: src.images != null && typeof src.images === 'object' ? src.images : {} as Record<CardId, string>,
+    srs: src.srs != null && typeof src.srs === 'object' ? src.srs : {} as Record<CardId, SrsState>,
     drills: Array.isArray(src.drills) ? src.drills : [],
-    locusStats: src.locusStats != null && typeof src.locusStats === 'object' ? src.locusStats : {},
+    locusStats: src.locusStats != null && typeof src.locusStats === 'object' ? (src.locusStats as Record<number, { tries: number; misses: number }>) : {} as Record<number, { tries: number; misses: number }>,
     streak: src.streak != null && typeof src.streak === 'object' ? {
-      lastDay: typeof src.streak.lastDay === 'string' ? src.streak.lastDay : '',
-      count: typeof src.streak.count === 'number' ? src.streak.count : 0,
-      freezes: typeof src.streak.freezes === 'number' ? src.streak.freezes : 0,
+      lastDay: typeof (src.streak as { lastDay: string }).lastDay === 'string' ? (src.streak as { lastDay: string }).lastDay : '',
+      count: typeof (src.streak as { count: number }).count === 'number' ? (src.streak as { count: number }).count : 0,
+      freezes: typeof (src.streak as { freezes: number }).freezes === 'number' ? (src.streak as { freezes: number }).freezes : 0,
     } : { lastDay: '', count: 0, freezes: 0 },
     settings: src.settings != null && typeof src.settings === 'object' ? {
       glideMs: 'glideMs' in src.settings ? Number(src.settings.glideMs) : 600,
