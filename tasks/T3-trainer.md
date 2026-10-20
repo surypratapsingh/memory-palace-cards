@@ -81,3 +81,26 @@ In `../mp-T3`: `npm install`, `npm test`, `npm run build` (paste counts), `npm r
 7. Read `src/ui/trainer.ts`: no `innerHTML` with dynamic text, listeners removed on unmount.
 8. In the console run `document.documentElement.classList.add('color-safe')`: tiles switch palette and show markers. Screenshot `docs/shots/T3-1.png`.
 Write "Verification" with PASS or CHANGES and numbered findings.
+
+
+## Verification (round 1)
+Verdict: PASS
+Evidence: npm test -> "pass 20, fail 0"; npm run build -> ok (built in 79ms); screenshot: docs/shots/T3-1.png
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: 20 tests pass, 0 fail; build succeeds cleanly with 0 errors
+- ✔ Learn 8 new cards and rate them using only the keyboard: verified via browser CDP driving Enter, Space, and 1-4 keys to session completion
+- ✔ Reload the demo page: progress and edited images are kept: verified via localStorage persistence and reload
+- ✔ No user or image text goes through `innerHTML`: verified via code review and browser XSS test (`<img src=x onerror=alert(1)>` rendered literally as text with 0 img tags inserted)
+- ✔ Unmount leaves no DOM nodes or key listeners behind: verified `document.removeEventListener('keydown')` and `shell.remove()` on unmount/Esc
+- ✔ Queue logic is a pure exported function `buildQueue(data: SaveData, now: Date): CardId[]` with tests in `src/ui/trainer.test.ts`: verified pure function exported from src/ui/trainer.ts:12
+- ✔ Demo: `npm run dev`, open http://localhost:5173/trainer-demo.html: verified at `/trainer-demo.html` with 52 tiles, color-safe mode, and screenshot in docs/shots/T3-1.png
+Findings: none
+
+Attacks tried that failed:
+1. `buildQueue` on empty save: returns exactly the first 8 cards of DECK in route order
+2. `buildQueue` with all 52 cards due: sorts all 52 cards strictly by due date ascending (oldest due first)
+3. `buildQueue` with JSON ISO string dates in `srs.due`: parsed and compared correctly without NaN
+4. `buildQueue` with future due dates: cards with future due dates properly excluded from queue
+5. `buildQueue` with foreign/corrupt SRS keys: non-card keys (e.g. 'FOO', '10S', '') completely filtered out
+6. XSS attack in image input (`<img src=x onerror=alert(1)>`): safely handled via `textContent`, 0 injected elements
+7. Palette switch in color-safe mode: verified with `document.documentElement.classList.add('color-safe')`, screenshot saved to `docs/shots/T3-1.png`
