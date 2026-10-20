@@ -81,3 +81,35 @@ Format per entry:
 - Context: User runs several cheap agents (Sonnet 5.5, Haiku 5.5, Freebuff, Antigravity) on one local folder. Shared folder + branch switching would collide.
 - Alternatives rejected: everyone on main (overwrites); one agent does all (slower, costlier).
 - Consequences: Shared contracts were built first (T0) so parallel tasks code against stable interfaces. Assignment: Sonnet = hard builds (3D, drill, integration) and logic reviews; Haiku = data and pure logic; Freebuff = bounded UI screen; Antigravity = home UI, art, and browser playtests; Opus = contracts and final review.
+
+## 2026-10-20 - Two-agent verification mesh (Antigravity + Freebuff), Claude Code as Lead
+- Supersedes the agent assignment in "Multi-agent workflow" above (Sonnet/Haiku lanes). Task packets, worktrees and Lead-owned contracts stay.
+- Decision: Only Antigravity (AG) and Freebuff (FB) build. Each task is built by one and verified by the other. Verifiers must try to break the work: red-team tests in `src/redteam/<ID>.test.ts`, mutation checks (break the code on purpose, a test must fail), evidence for every acceptance item, S1/S2/S3 severity, max 3 rounds, Lead settles disputes. A mesh score rewards confirmed findings and first-round passes.
+- Context: User wants the top models of Antigravity and Freebuff to do 10-20+ hours of work and check each other. AG has a browser, so it builds 3D/UI and playtests; FB builds pure logic, maths, settings, integration and CI, and verifies AG's work through code review and tests. The Lead does the browser check at merge for AG's visual tasks.
+- Alternatives rejected: one agent builds everything (no independent check); peer review without tests (approval by politeness); both agents on the same task (write collisions).
+- Consequences: ~45 agent-hours on the board. Red-team tests stay as regression tests. Pure logic is split out of every UI task (drill-logic, sparkline, router, settings, living) so FB can test AG's work without a browser.
+
+## 2026-10-20 - Maths spec file with measured numbers
+- Decision: `MATHS.md` holds every formula: shuffle uniformity (chi-square), FSRS-6 forgetting curve, 2-up/1-down staircase, empirical-Bayes weak loci, exponential ghost fade, easing, palace geometry invariants, WCAG contrast, capture-recapture bug estimate. Only the Lead edits it.
+- Context: User asked for "good maths" so agents build a correct product. Agents need one source to test against.
+- Alternatives rejected: formulas spread across task packets (drift between tasks).
+- Consequences: Lead checked the numbers with the real code (chi-square 38-63 vs limit 87.97, FSRS bracket on 32 histories, staircase success 0.702-0.703).
+
+## 2026-10-20 - Weak loci by empirical Bayes, ghosts by half-life
+- Supersedes the fixed "miss rate >= 40% over >= 5 tries" rule and the linear 12 h ghost fade in plan.md.
+- Decision: Weak locus = posterior miss rate `(misses + 5m)/(tries + 5)` at least 0.15 above the player's global miss rate m, with at least 3 tries, max 5 shown. Ghost opacity `0.35 · 2^(-h/2)`, hidden below 0.05, warning above 0.15.
+- Context: A fixed threshold flags noise on small samples and paints a beginner's whole palace red. Exponential fade has one clear parameter (half-life) and matches how interference fades.
+- Alternatives rejected: raw miss rate; Wilson lower bound (harder to explain, same effect); linear fade.
+- Consequences: Rules are pure functions in `src/living.ts` (T8a), tested against worked examples.
+
+## 2026-10-20 - Settings in SaveData; save() never throws
+- Decision: `SaveData.settings` (glideMs, sound, colorSafe, captions) with defaults merged on load. `PalaceView.showCard` takes `opacity` instead of `ghost`, and `setGlideMs(ms)` was added. `save()` catches storage errors, returns false and calls a handler set by `setSaveErrorHandler`.
+- Context: Reduced motion, colour-blind safety and quota/private-mode errors must be handled before screens are built. Changing contracts later would break parallel tasks.
+- Alternatives rejected: settings in a separate localStorage key (not exported with the save); every screen wrapping save in try/catch (easy to forget one).
+- Consequences: Old saves load with default settings. T12 adds `sanitizeSettings` for junk values.
+
+## 2026-10-20 - GitHub repo private by default
+- Decision: `surypratapsingh/memory-palace-cards`, private.
+- Context: User asked for a GitHub repo without saying public or private. Private is the safe default.
+- Alternatives rejected: public (can be switched any time by the user).
+- Consequences: GitHub Pages (T10) needs a paid plan on a private repo; T10 reports if it is not available.

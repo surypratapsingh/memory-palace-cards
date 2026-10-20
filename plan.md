@@ -35,7 +35,9 @@ A desktop web game where you walk a 3D memory palace and use it to memorize the 
 - Card image strength (FSRS recall) shown as colour: new grey, fading red, learning blue, solid green (30d+), gilded gold (180d+).
 - Weak locus: miss rate >= 40% over >= 5 tries -> dim red, with a tip to picture it bigger or stranger.
 - Leech card: 4+ lapses -> "Reforge" prompt to write a stranger image.
-- Ghosts: last drill's cards stay faint at loci and fade over 12 h. Warning if starting a drill over fresh ghosts.
+- Weak locus: chosen by empirical-Bayes shrinkage, relative to the player's own miss rate (MATHS.md section 5). Replaces the fixed 40% rule.
+- Ghosts: last drill's cards stay faint at loci, half-life 2 h, hidden after about 5.6 h (MATHS.md section 6). Warning if starting a drill over fresh ghosts.
+- Practice level follows a 2-up/1-down staircase, so the player practises where they succeed about 70% of the time (MATHS.md section 4).
 - Shadow walk: walk the route with cards hidden, click a locus to check what was there.
 - Never: moving loci, reordering rooms, quizzing items away from their locus.
 
@@ -56,13 +58,17 @@ A desktop web game where you walk a 3D memory palace and use it to memorize the 
 - UI screens mount into a DOM overlay over the 3D canvas: `src/ui/trainer.ts`, `src/ui/drill.ts`, `src/ui/home.ts`. `src/main.ts` routes between them.
 - Tests: `node --test` (Node 24 runs .ts directly). No test framework.
 - Build/verify: `npm test`, `npm run build`, `npm run dev`.
-- Multi-agent workflow: see TASKS.md (board, rules, worktrees) and tasks/*.md (one packet per task, build + verify sections).
+- Maths: MATHS.md holds every formula with tests and measured numbers.
+- Multi-agent workflow: Antigravity (AG) and Freebuff (FB) build in two lanes and verify each other (mesh: red-team tests, mutation checks, severity levels). Claude Code is the Lead/integrator. See TASKS.md and tasks/*.md.
+- Repo: https://github.com/surypratapsingh/memory-palace-cards (private).
 
 ## Milestones
 - [x] M0 Research and plan
 - [x] T0 Foundation: scaffold, contracts, deck, SRS, store, tests
-- [ ] Wave 1 (parallel): T1 3D palace, T2 card images, T3 trainer screen, T5 progress logic
-- [ ] Wave 2: T4 drill, T6 home screen
-- [ ] Wave 3: T7 integration, playable v1
-- [ ] Wave 4: T8 living palace, T9 art and sound, T10 deploy
+- [x] Mesh replan for AG + FB, MATHS.md, GitHub repo
+- [ ] Wave 1: M1 maths audit, T1 3D palace, T5 progress + staircase, T2 card images, T3 trainer
+- [ ] Wave 2: T8a living rules, T12 settings, T4 drill, T6 home
+- [ ] Wave 3: T7 integration (playable v1), T10 deploy
+- [ ] Wave 4: T8b living palace in game, T11 first 90 seconds, T9 art and sound
+- [ ] Wave 5: Q1 bug bash and cross-fix
 - [ ] Later: user-built palaces, other ordered content, PAO (3 cards per locus), mobile

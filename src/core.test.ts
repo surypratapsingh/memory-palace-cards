@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { CARD_IMAGES } from './data/cardImages.ts';
 import { DECK, cardLabel, deal, isCardId, localDay, score } from './deck.ts';
 import { Rating, isDue, newSrs, recall, review, strength } from './srs.ts';
-import { emptySave, importJson, load, save } from './store.ts';
+import { emptySave, importJson, load, save, setSaveErrorHandler } from './store.ts';
 
 const fakeStorage = () => {
   const m = new Map<string, string>();
@@ -57,6 +57,15 @@ test('store: round trip, corrupt save kept, bad import rejected', () => {
   assert.equal(st.m.get('memory-palace/v1/corrupt'), '{broken');
 
   assert.throws(() => importJson('{"version":2}'), /save file/);
+  const old = importJson('{"version":1,"srs":{},"drills":[],"settings":{"sound":true}}');
+  assert.equal(old.settings.sound, true);
+  assert.equal(old.settings.glideMs, 600, 'missing settings get defaults');
+
+  let err: unknown = null;
+  setSaveErrorHandler((e) => (err = e));
+  const full = { getItem: () => null, setItem: () => { throw new Error('QuotaExceededError'); } };
+  assert.equal(save(d, full), false, 'save never throws');
+  assert.ok(err instanceof Error);
 });
 
 test('card images are well formed', () => {

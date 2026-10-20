@@ -42,6 +42,16 @@ export interface Streak {
   freezes: number;
 }
 
+export interface Settings {
+  /** Camera glide duration in ms. 0 = instant (reduced motion). */
+  glideMs: number;
+  sound: boolean;
+  /** Colour-blind-safe palette plus shape markers for strength colours. */
+  colorSafe: boolean;
+  /** Show image captions under cards while memorizing. */
+  captions: boolean;
+}
+
 /** Everything persisted. Stored as one JSON document. */
 export interface SaveData {
   version: 1;
@@ -53,6 +63,7 @@ export interface SaveData {
   /** Per-locus drill stats, key = locus index. Drives "weak locus" visuals. */
   locusStats: Record<number, { tries: number; misses: number }>;
   streak: Streak;
+  settings: Settings;
 }
 
 // ---- 3D palace view (implemented by T1, used by T4/T7/T8) ----
@@ -73,12 +84,14 @@ export interface PalaceView {
   readonly loci: readonly LocusInfo[];
   /** Move the camera smoothly to stand in front of locus `index`, facing it. Resolves on arrival. */
   glideTo(index: number): Promise<void>;
-  /** Show a card (face + caption) floating at the locus. `card = null` clears it. `ghost` = faint, semi-transparent. */
-  showCard(index: number, card: CardId | null, opts?: { caption?: string; ghost?: boolean }): void;
+  /** Show a card (face + caption) floating at the locus. `card = null` clears it. `opacity` 0..1, default 1 (ghosts use less). */
+  showCard(index: number, card: CardId | null, opts?: { caption?: string; opacity?: number }): void;
   clearCards(): void;
   setLocusMood(index: number, mood: LocusMood): void;
   /** true = WASD + mouse look (pointer lock). false = guided mode, camera only moves via glideTo. */
   setFreeWalk(on: boolean): void;
+  /** Duration of later glideTo calls. 0 = jump instantly. */
+  setGlideMs(ms: number): void;
   /** Called when the user clicks a locus object. */
   onLocusClick(cb: (index: number) => void): void;
   dispose(): void;

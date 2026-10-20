@@ -21,3 +21,20 @@ button:hover, button:focus-visible { border-color: var(--accent); }
   box-shadow: 0 4px 12px #0008;
 }
 .card-face.red { color: #d11; }
+
+/* Memory-strength colours. Put data-strength="new|fading|learning|solid|gilded" on an element and use var(--s).
+   :root.color-safe switches to the Okabe-Ito palette and adds a shape marker, so colour is never the only signal. */
+:root {
+  --s-new: #64748b; --s-fading: #ef4444; --s-learning: #3b82f6; --s-solid: #22c55e; --s-gilded: #fbbf24;
+}
+:root.color-safe {
+  --s-new: #8a8a8a; --s-fading: #d55e00; --s-learning: #56b4e9; --s-solid: #009e73; --s-gilded: #f0e442;
+}
+[data-strength='new'] { --s: var(--s-new); }
+[data-strength='fading'] { --s: var(--s-fading); }
+[data-strength='learning'] { --s: var(--s-learning); }
+[data-strength='solid'] { --s: var(--s-solid); }
+[data-strength='gilded'] { --s: var(--s-gilded); }
+:root.color-safe [data-strength='fading']::after { content: '!'; }
+:root.color-safe [data-strength='solid']::after { content: '✓'; }
+:root.color-safe [data-strength='gilded']::after { content: '★'; }

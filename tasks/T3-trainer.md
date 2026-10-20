@@ -1,6 +1,6 @@
 # T3 - Card-image trainer screen
 
-- Builder: Freebuff | Verifier: Antigravity | Wave 1 | Branch: `task/T3-trainer` | Worktree: `../mp-T3`
+- Build: FB | Verify: AG | Est. 2.5h | Wave 1 | Branch: `task/T3-trainer` | Worktree: `../mp-T3`
 
 ## Goal
 A 2D screen where the player learns the 52 card images and reviews them with spaced repetition (FSRS). Desktop, keyboard first.
@@ -8,6 +8,7 @@ A 2D screen where the player learns the 52 card images and reviews them with spa
 ## Write scope
 - `src/ui/trainer.ts` (new)
 - `src/ui/trainer.css` (new)
+- `src/ui/trainer.test.ts` (new)
 - `trainer-demo.html` + `src/ui/trainer-demo.ts` (new, dev harness)
 
 ## Use these existing modules (do not edit them)
@@ -30,7 +31,7 @@ Returns an unmount function that removes everything it added (DOM and key listen
 3. **Test card**: show `cardFace` only. Player recalls the image. Space = reveal image. Rate with keys 1 Again, 2 Hard, 3 Good, 4 Easy (also buttons): `data.srs[card] = review(data.srs[card], grade)`. Again = put the card back at the end of the queue.
 4. **Reforge**: if the card is rated Again and its `lapses >= 4`, show "This image isn't sticking. Make it stranger:" with the image input focused.
 5. Progress text: "7 left".
-6. **Overview grid** (top of screen): 52 small tiles, one per card in DECK order, coloured by `strength()`: new grey, fading red, learning blue, solid green, gilded gold. Click a tile = show that card's image (no rating).
+6. **Overview grid** (top of screen): 52 small tiles, one per card in DECK order. Each tile gets `data-strength="<strength()>"` (`new` when the card has no srs entry) and `background: var(--s)`; the colours and colour-blind markers come from `src/style.css`. Click a tile = show that card's image (no rating).
 7. **End**: summary (reviewed, Again count, new learned) and a Back button. Esc at any time = `onExit(data)`.
 
 ## Acceptance
@@ -39,13 +40,14 @@ Returns an unmount function that removes everything it added (DOM and key listen
 - [ ] Reload the demo page: progress and edited images are kept.
 - [ ] No user or image text goes through `innerHTML`.
 - [ ] Unmount leaves no DOM nodes or key listeners behind.
+- [ ] Queue logic is a pure exported function `buildQueue(data: SaveData, now: Date): CardId[]` with tests in `src/ui/trainer.test.ts` (due first, oldest due first, then max 8 new in DECK order).
 - [ ] Demo: `npm run dev`, open http://localhost:5173/trainer-demo.html. It calls `mountTrainer(document.body, load(), ...)`.
 
 ## Questions
 ## Report
 
-## Verify (for the verifier)
-In `../mp-T3`: `npm install`, `npm test`, `npm run build`, `npm run dev`, open http://localhost:5173/trainer-demo.html.
+## Verify (for AG)
+In `../mp-T3`: `npm install`, `npm test`, `npm run build` (paste counts), `npm run dev`, open http://localhost:5173/trainer-demo.html. Red-team `src/redteam/T3.test.ts`: at least 5 attacks on `buildQueue` (empty save, all 52 due, due dates as strings, a due date in the future, srs keys that are not card ids, as in a hand-edited save).
 1. Learn 8 new cards with keyboard only (Enter, Space, 1-4). Every step works without the mouse.
 2. Edit one image to `<img src=x onerror=alert(1)>`. It must display as plain text, no alert.
 3. Reload: grid colours, edited image and queue state are kept. Check `localStorage['memory-palace/v1']`.
@@ -53,4 +55,5 @@ In `../mp-T3`: `npm install`, `npm test`, `npm run build`, `npm run dev`, open h
 5. Rate one card Again 4+ times across reloads: the Reforge prompt appears.
 6. Esc exits. Console has no errors.
 7. Read `src/ui/trainer.ts`: no `innerHTML` with dynamic text, listeners removed on unmount.
+8. In the console run `document.documentElement.classList.add('color-safe')`: tiles switch palette and show markers. Screenshot `docs/shots/T3-1.png`.
 Write "Verification" with PASS or CHANGES and numbered findings.
