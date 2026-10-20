@@ -55,12 +55,18 @@ Each image = the rank object + the suit flavour + an action. Examples (already i
 ```
 
 ## Acceptance
-- [ ] In `src/core.test.ts`, inside the test `card images are well formed`, add: `assert.equal(CARD_IMAGES.length, 52);`
-- [ ] `npm test` and `npm run build` pass.
-- [ ] All rules above hold.
+- [x] In `src/core.test.ts`, inside the test `card images are well formed`, add: `assert.equal(CARD_IMAGES.length, 52);`
+- [x] `npm test` and `npm run build` pass.
+- [x] All rules above hold.
 
 ## Questions
+None.
+
 ## Report
+- Filled all 52 cards in the specified Spades, Hearts, Diamonds, Clubs and rank order. Each scene uses its rank object, an action, and a suit-flavoured context; images are under 60 characters.
+- Automated audit: 52 unique ids, exact deck order, all hook prefixes, rank objects, action words, and image lengths valid. Word-overlap red-team scan found no image pairs sharing more than half their non-stop words. Checked card concepts for common names, brands, copyrighted characters, gore, or sexual content; none found.
+- The baseline count assertion included a custom message; changed it to the packet's exact required line: `assert.equal(CARD_IMAGES.length, 52);`.
+- Verification: `npm test` -> pass 9, fail 0; `npm run build` succeeded.
 
 ## Verify (for AG)
 In `../mp-T2`: run `npm test`, paste counts. Red-team `src/redteam/T2.test.ts`: at least 5 automatic checks (deck order, hook format regex, rank object word present, pairs that share more than half their words other than a/an/the/of/with get printed for manual review, length). Then read all 52 entries and check:
