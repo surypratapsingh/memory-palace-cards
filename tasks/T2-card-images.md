@@ -76,3 +76,20 @@ In `../mp-T2`: run `npm test`, paste counts. Red-team `src/redteam/T2.test.ts`: 
 4. Content rules: no real people, brands, copyrighted characters, gore, sexual content.
 5. Under 60 characters, hook format exact.
 Write "Verification" with PASS or CHANGES. For each finding give the exact replacement text so the builder can paste it.
+
+
+## Verification (round 1)
+Verdict: PASS
+Evidence: npm test -> "pass 14, fail 0"; npm run build -> ok (built in 98ms); red-team: src/redteam/T2.test.ts
+Acceptance:
+- ✔ In `src/core.test.ts`, inside the test `card images are well formed`, add: `assert.equal(CARD_IMAGES.length, 52);`: present at line 72 of src/core.test.ts
+- ✔ `npm test` and `npm run build` pass: npm test passes (pass 14, fail 0), build succeeds cleanly with 0 errors
+- ✔ All rules above hold: 52 unique cards in deck order, exact rank objects, suit flavours, action verbs, under 60 characters, exact hook format, 0 content violations
+Findings: none
+
+Attacks tried that failed:
+1. Deck order check: exact match against DECK order (Spades A..K, Hearts A..K, Diamonds A..K, Clubs A..K) with T for ten
+2. Hook regex validation: all 52 match `^<rank> = <object>, <Suit name> = <flavour>$`
+3. Rank object presence: each image verified to contain its designated rank object word
+4. Length check: all 52 images confirmed non-empty and strictly < 60 characters (max length 53 chars)
+5. Pairwise word overlap: evaluated all 1326 image pairs for non-stopwords sharing > 50% vocabulary; 0 conflicting or confusing pairs found
