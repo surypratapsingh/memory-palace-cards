@@ -1,6 +1,6 @@
 # T7 - Integration: playable v1
 
-- Build: FB | Verify: AG (browser playtest) + Lead (code review) | Est. 2.5h | Wave 3 (start after T2, T3, T4, T5, T6, T12 are verified) | Branch: `task/T7-integrate` | Worktree: `../mp-T7`
+- Build: FB | Verify: AG (browser playtest) + Lead (code review) | Est. 2.5h | Wave 3 (start after T2, T3, T4, T5, T6, T12 are verified) | Branch: `task/T7-integrate` | Worktree: `wt/T7`
 
 ## Goal
 Wire all screens into one app at `index.html`.
@@ -32,7 +32,7 @@ Wire all screens into one app at `index.html`.
 ## Report
 
 ## Verify (AG playtest, then Lead code review)
-In `../mp-T7`: `npm install`, `npm test`, `npm run build`, paste counts, `npm run dev`, open http://localhost:5173/ in a fresh profile (or clear site data).
+In `wt/T7`: `npm install`, `npm test`, `npm run build`, paste counts, `npm run dev`, open http://localhost:5173/ in a fresh profile (or clear site data).
 1. Play the full first-run flow: 3 cards -> results -> home. Streak 1.
 2. Train 8 card images. Back. Grid colours changed.
 3. Play 13 cards with one deliberate mistake; that locus is weak during results; home sparkline updated.

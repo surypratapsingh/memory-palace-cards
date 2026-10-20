@@ -1,6 +1,6 @@
 # T4 - Drill: memorize and recall in 3D
 
-- Build: AG | Verify: FB | Est. 3h | Wave 2 (start after T1 is verified) | Branch: `task/T4-drill` | Worktree: `../mp-T4`
+- Build: AG | Verify: FB | Est. 3h | Wave 2 (start after T1 is verified) | Branch: `task/T4-drill` | Worktree: `wt/T4`
 
 ## Goal
 The core game: the player memorizes a shuffled sequence of N cards by gliding locus to locus in the palace, then recalls the order at each locus.
@@ -61,7 +61,7 @@ export function mountDrill(
 ## Report
 
 ## Verify (for FB)
-In `../mp-T4`: `npm install`, `npm test`, `npm run build`, paste counts.
+In `wt/T4`: `npm install`, `npm test`, `npm run build`, paste counts.
 1. Red-team `src/redteam/T4.test.ts` on `drill-logic.ts`: `cardFromKeys` with every rank and suit, `'0'`, lower case, `'1'`, `'10'`, empty strings, `'TT'`; `applyResult` with answers shorter than the sequence, all null answers, a 52-card drill, string keys, mutation of the input checked with `structuredClone` + `deepEqual`.
 2. **Mutation check**: in `applyResult` make misses count skipped (null) answers as correct; confirm a test fails; undo with `git checkout -- src`.
 3. Code review of `src/ui/drill.ts`: every `addEventListener` removed on unmount; no `innerHTML` with dynamic text; timers cleared; the result is saved exactly once; Esc path saves nothing; `glideTo` promises do not act after unmount (check a flag); Again does not leak the first round's listeners.

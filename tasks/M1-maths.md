@@ -1,6 +1,6 @@
 # M1 - Maths audit of the foundation (T0)
 
-- Build: FB | Verify: AG | Est. 1.5h | Wave 1 | Branch: `task/M1-maths` | Worktree: `../mp-M1`
+- Build: FB | Verify: AG | Est. 1.5h | Wave 1 | Branch: `task/M1-maths` | Worktree: `wt/M1`
 
 ## Goal
 The Lead wrote `src/deck.ts`, `src/srs.ts` and `src/store.ts`. Prove they match `MATHS.md`, or break them. Findings against the Lead count in the mesh score like any other.
@@ -31,7 +31,7 @@ Tests that find a bug you cannot fix inside the write scope: keep them, mark wit
 ## Report
 
 ## Verify (for AG)
-In `../mp-M1`: run `npm test` and `npm run build`, paste the counts.
+In `wt/M1`: run `npm test` and `npm run build`, paste the counts.
 1. **Mutation check** (tests the tests). Make each change below alone, run `npm test`, confirm at least one test fails, then undo with `git checkout -- src`. Report "killed" or "survived" for each. A survived mutant is an S2 finding against FB.
    - `src/deck.ts` shuffle: `Math.floor(rand() * i)` instead of `(i + 1)` (Sattolo's algorithm, never leaves a card in place).
    - `src/deck.ts` score: `run = i + 1` instead of `run = i`.

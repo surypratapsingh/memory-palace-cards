@@ -1,6 +1,6 @@
 # T8a - Living-palace rules (pure maths)
 
-- Build: FB | Verify: AG | Est. 1.5h | Wave 2 (no dependencies, can start any time) | Branch: `task/T8a-living-rules` | Worktree: `../mp-T8a`
+- Build: FB | Verify: AG | Est. 1.5h | Wave 2 (no dependencies, can start any time) | Branch: `task/T8a-living-rules` | Worktree: `wt/T8a`
 
 ## Goal
 The rules that make the palace react to the player's memory, as pure tested functions. T8b (AG) wires them into the game later. Maths in `MATHS.md` sections 5 and 6.
@@ -53,7 +53,7 @@ export function leeches(srs: SaveData['srs']): CardId[];
 ## Report
 
 ## Verify (for AG)
-In `../mp-T8a`: `npm test`, `npm run build`, paste counts.
+In `wt/T8a`: `npm test`, `npm run build`, paste counts.
 1. Recompute both `MATHS.md` section 5 tables by hand or in a scratch script; compare with the code.
 2. **Mutation check** (undo each with `git checkout -- src`): `PRIOR_K = 0` (no shrinkage); `>=` to `>` in the tries rule; half-life 2 to 3; latest drill = last array item. Each must make a test fail.
 3. Red-team `src/redteam/T8a.test.ts`: at least 5 attacks, for example `misses > tries` in a hand-edited save, negative numbers, NaN, 10000 loci, a drill `at` in the future.

@@ -1,6 +1,13 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-20 22:40 - Lead: Freebuff root cause, worktrees moved into wt/
+- Found: Freebuff edits files only in the project folder, whatever folder its shell is in. So M1 was committed from a stale copy (AG gave `V-M1 round 1: CHANGES`), and T2, T3, T8a, T12 files were written into the main folder.
+- Done: copied main-folder T2, T3, T8a, T12 work to new branches (`Lead: move ...` commits, state in-progress). Stashed the whole stray set (`git stash list`, "FB stray main-folder work 22:08-22:28") so nothing is lost; M1/T5 copies there are FB's newest edits. Moved worktrees T1, T2, T3, T8a, T12, M1 to `wt/<ID>`; `/wt/` added to `.git/info/exclude`. mesh: worktree path `wt/<ID>`, packet path inside it, `worktree move` for old folders, CONTINUE waits for Needs and merges verified deps. `npm test` scoped to src and scripts (9 pass). Queue prompts now say edit only `wt/<ID>/...`.
+- In progress: FB's current T5 session still writes `src/progress.ts` in the main folder and works from `../mp-T5`. When it stops: move `../mp-T5` to `wt/T5`, copy the main-folder T5 files into it, commit them on `task/T5-progress`, clean the main folder.
+- Next: FB gets FIX M1 (in `wt/M1`). If FB still writes outside `wt/`, Freebuff must be started with the worktree as its project folder instead.
+- Blockers: none.
+
 ## 2026-10-20 22:10 - Lead turn: main folder cleaned
 - Done: FB had written M1 and T5 files in the main folder (old dispatch). Waited until no file changed for 5 min, then moved them: `src/store.ts` + `src/math.test.ts` to `task/M1-maths` (worktree `../mp-M1`), `src/progress.ts` + `src/progress.test.ts` to `task/T5-progress` (worktree `../mp-T5`). Commits use a `Lead: move ...` subject, so mesh reads both as `in-progress` and FB gets CONTINUE jobs. Files checked byte-identical before main was reset. Main folder is clean, so BUILD jobs flow again.
 - State: T1 `review` (FB verifies). M1, T5 `in-progress` (FB). Nothing verified, nothing blocked. No merges this turn.

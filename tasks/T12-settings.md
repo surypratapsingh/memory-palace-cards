@@ -1,6 +1,6 @@
 # T12 - Settings screen and accessibility
 
-- Build: FB | Verify: AG | Est. 1.5h | Wave 2 (start after T3 is verified; it edits the trainer) | Branch: `task/T12-settings` | Worktree: `../mp-T12`
+- Build: FB | Verify: AG | Est. 1.5h | Wave 2 (start after T3 is verified; it edits the trainer) | Branch: `task/T12-settings` | Worktree: `wt/T12`
 
 ## Goal
 Let players tune motion, sound, colours and captions, and make the 2D screens usable for everyone. Maths in `MATHS.md` section 10.
@@ -49,7 +49,7 @@ export function mountSettings(root: HTMLElement, data: SaveData, onExit: (data: 
 ## Report
 
 ## Verify (for AG)
-In `../mp-T12`: `npm test`, `npm run build` (paste counts), `npm run dev`.
+In `wt/T12`: `npm test`, `npm run build` (paste counts), `npm run dev`.
 1. Settings demo with keyboard only: Tab through all controls, change each, reload, values kept. Screenshot normal and colour-safe: `docs/shots/T12-1.png`, `T12-2.png`.
 2. Trainer demo: run a screen reader or Chrome's accessibility tree; "N left" is announced; every button has a name.
 3. **Mutation check**: change `--muted` in `src/style.css` to `#444b55`; `contrast.test.ts` must fail; undo.

@@ -119,3 +119,9 @@ Format per entry:
 - Context: User puts many identical prompts in each agent's queue and wants agents to wait for and coordinate with each other without editing task IDs.
 - Alternatives rejected: one prompt per task ID (user found it confusing); a shared status file edited by agents (races and merge conflicts); the Lead hands out every job (Lead becomes the bottleneck); dependencies met only after a Lead merge (agents idle until the Lead runs).
 - Consequences: Commit subjects must be exact. The main folder must stay clean: while it has uncommitted changes, no new BUILD jobs are handed out. The T1 lock test moves to FB's T1 verification (`src/redteam/T1-lock.test.ts`) because the Lead may not merge T1 before T9 starts.
+
+## 2026-10-20 - Worktrees inside the project folder (wt/<ID>)
+- Decision: Task worktrees live in `wt/<ID>` inside the project folder, hidden from git by `.git/info/exclude`. `npm test` in the main folder runs only `src/**/*.test.ts` and `scripts/*.test.mjs`. `mesh next` prints the worktree path, the packet path inside it, and a `git worktree move` for any old `../mp-<ID>` worktree.
+- Context: Freebuff's file edits always land in its project folder, not in the folder its shell `cd`s into. Its M1 edits never reached `task/M1-maths`; it committed the stale copy, and kept writing T2/T3/T5/T8a/T12 files into the main folder.
+- Alternatives rejected: worktrees in `../mp-<ID>` (Freebuff cannot edit there); FB switching branches in the main folder (a branch can be checked out in only one worktree, so AG could not verify); `wt/` in `.gitignore` (Freebuff may hide ignored files).
+- Consequences: Supersedes the `../mp-<ID>` paths in "Queue coordination by git state". Agents must edit `wt/<ID>/src/...`, never `src/...`.

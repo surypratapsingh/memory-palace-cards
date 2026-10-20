@@ -1,6 +1,6 @@
 # T3 - Card-image trainer screen
 
-- Build: FB | Verify: AG | Est. 2.5h | Wave 1 | Branch: `task/T3-trainer` | Worktree: `../mp-T3`
+- Build: FB | Verify: AG | Est. 2.5h | Wave 1 | Branch: `task/T3-trainer` | Worktree: `wt/T3`
 
 ## Goal
 A 2D screen where the player learns the 52 card images and reviews them with spaced repetition (FSRS). Desktop, keyboard first.
@@ -47,7 +47,7 @@ Returns an unmount function that removes everything it added (DOM and key listen
 ## Report
 
 ## Verify (for AG)
-In `../mp-T3`: `npm install`, `npm test`, `npm run build` (paste counts), `npm run dev`, open http://localhost:5173/trainer-demo.html. Red-team `src/redteam/T3.test.ts`: at least 5 attacks on `buildQueue` (empty save, all 52 due, due dates as strings, a due date in the future, srs keys that are not card ids, as in a hand-edited save).
+In `wt/T3`: `npm install`, `npm test`, `npm run build` (paste counts), `npm run dev`, open http://localhost:5173/trainer-demo.html. Red-team `src/redteam/T3.test.ts`: at least 5 attacks on `buildQueue` (empty save, all 52 due, due dates as strings, a due date in the future, srs keys that are not card ids, as in a hand-edited save).
 1. Learn 8 new cards with keyboard only (Enter, Space, 1-4). Every step works without the mouse.
 2. Edit one image to `<img src=x onerror=alert(1)>`. It must display as plain text, no alert.
 3. Reload: grid colours, edited image and queue state are kept. Check `localStorage['memory-palace/v1']`.

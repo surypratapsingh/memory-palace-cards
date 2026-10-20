@@ -1,6 +1,6 @@
 # T6 - Home screen
 
-- Build: AG | Verify: FB | Est. 2.5h | Wave 2 (start after T5 is verified) | Branch: `task/T6-home` | Worktree: `../mp-T6`
+- Build: AG | Verify: FB | Est. 2.5h | Wave 2 (start after T5 is verified) | Branch: `task/T6-home` | Worktree: `wt/T6`
 
 ## Goal
 The screen players see every day. It must make the next action obvious and show progress, so people come back (see "Retention" in plan.md).
@@ -49,7 +49,7 @@ export function mountHome(
 ## Report
 
 ## Verify (for FB)
-In `../mp-T6`: `npm test`, `npm run build`, paste counts.
+In `wt/T6`: `npm test`, `npm run build`, paste counts.
 1. Red-team `src/redteam/T6.test.ts` on `sparklinePath`: NaN or values outside [0, 1] (clamp or reject, but never output `NaN` in the path), 1 value, 1000 values, w = 0.
 2. Code review: each content item 1-8 present and wired to the right action; first-run state shows only the 3-card offer; ladder, next-unlock text, bests and recommended level come from `progress.ts` (no copied logic); import error path changes nothing; export file name uses the local date; no `innerHTML` with dynamic text; unmount removes listeners and object URLs (`URL.revokeObjectURL`).
 3. Check the screenshots against the content list.

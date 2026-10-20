@@ -1,6 +1,6 @@
 # T8b - Living palace in the game
 
-- Build: AG | Verify: FB | Est. 2h | Wave 4 (start after T7 and T8a are verified) | Branch: `task/T8b-living` | Worktree: `../mp-T8b`
+- Build: AG | Verify: FB | Est. 2h | Wave 4 (start after T7 and T8a are verified) | Branch: `task/T8b-living` | Worktree: `wt/T8b`
 
 ## Goal
 The palace visibly reacts to the player's memory, without ever moving a locus (decisions.md). Uses the pure rules from `src/living.ts` (T8a).
@@ -29,7 +29,7 @@ The palace visibly reacts to the player's memory, without ever moving a locus (d
 ## Report
 
 ## Verify (for FB)
-In `../mp-T8b`: `npm test`, `npm run build`, paste counts.
+In `wt/T8b`: `npm test`, `npm run build`, paste counts.
 1. Code review: every call of `living.ts` uses `now = new Date()` at call time (not a stale date from mount); the once-a-minute timer is cleared on unmount; moods set by T8b are reset; Shadow Walk turns free walk off on exit; no locus position or order changes anywhere.
 2. Red-team `src/redteam/T8b.test.ts` on the new router moves (shadow walk from every screen, unknown events).
 3. Check the screenshots against requirements 1-5.

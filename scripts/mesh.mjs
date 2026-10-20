@@ -5,8 +5,7 @@
 // Commit subjects it reads (exact): "T1: ..." builder done, "V-T1 round 2: PASS" or "...: CHANGES" verifier,
 // "BLOCKED T1: ..." builder needs the Lead, "LEAD T1: ..." Lead answered and the builder acts next.
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const READY = ['verified', 'done'];
@@ -71,8 +70,14 @@ const git = (...a) => {
 };
 const list = (s) => (s ? s.split(/\r?\n/) : []);
 const mainDir = () => list(git('worktree', 'list', '--porcelain'))[0].replace(/^worktree /, '');
-// Agents work only in ../mp-<ID>. Uncommitted files in the main folder mean someone worked in the wrong place.
+// Agents work only in wt/<ID>. Uncommitted files in the main folder mean someone worked in the wrong place.
 const dirtyMain = () => list(git('-C', mainDir(), 'status', '--porcelain'));
+const worktreeOf = (branch) => {
+  const lines = list(git('worktree', 'list', '--porcelain'));
+  const i = lines.indexOf(`branch refs/heads/${branch}`);
+  return i < 0 ? null : (lines.slice(0, i).reverse().find((l) => l.startsWith('worktree '))?.slice(9) ?? null);
+};
+const same = (a, b) => resolve(a).toLowerCase() === resolve(b).toLowerCase();
 
 function snapshot() {
   const tasks = parseBoard(git('show', 'main:TASKS.md'));
@@ -91,8 +96,10 @@ function show(job, agent, tasks, st) {
   if (job.kind === 'WAIT') return `WAIT: nothing for ${agent} to do yet.\n  ${job.why.join('\n  ')}`;
   const { t } = job;
   const root = mainDir();
-  const dir = join(dirname(root), `mp-${t.id}`);
-  const packet = list(git('ls-tree', '--name-only', 'main', 'tasks/')).find((f) => f.startsWith(`tasks/${t.id.split('-')[0]}-`));
+  // Inside the project folder (hidden from git by .git/info/exclude): Freebuff can only edit files there.
+  const dir = join(root, 'wt', t.id);
+  const old = worktreeOf(t.branch);
+  const packet = `wt/${t.id}/` + list(git('ls-tree', '--name-only', 'main', 'tasks/')).find((f) => f.startsWith(`tasks/${t.id.split('-')[0]}-`));
   const round = st.get(t.id).round;
   const out = [`JOB: ${job.kind} ${t.id} as ${agent} | packet ${packet} | branch ${t.branch} | folder ${dir}`, 'Run:'];
   // Verified dependencies not in main yet; merging one twice is a no-op.
@@ -102,12 +109,14 @@ function show(job, agent, tasks, st) {
     out.push(`  git -C "${root}" worktree add "${dir}" -b ${t.branch} main`, `  cd "${dir}"`, ...mergeLines);
     out.push('  npm install', `Then build ${t.id} exactly as ${packet} says.`, `When done: git add -A && git commit -m "${t.id}: <one-line summary>"`);
   } else {
-    if (!existsSync(dir)) out.push(`  git -C "${root}" worktree add "${dir}" ${t.branch}`);
+    if (!old) out.push(`  git -C "${root}" worktree add "${dir}" ${t.branch}`);
+    else if (!same(old, dir)) out.push(`  git -C "${root}" worktree move "${old}" "${dir}"`);
     out.push(`  cd "${dir}"`, ...mergeLines, '  npm install');
     if (job.kind === 'CONTINUE') out.push(`Your branch exists but has no "${t.id}: " commit yet. Finish the build as ${packet} says.`, `When done: git add -A && git commit -m "${t.id}: <one-line summary>"`);
     if (job.kind === 'FIX') out.push(`Read the newest "Verification" section or Lead note in ${packet}. Reply under every finding (FIXED / DEFER Q1 / DISPUTE), fix the code, make every red-team test pass.`, `When done: git add -A && git commit -m "${t.id}: fix round ${round}"`);
     if (job.kind === 'VERIFY') out.push(`Verify round ${round + 1}: do the "Verify" section of ${packet} and "The mesh" in TASKS.md. Try to break it. Do not change the builder's code.`, `When done: git add src/redteam tasks docs && git commit -m "V-${t.id} round ${round + 1}: PASS"   (or ": CHANGES")`);
   }
+  out.push(`Edit and test files only inside ${dir} (from the project folder: wt/${t.id}/...). Edits anywhere else never reach your branch.`);
   out.push(`If you are blocked: write it under "Questions" in ${packet}, then git add -A && git commit -m "BLOCKED ${t.id}: <reason>" and stop.`);
   return out.join('\n');
 }

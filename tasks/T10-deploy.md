@@ -1,6 +1,6 @@
 # T10 - Deploy: CI and GitHub Pages
 
-- Build: FB | Verify: AG | Est. 1h | Wave 3 (start after T7 is verified) | Branch: `task/T10-deploy` | Worktree: `../mp-T10`
+- Build: FB | Verify: AG | Est. 1h | Wave 3 (start after T7 is verified) | Branch: `task/T10-deploy` | Worktree: `wt/T10`
 
 ## Goal
 Every push to `main` runs the tests and publishes the game.
@@ -23,7 +23,7 @@ Every push to `main` runs the tests and publishes the game.
 ## Report
 
 ## Verify (for AG)
-In `../mp-T10`: `npm run build`, `npx vite preview`, open the preview URL, play the 3-card drill, console clean.
+In `wt/T10`: `npm run build`, `npx vite preview`, open the preview URL, play the 3-card drill, console clean.
 1. Read both workflows: tests run before deploy; deploy only from `main`; permissions minimal; no secrets printed.
 2. After the Lead pushes: open the Actions tab, both workflows green; open the Pages URL and play 3 cards.
 3. Red-team `src/redteam/T10.test.ts`: parse the workflow files as text and assert `npm test` comes before the deploy step, Node version is 24, and `base` in `vite.config.ts` is `'./'`.

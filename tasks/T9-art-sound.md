@@ -1,6 +1,6 @@
 # T9 - Art and sound pass
 
-- Build: AG | Verify: FB | Est. 3h | Wave 4 (start after T11 is verified) | Branch: `task/T9-art` | Worktree: `../mp-T9`
+- Build: AG | Verify: FB | Est. 3h | Wave 4 (start after T11 is verified) | Branch: `task/T9-art` | Worktree: `wt/T9`
 
 ## Goal
 Make the palace beautiful and memorable without moving anything players have memorized.
@@ -32,7 +32,7 @@ Make the palace beautiful and memorable without moving anything players have mem
 ## Report
 
 ## Verify (for FB)
-In `../mp-T9`: `npm test`, `npm run build`, paste counts.
+In `wt/T9`: `npm test`, `npm run build`, paste counts.
 1. `git diff main -- src/data/palace.ts` is empty. `src/redteam/T1-lock.test.ts` unchanged and passing.
 2. `ASSETS.md`: every file in `public/assets` listed, each licence is CC0 (open the source page if you can), total size under 15 MB (`du -sh public/assets`).
 3. Code review: models and their textures disposed in `dispose()`; failed load falls back; sound never plays when `settings.sound` is false; no autoplay before a user gesture.

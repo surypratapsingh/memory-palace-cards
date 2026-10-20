@@ -1,6 +1,6 @@
 # T11 - First 90 seconds (onboarding)
 
-- Build: AG | Verify: FB | Est. 1.5h | Wave 4 (start after T8b is verified) | Branch: `task/T11-first-90s` | Worktree: `../mp-T11`
+- Build: AG | Verify: FB | Est. 1.5h | Wave 4 (start after T8b is verified) | Branch: `task/T11-first-90s` | Worktree: `wt/T11`
 
 ## Goal
 A new player proves the method works on them within 90 seconds, with no setup and no reading wall (plan.md, Retention 1).
@@ -29,7 +29,7 @@ A new player proves the method works on them within 90 seconds, with no setup an
 ## Report
 
 ## Verify (for FB)
-In `../mp-T11`: `npm test`, `npm run build`, paste counts.
+In `wt/T11`: `npm test`, `npm run build`, paste counts.
 1. Code review: onboarding only for a truly fresh save (an imported save with drills never sees it); result saved exactly once; skip path leaves no listeners; hints disappear at 3 drills; no `innerHTML` with dynamic text.
 2. Red-team `src/redteam/T11.test.ts` on the router: fresh vs non-fresh boot, skip, Esc during onboarding.
 3. Check the screenshots: is every step one obvious action? Report any step with more than one main button as S2.

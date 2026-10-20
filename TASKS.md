@@ -41,7 +41,7 @@ A task may start when every task in "Needs" is `verified` or `done`. `mesh next`
 
 1. Get your job from `node scripts/mesh.mjs next <AG|FB> --wait`, run in the main project folder. Do exactly that one job, then stop.
 2. Read this file, the job's packet in `tasks/`, `plan.md`, `MATHS.md` and `src/types.ts`.
-3. Work only in the folder the job names (`../mp-<ID>`, a git worktree). Never edit files or switch branches in the main project folder; while it has uncommitted changes, `mesh next` hands out no new BUILD jobs. Never merge into `main`, never push. The only merges allowed are the dependency merges `mesh next` prints.
+3. Work only in the folder the job names (`wt/<ID>` inside the project folder, a git worktree). Edit `wt/<ID>/src/x.ts`, never `src/x.ts`; never switch branches in the project folder; while it has uncommitted changes, `mesh next` hands out no new BUILD jobs. Never merge into `main`, never push. The only merges allowed are the dependency merges `mesh next` prints.
 4. Edit only the files in the packet's "Write scope". Need another file changed? Write the request under "Questions" in the packet and commit `BLOCKED <ID>: <reason>`. Contract files belong to the Lead.
 5. No new npm dependencies unless your packet says so.
 6. Code style: like `src/deck.ts`. Small functions, short comments only where the reason is not obvious, no frameworks, erasable TypeScript only (no `enum`, no `namespace`), `.ts` in imports. Never put user or image text into `innerHTML`; use `textContent`.
@@ -99,10 +99,10 @@ The verifier's job is to **break** the builder's work, not to approve it. A PASS
 ## Queue prompts (the user pastes these; every copy is the same)
 
 Antigravity, paste 25 times:
-> Project folder: C:\Users\surya\Documents\memory_palace-game. You are AG (Antigravity) in a two-agent mesh with FB (Freebuff). In the project folder run `node scripts/mesh.mjs next AG --wait`. It can take up to 4 minutes; if your terminal times out, run it again. If it prints WAIT, run it again, up to 10 times; if still WAIT, stop and say "AG idle". If it prints ALL DONE, stop. If it prints JOB, read TASKS.md and MATHS.md, then do exactly that one job, following the rules in TASKS.md and using the commands and commit subject it prints. Finish with one line: what you did and your commit subject.
+> Project folder: C:\Users\surya\Documents\memory_palace-game. You are AG (Antigravity) in a two-agent mesh with FB (Freebuff). In the project folder run `node scripts/mesh.mjs next AG --wait`. It can take up to 4 minutes; if your terminal times out, run it again. If it prints WAIT, run it again, up to 10 times; if still WAIT, stop and say "AG idle". If it prints ALL DONE, stop. If it prints JOB, read TASKS.md and MATHS.md, then do exactly that one job. Edit files only inside the wt/<ID> folder it names (for example wt/T5/src/progress.ts, never src/progress.ts), following the rules in TASKS.md and using the commands and commit subject it prints. Finish with one line: what you did and your commit subject.
 
 Freebuff, paste 25 times:
-> Project folder: C:\Users\surya\Documents\memory_palace-game. You are FB (Freebuff) in a two-agent mesh with AG (Antigravity). In the project folder run `node scripts/mesh.mjs next FB --wait`. It can take up to 4 minutes; if your terminal times out, run it again. If it prints WAIT, run it again, up to 10 times; if still WAIT, stop and say "FB idle". If it prints ALL DONE, stop. If it prints JOB, read TASKS.md and MATHS.md, then do exactly that one job, following the rules in TASKS.md and using the commands and commit subject it prints. Finish with one line: what you did and your commit subject.
+> Project folder: C:\Users\surya\Documents\memory_palace-game. You are FB (Freebuff) in a two-agent mesh with AG (Antigravity). In the project folder run `node scripts/mesh.mjs next FB --wait`. It can take up to 4 minutes; if your terminal times out, run it again. If it prints WAIT, run it again, up to 10 times; if still WAIT, stop and say "FB idle". If it prints ALL DONE, stop. If it prints JOB, read TASKS.md and MATHS.md, then do exactly that one job. Edit files only inside the wt/<ID> folder it names (for example wt/T5/src/progress.ts, never src/progress.ts), following the rules in TASKS.md and using the commands and commit subject it prints. Finish with one line: what you did and your commit subject.
 
 Claude Code (Lead), any time, as often as you like:
 > Lead turn for memory_palace-game: run `node scripts/mesh.mjs status`, merge every verified task into main, answer blocked and lead tasks, update the board and progress.md, push.
@@ -114,7 +114,7 @@ node scripts/mesh.mjs status
 git merge --no-ff task/T1-scene
 npm test
 npm run build
-git worktree remove ../mp-T1
+git worktree remove wt/T1
 git push
 ```
 Merge in board order. Browser check for UI tasks. Update the mesh score and progress.md. Answer `blocked` tasks with a `LEAD <ID>: <answer>` commit on the task branch (the builder acts next); decide `lead` tasks with `V-<ID> round <n>: PASS` or a `LEAD <ID>:` note. Red-team tests stay in the repo as regression tests.

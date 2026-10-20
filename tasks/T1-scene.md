@@ -1,6 +1,6 @@
 # T1 - 3D palace world
 
-- Build: AG | Verify: FB | Est. 4h | Wave 1 | Branch: `task/T1-scene` | Worktree: `../mp-T1`
+- Build: AG | Verify: FB | Est. 4h | Wave 1 | Branch: `task/T1-scene` | Worktree: `wt/T1`
 
 ## Goal
 A first-person three.js palace with 52 visually distinct loci on a fixed walking route, exposed through the `PalaceView` interface in `src/types.ts`. Other tasks only talk to the palace through that interface. The geometry must pass the invariants in `MATHS.md` section 8, and camera motion must follow section 7.
@@ -75,7 +75,7 @@ export function glidePath(from: number, to: number): [number, number][]; // [vie
 ## Report
 
 ## Verify (for FB)
-In `../mp-T1`: `npm install`, `npm test`, `npm run build`, paste counts.
+In `wt/T1`: `npm install`, `npm test`, `npm run build`, paste counts.
 1. **Independent check**: in `src/redteam/T1.test.ts`, re-implement G3, G4 and G5 yourself (do not import the builder's test helpers) and run them on `LOCI`, `ROOMS`, `DOORS`. Add attacks: `glidePath(i, i)`, `glidePath(0, 51)`, `isWalkable` exactly on a wall line and in a door, `lerpAngle` with a = b, |b − a| = π, angles beyond ±2π, t = 0 and t = 1.
 2. **Mutation check**: move one locus 1 m toward its neighbour, run `npm test`, confirm `palace.test.ts` fails, undo with `git checkout -- src`. Same for changing the `4t³` branch of `easeInOutCubic` to `3t³`.
 3. **Code review of `src/scene/`**: count `addEventListener` vs `removeEventListener`; `setAnimationLoop(null)`, `renderer.dispose()`, `ResizeObserver.disconnect()` in `dispose`; textures from canvases disposed when a card is replaced (GPU leak); a second `glideTo` during a glide resolves the first promise; `glideMs = 0` path; imports only from the allowed list; no `any` without a reason.

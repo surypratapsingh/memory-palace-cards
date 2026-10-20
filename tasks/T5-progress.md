@@ -1,6 +1,6 @@
 # T5 - Progress logic: ladder, staircase, streak, share text
 
-- Build: FB | Verify: AG | Est. 2h | Wave 1 | Branch: `task/T5-progress` | Worktree: `../mp-T5`
+- Build: FB | Verify: AG | Est. 2h | Wave 1 | Branch: `task/T5-progress` | Worktree: `wt/T5`
 
 ## Goal
 Pure functions (no DOM) that drive retention: level unlocks, recommended difficulty, personal bests, streak with freezes, rank titles, share text. Maths in `MATHS.md` sections 2, 4 and 9.
@@ -73,7 +73,7 @@ Memory Palace · Daily Deck 2026-10-20      (or "Memory Palace · Practice" when
 ## Report
 
 ## Verify (for AG)
-In `../mp-T5`: `npm test`, `npm run build`, paste counts. Then:
+In `wt/T5`: `npm test`, `npm run build`, paste counts. Then:
 1. Check each rule of `updateStreak` and `stepLevel` against `MATHS.md` line by line.
 2. Date handling: no `new Date('YYYY-MM-DD')` mixed with local getters; `dayDiff` uses Date.UTC.
 3. **Mutation check** (undo each with `git checkout -- src`): change `wins === 2` to `wins === 3`; change the freeze cap 2 to 3; drop the `g < 0` rule. Each must make a test fail.

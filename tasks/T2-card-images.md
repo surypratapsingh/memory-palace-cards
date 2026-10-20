@@ -1,6 +1,6 @@
 # T2 - 52 default card images
 
-- Build: FB | Verify: AG | Est. 1h | Wave 1 | Branch: `task/T2-card-images` | Worktree: `../mp-T2`
+- Build: FB | Verify: AG | Est. 1h | Wave 1 | Branch: `task/T2-card-images` | Worktree: `wt/T2`
 
 ## Goal
 Fill `CARD_IMAGES` in `src/data/cardImages.ts` with one vivid default image for each of the 52 cards. Players see this image when they learn a card and can edit it.
@@ -63,7 +63,7 @@ Each image = the rank object + the suit flavour + an action. Examples (already i
 ## Report
 
 ## Verify (for AG)
-In `../mp-T2`: run `npm test`, paste counts. Red-team `src/redteam/T2.test.ts`: at least 5 automatic checks (deck order, hook format regex, rank object word present, pairs that share more than half their words other than a/an/the/of/with get printed for manual review, length). Then read all 52 entries and check:
+In `wt/T2`: run `npm test`, paste counts. Red-team `src/redteam/T2.test.ts`: at least 5 automatic checks (deck order, hook format regex, rank object word present, pairs that share more than half their words other than a/an/the/of/with get printed for manual review, length). Then read all 52 entries and check:
 1. Every card present once, deck order, `T` for ten.
 2. Each image uses its rank object and its suit flavour, and has an action.
 3. Distinctness: list any two images that could be confused. Pay attention to the 4 cards of each rank.
