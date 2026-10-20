@@ -1,0 +1,34 @@
+/* Trainer screen styles - color-safe palette */
+:root {
+  --s-new: #4a90e2;
+  --s-fading: #f5a623;
+  --s-learning: #d0021f;
+  --s-solid: #27ae60;
+  --s-gilded: #f39c12;
+}
+
+/* Color-blind-safe markers for strength colours */
+.card-face.new::after { content: "N"; }
+.card-face.fading::after { content: "F"; }
+.card-face.learning::after { content: "L"; }
+.card-face.solid::after { content: "S"; }
+.card-face.gilded::after { content: "G"; }
+
+/* Grid overview */
+.tile {
+  width: calc(100% / 13);
+  aspect-ratio: 3/4;
+  float: left;
+  margin: 2px;
+  position: relative;
+  color: var(--s);
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: none;
+}
+
+/* Ensure normal flow if CSS fails */
+.overview { padding: 8px; }
+/* Prevent any innerHTML injection risks */
+.tile [data-strength] { display: block; }
