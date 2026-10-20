@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LociVerse — Adaptive Self-Reorganizing Memory Palace</title>
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --panel-bg: rgba(17, 24, 39, 0.92);
+      --border: #334155;
+      --accent: #38bdf8;
+      --gold: #fbbf24;
+      --danger: #f43f5e;
+      --success: #10b981;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      overflow: hidden;
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Left Sidebar Controls & HUD */
+    #sidebar {
+      width: 350px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 14px;
+      z-index: 10;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .card h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    button {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      background: #334155;
+      border-color: var(--accent);
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    button.primary:hover {
+      background: #7dd3fc;
+    }
+
+    button.warning {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      border-color: var(--danger);
+    }
+
+    button.warning:hover {
+      background: rgba(244, 63, 94, 0.3);
+    }
+
+    #loci-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .locus-item {
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.7);
+      border-left: 4px solid var(--accent);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .locus-item:hover {
+      background: rgba(51, 65, 85, 0.6);
+    }
+
+    .locus-item .title {
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .locus-item .meta {
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-top: 3px;
+    }
+
+    /* Main Canvas Container */
+    #world-container {
+      flex: 1;
+      position: relative;
+      background: #070a12;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Floating Prompt Banner */
+    #interaction-banner {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      border: 2px solid var(--accent);
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: none;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* Modal Dialog for Quiz & Editing */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 520px;
+      max-width: 92vw;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    .modal h2 {
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .modal p {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .bizarre-box {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px dashed var(--gold);
+      color: #fde68a;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+
+    .answer-box {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--success);
+      color: #a7f3d0;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 9px 12px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .legend {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left HUD Sidebar -->
+  <aside id="sidebar">
+    <div class="brand">
+      <h1>LociVerse Palace</h1>
+      <span class="badge" id="day-counter">Day 1</span>
+    </div>
+
+    <div class="card">
+      <h3>Palace Vital Stats</h3>
+      <div class="stat-row">
+        <span>Average Memory Retention:</span>
+        <strong id="avg-retention" style="color: var(--success)">100%</strong>
+      </div>
+      <div class="stat-row">
+        <span>Urgent Echoes in Atrium:</span>
+        <strong id="urgent-count" style="color: var(--danger)">0</strong>
+      </div>
+      <div class="stat-row">
+        <span>Mastered Statues:</span>
+        <strong id="mastered-count" style="color: var(--gold)">0</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>World Controls</h3>
+      <div class="btn-group">
+        <button class="warning" id="btn-sim-time">
+          ⏳ Simulate +3 Days (Trigger Decay & Reorganization)
+        </button>
+        <button id="btn-shadow-walk">
+          👁️ Toggle "Shadow Walk" (Mental Recall Mode: OFF)
+        </button>
+        <button class="primary" id="btn-add-locus">
+          ➕ Place New Memory Totem Here
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>How Self-Reorganization Works</h3>
+      <div class="legend">
+        <div><span class="dot" style="background:#fbbf24"></span><strong>Gold (90%+):</strong> Crystallized Monument</div>
+        <div><span class="dot" style="background:#38bdf8"></span><strong>Blue (55–89%):</strong> Stable Active Locus</div>
+        <div><span class="dot" style="background:#f43f5e"></span><strong>Red (<55%):</strong> Decaying! Grows huge & spawns a Phantom Echo in the Central Atrium to quiz you!</div>
+        <div style="margin-top:6px; color:#cbd5e1;">
+          <strong>Controls:</strong> Move with <b>WASD / Arrows</b>. Walk near any glowing totem and press <b>SPACE</b> to inspect or get quizzed.
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1; display:flex; flex-direction:column;">
+      <h3>Palace Loci Index (Click to Teleport)</h3>
+      <div id="loci-list"></div>
+    </div>
+  </aside>
+
+  <!-- Interactive 2.5D Palace Canvas -->
+  <main id="world-container">
+    <canvas id="palace-canvas"></canvas>
+    <div id="interaction-banner">Press SPACE to Interact with Locus</div>
+  </main>
+
+  <!-- Quiz & Reforge Modal -->
+  <div class="modal-backdrop" id="quiz-modal">
+    <div class="modal">
+      <h2 id="quiz-title">Guardian Challenge</h2>
+      <p id="quiz-room-tag"></p>
+      <div class="bizarre-box" id="quiz-mnemonic"></div>
+      <p style="color:#fff; font-weight:600; font-size:1.02rem;" id="quiz-question"></p>
+
+      <div class="answer-box" id="quiz-answer-box">
+        <strong>Target Memory:</strong>
+        <div id="quiz-answer-text" style="margin-top:4px;"></div>
+      </div>
+
+      <!-- Mnemonic Reforge Area (Appears if user struggles or clicks Edit) -->
+      <div id="reforge-section" style="display:none; margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
+        <div class="form-group">
+          <label>Update Bizarre Visual Mnemonic (Make it weirder so it sticks!):</label>
+          <textarea id="edit-mnemonic-input" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Update Target Answer / Notes:</label>
+          <textarea id="edit-answer-input" rows="2"></textarea>
+        </div>
+        <button class="primary" id="btn-save-reforge" style="width:100%;">💾 Save Updated Memory & Boost Stability</button>
+      </div>
+
+      <div class="modal-actions" id="quiz-initial-actions">
+        <button id="btn-open-edit">✏️ Update Note</button>
+        <button class="primary" id="btn-reveal-answer">🧠 Reveal Answer</button>
+        <button id="btn-close-quiz">Close</button>
+      </div>
+
+      <div class="modal-actions" id="quiz-grade-actions" style="display:none;">
+        <button class="warning" id="btn-grade-forgot">❌ I Forgot (Mutate & Reforge)</button>
+        <button id="btn-grade-good" style="border-color:var(--accent); color:var(--accent);">✅ Recalled (Reinforce)</button>
+        <button class="primary" id="btn-grade-easy" style="background:var(--gold); border-color:var(--gold);">⚡ Instant Recall (Crystallize)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add New Locus Modal -->
+  <div class="modal-backdrop" id="add-modal">
+    <div class="modal">
+      <h2>Place New Memory Totem</h2>
+      <p>Anchoring at your current coordinates in the palace.</p>
+      <div class="form-group">
+        <label>Concept Title & Emoji Icon (e.g., "⚡ FastAPI Async"):</label>
+        <input type="text" id="new-title" placeholder="🧠 Binary Search Tree" />
+      </div>
+      <div class="form-group">
+        <label>Bizarre Visual Image (Von Restorff Effect — make it vivid!):</label>
+        <textarea id="new-mnemonic" rows="2" placeholder="A glowing brass tree slicing numbers in half with a laser sword..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Question the Palace Will Ask You:</label>
+        <input type="text" id="new-question" placeholder="What is the average time complexity of lookup in a balanced BST?" />
+      </div>
+      <div class="form-group">
+        <label>Answer / Core Fact to Memorize:</label>
+        <textarea id="new-answer" rows="2" placeholder="O(log n) because each comparison cuts the search subtree in half."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-cancel-add">Cancel</button>
+        <button class="primary" id="btn-confirm-add">🏛️ Anchor Totem in Palace</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /********************************************************************
+     * 1. PALACE ARCHITECTURE & INITIAL MEMORY LOCI DATA
+     ********************************************************************/
+    const canvas = document.getElementById('palace-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let currentDay = 1;
+    let shadowWalkMode = false;
+    let activeLocus = null;
+
+    // Define the 4 Themed Rooms of the Memory Palace
+    const rooms = [
+      {
+        id: 'atrium',
+        name: 'CENTRAL ATRIUM (Focus Altar)',
+        subtitle: 'Forgotten memories automatically project Phantom Echoes here!',
+        x: 360, y: 220, w: 380, h: 280,
+        floorColor: '#131c31',
+        borderColor: '#38bdf8'
+      },
+      {
+        id: 'cs_wing',
+        name: 'NORTH WING: Computer Science & AI Sanctum',
+        subtitle: 'Sequential Loci Path #1 -> #3',
+        x: 60, y: 40, w: 460, h: 160,
+        floorColor: '#0f292a',
+        borderColor: '#10b981'
+      },
+      {
+        id: 'neuro_wing',
+        name: 'WEST WING: Neuroscience & Biology Lab',
+        subtitle: 'Sequential Loci Path #4 -> #5',
+        x: 40, y: 240, w: 290, h: 360,
+        floorColor: '#23153c',
+        borderColor: '#a855f7'
+      },
+      {
+        id: 'sys_wing',
+        name: 'EAST WING: Networking & Architecture Hall',
+        subtitle: 'Sequential Loci Path #6 -> #7',
+        x: 560, y: 40, w: 460, h: 160,
+        floorColor: '#2b191e',
+        borderColor: '#f59e0b'
+      }
+    ];
+
+    // Initial Pre-Built Memory Loci (Anchored to exact spots in rooms)
+    let loci = [
+      {
+        id: 1,
+        order: 1,
+        room: 'cs_wing',
+        title: '🌲 Vector Embeddings',
+        x: 130, y: 120,
+        mnemonic: 'A giant glowing prism firing words into a 3D galaxy where "King" and "Queen" orbit the same star.',
+        question: 'How do Vector Databases measure semantic similarity between two text embeddings?',
+        answer: 'Using Cosine Similarity (the cosine of the angle between vectors) or Dot Product / Euclidean Distance in high-dimensional space.',
+        stability: 6.0,     // Days until significant decay
+        lastReviewedDay: 1,
+        reviews: 2
+      },
+      {
+        id: 2,
+        order: 2,
+        room: 'cs_wing',
+        title: '🔥 Attention Mechanism',
+        x: 290, y: 120,
+        mnemonic: 'Three detectives named Query, Key, and Value shining spotlights onto a courtroom stage.',
+        question: 'What is the core Scaled Dot-Product Attention formula in Transformers?',
+        answer: 'Attention(Q, K, V) = softmax((Q * K^T) / sqrt(d_k)) * V',
+        stability: 3.5,
+        lastReviewedDay: 1,
+        reviews: 1
+      },
+      {
+        id: 3,
+        order: 3,
+        room: 'cs_wing',
+        title: '⚡ FastAPI Event Loop',
+        x: 440, y: 120,
+        mnemonic: 'A hyper-speed waiter juggling 1,000 coffee cups without ever waiting for the kitchen oven.',
+        question: 'Why does an async def endpoint in FastAPI outperform a blocking synchronous endpoint for I/O tasks?',
+        answer: 'Because await yields control back to the ASGI event loop during network/database I/O waits instead of blocking the worker thread.',
+        stability: 12.0,
+        lastReviewedDay: 1,
+        reviews: 5
+      },
+      {
+        id: 4,
+        order: 4,
+        room: 'neuro_wing',
+        title: '☕ Adenosine Receptors',
+        x: 180, y: 330,
+        mnemonic: 'A caffeinated bouncer wearing boxing gloves blocking sleepy purple ghosts (Adenosine) from sitting on brain chairs.',
+        question: 'How does caffeine chemically prevent drowsiness in the central nervous system?',
+        answer: 'Caffeine is a competitive antagonist at Adenosine A1 and A2A receptors—it binds to the receptors without activating them, blocking adenosine from signaling fatigue.',
+        stability: 4.0,
+        lastReviewedDay: 1,
+        reviews: 1
+      },
+      {
+        id: 5,
+        order: 5,
+        room: 'neuro_wing',
+        title: '🧭 Hippocampal Place Cells',
+        x: 180, y: 500,
+        mnemonic: 'A glowing seahorse wearing a pirate compass that lights up specific floor tiles whenever you step on them.',
+        question: 'What makes the Method of Loci neurobiologically effective for episodic memory?',
+        answer: 'Place cells in the hippocampus and grid cells in the entorhinal cortex automatically bind spatial coordinates to associative sensory memories.',
+        stability: 8.0,
+        lastReviewedDay: 1,
+        reviews: 3
+      },
+      {
+        id: 6,
+        order: 6,
+        room: 'sys_wing',
+        title: '🌐 DNS Recursive Resolver',
+        x: 660, y: 120,
+        mnemonic: 'A bloodhound sprinting from Root -> TLD (.com) -> Authoritative Name Server carrying an IP address bone.',
+        question: 'What is the exact hierarchy of servers queried by a DNS Recursive Resolver on a cache miss?',
+        answer: '1. Root Name Server -> 2. TLD (Top-Level Domain) Server -> 3. Authoritative Name Server (returns the A/AAAA record IP).',
+        stability: 3.0,
+        lastReviewedDay: 1,
+        reviews: 1
+      },
+      {
+        id: 7,
+        order: 7,
+        room: 'sys_wing',
+        title: '🤝 TCP 3-Way Handshake',
+        x: 890, y: 120,
+        mnemonic: 'Two knights clashing shields three times: SYN sword, SYN-ACK double shield, ACK salute.',
+        question: 'What three packet flags are exchanged to establish a reliable TCP connection?',
+        answer: '1. Client sends SYN -> 2. Server responds SYN-ACK -> 3. Client replies ACK.',
+        stability: 15.0,
+        lastReviewedDay: 1,
+        reviews: 6
+      }
+    ];
+
+    // Player Avatar State
+    const player = {
+      x: 550,
+      y: 360,
+      radius: 14,
+      speed: 4.2
+    };
+
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      keys[e.key.toLowerCase()] = true;
+      if (e.code === 'Space' && !isModalOpen()) {
+        e.preventDefault();
+        if (nearbyLocus) openQuizModal(nearbyLocus);
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    function isModalOpen() {
+      return document.getElementById('quiz-modal').style.display === 'flex' ||
+             document.getElementById('add-modal').style.display === 'flex';
+    }
+
+    /********************************************************************
+     * 2. SPACED REPETITION & SELF-REORGANIZATION ENGINE
+     ********************************************************************/
+    function getRetrievability(locus) {
+      const elapsedDays = Math.max(0, currentDay - locus.lastReviewedDay);
+      // Exponential forgetting curve: R = e^(-t / S)
+      const R = Math.exp(-elapsedDays / locus.stability);
+      return Math.max(0.05, Math.min(1.0, R));
+    }
+
+    function getLocusStatus(R) {
+      if (R >= 0.88) return 'MASTERED'; // Gold Statue
+      if (R >= 0.55) return 'STABLE';   // Blue Active
+      return 'URGENT';                  // Red Decaying + Spawns Echo in Atrium
+    }
+
+    // Dynamic Phantom Echo coordinates in the Central Atrium for Urgent memories
+    function computeAtriumEchoPosition(index, totalUrgent) {
+      const centerX = 550;
+      const centerY = 360;
+      const radius = 85;
+      const angle = (Date.now() * 0.001) + (index * ((Math.PI * 2) / Math.max(1, totalUrgent)));
+      return {
+        x: centerX + Math.cos(angle) * radius,
+        y: centerY + Math.sin(angle) * radius
+      };
+    }
+
+    /********************************************************************
+     * 3. RENDERING & GAME LOOP
+     ********************************************************************/
+    let nearbyLocus = null;
+
+    function resizeCanvas() {
+      const container = document.getElementById('world-container');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function updatePlayer() {
+      if (isModalOpen()) return;
+      if (keys['w'] || keys['arrowup']) player.y -= player.speed;
+      if (keys['s'] || keys['arrowdown']) player.y += player.speed;
+      if (keys['a'] || keys['arrowleft']) player.x -= player.speed;
+      if (keys['d'] || keys['arrowright']) player.x += player.speed;
+
+      // Keep inside world bounds
+      player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
+      player.y = Math.max(30, Math.min(canvas.height - 30, player.y));
+    }
+
+    function drawWorld() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Subtle background grid
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // 1. Draw Palace Rooms
+      rooms.forEach(r => {
+        ctx.fillStyle = r.floorColor;
+        ctx.strokeStyle = r.borderColor;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.roundRect(r.x, r.y, r.w, r.h, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        // Room Header Text
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 13px Segoe UI';
+        ctx.fillText(r.name, r.x + 14, r.y + 24);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px Segoe UI';
+        ctx.fillText(r.subtitle, r.x + 14, r.y + 42);
+      });
+
+      // 2. Draw Sequential Journey Ribbon connecting Loci in order
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.3)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 6]);
+      ctx.beginPath();
+      loci.forEach((loc, idx) => {
+        if (idx === 0) ctx.moveTo(loc.x, loc.y);
+        else ctx.lineTo(loc.x, loc.y);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 3. Draw Loci & Check Proximity
+      nearbyLocus = null;
+      let minDist = 9999;
+      const urgentLoci = loci.filter(l => getLocusStatus(getRetrievability(l)) === 'URGENT');
+
+      loci.forEach(loc => {
+        const R = getRetrievability(loc);
+        const status = getLocusStatus(R);
+
+        // Adaptive Size: Forgotten items grow larger and pulse to demand attention!
+        const pulse = Math.sin(Date.now() * 0.006) * 3;
+        let baseRadius = 18;
+        let color = '#38bdf8';
+        if (status === 'MASTERED') {
+          baseRadius = 16;
+          color = '#fbbf24';
+        } else if (status === 'URGENT') {
+          baseRadius = 25 + pulse;
+          color = '#f43f5e';
+        }
+
+        // Draw Locus Pedestal Glow
+        const grad = ctx.createRadialGradient(loc.x, loc.y, 4, loc.x, loc.y, baseRadius * 1.9);
+        grad.addColorStop(0, color);
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(loc.x, loc.y, baseRadius * 1.9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Locus Core Circle
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(loc.x, loc.y, baseRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw Locus Order Number or Title
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Segoe UI';
+        ctx.textAlign = 'center';
+        if (shadowWalkMode) {
+          // In Shadow Walk mode, hide the content so user must mentally visualize it!
+          ctx.fillText(`Locus #${loc.order}`, loc.x, loc.y + 4);
+          ctx.fillStyle = '#64748b';
+          ctx.font = '11px Segoe UI';
+          ctx.fillText(`[Mental Recall Active]`, loc.x, loc.y + baseRadius + 16);
+        } else {
+          ctx.fillText(`#${loc.order}`, loc.x, loc.y + 4);
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = 'bold 12px Segoe UI';
+          ctx.fillText(loc.title, loc.x, loc.y + baseRadius + 16);
+          ctx.fillStyle = color;
+          ctx.font = '11px Segoe UI';
+          ctx.fillText(`Memory: ${Math.round(R * 100)}%`, loc.x, loc.y + baseRadius + 30);
+        }
+
+        // Check distance to player
+        const d = Math.hypot(player.x - loc.x, player.y - loc.y);
+        if (d < 52 && d < minDist) {
+          minDist = d;
+          nearbyLocus = loc;
+        }
+      });
+
+      // 4. SELF-REORGANIZATION: Draw Urgent "Phantom Echoes" inside the Central Atrium!
+      urgentLoci.forEach((loc, idx) => {
+        const echoPos = computeAtriumEchoPosition(idx, urgentLoci.length);
+
+        // Draw tether line from original room locus to Atrium Echo
+        ctx.strokeStyle = 'rgba(244, 63, 94, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(loc.x, loc.y);
+        ctx.lineTo(echoPos.x, echoPos.y);
+        ctx.stroke();
+
+        // Draw Orbiting Phantom Echo in Atrium
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.28)';
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(echoPos.x, echoPos.y, 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#fecdd3';
+        ctx.font = 'bold 11px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText(`⚠️ ECHO: ${loc.title}`, echoPos.x, echoPos.y - 24);
+
+        // Player can also interact directly with the Echo in the Atrium!
+        const dEcho = Math.hypot(player.x - echoPos.x, player.y - echoPos.y);
+        if (dEcho < 45 && dEcho < minDist) {
+          minDist = dEcho;
+          nearbyLocus = loc;
+        }
+      });
+
+      // 5. Draw Player Avatar
+      ctx.fillStyle = '#38bdf8';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText('YOU', player.x, player.y - 20);
+      ctx.textAlign = 'left';
+
+      // Show or hide interaction banner
+      const banner = document.getElementById('interaction-banner');
+      if (nearbyLocus) {
+        banner.style.display = 'block';
+        banner.innerHTML = `Press <b>SPACE</b> to Confront Locus: <span style="color:#38bdf8">${nearbyLocus.title}</span>`;
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    function gameLoop() {
+      updatePlayer();
+      drawWorld();
+      requestAnimationFrame(gameLoop);
+    }
+
+    /********************************************************************
+     * 4. UI UPDATES, QUIZZING & MNEMONIC REFORGING
+     ********************************************************************/
+    function refreshSidebarHUD() {
+      document.getElementById('day-counter').textContent = `Day ${currentDay}`;
+      const listEl = document.getElementById('loci-list');
+      listEl.innerHTML = '';
+
+      let sumR = 0;
+      let urgentCount = 0;
+      let masteredCount = 0;
+
+      loci.forEach(loc => {
+        const R = getRetrievability(loc);
+        const status = getLocusStatus(R);
+        sumR += R;
+        if (status === 'URGENT') urgentCount++;
+        if (status === 'MASTERED') masteredCount++;
+
+        let borderColor = '#38bdf8';
+        if (status === 'URGENT') borderColor = '#f43f5e';
+        if (status === 'MASTERED') borderColor = '#fbbf24';
+
+        const item = document.createElement('div');
+        item.className = 'locus-item';
+        item.style.borderLeftColor = borderColor;
+        item.innerHTML = `
+          <div class="title">
+            <span>#${loc.order} ${loc.title}</span>
+            <span style="color:${borderColor}">${Math.round(R * 100)}%</span>
+          </div>
+          <div class="meta">Stability: ${loc.stability.toFixed(1)}d | Reviews: ${loc.reviews}</div>
+        `;
+        item.onclick = () => {
+          // Teleport player next to this Locus and open quiz
+          player.x = loc.x;
+          player.y = loc.y + 35;
+          openQuizModal(loc);
+        };
+        listEl.appendChild(item);
+      });
+
+      const avg = loci.length ? Math.round((sumR / loci.length) * 100) : 100;
+      document.getElementById('avg-retention').textContent = `${avg}%`;
+      document.getElementById('urgent-count').textContent = urgentCount;
+      document.getElementById('mastered-count').textContent = masteredCount;
+    }
+
+    function openQuizModal(loc) {
+      activeLocus = loc;
+      const R = Math.round(getRetrievability(loc) * 100);
+      document.getElementById('quiz-title').textContent = `${loc.title} (Memory Strength: ${R}%)`;
+      document.getElementById('quiz-room-tag').textContent = `Locus Station #${loc.order} • Stability: ${loc.stability.toFixed(1)} days`;
+      document.getElementById('quiz-mnemonic').innerHTML = `<strong>👁️ Visual Mnemonic Totem:</strong><br/>${loc.mnemonic}`;
+      document.getElementById('quiz-question').textContent = `❓ Guardian Question: "${loc.question}"`;
+      document.getElementById('quiz-answer-text').textContent = loc.answer;
+
+      document.getElementById('quiz-answer-box').style.display = 'none';
+      document.getElementById('reforge-section').style.display = 'none';
+      document.getElementById('quiz-initial-actions').style.display = 'flex';
+      document.getElementById('quiz-grade-actions').style.display = 'none';
+
+      document.getElementById('edit-mnemonic-input').value = loc.mnemonic;
+      document.getElementById('edit-answer-input').value = loc.answer;
+
+      document.getElementById('quiz-modal').style.display = 'flex';
+    }
+
+    document.getElementById('btn-reveal-answer').onclick = () => {
+      document.getElementById('quiz-answer-box').style.display = 'block';
+      document.getElementById('quiz-initial-actions').style.display = 'none';
+      document.getElementById('quiz-grade-actions').style.display = 'flex';
+    };
+
+    document.getElementById('btn-open-edit').onclick = () => {
+      document.getElementById('reforge-section').style.display = 'block';
+    };
+
+    document.getElementById('btn-save-reforge').onclick = () => {
+      if (!activeLocus) return;
+      activeLocus.mnemonic = document.getElementById('edit-mnemonic-input').value.trim() || activeLocus.mnemonic;
+      activeLocus.answer = document.getElementById('edit-answer-input').value.trim() || activeLocus.answer;
+      activeLocus.lastReviewedDay = currentDay;
+      activeLocus.stability = Math.max(4.0, activeLocus.stability * 1.4);
+      activeLocus.reviews++;
+      document.getElementById('quiz-modal').style.display = 'none';
+      refreshSidebarHUD();
+    };
+
+    document.getElementById('btn-grade-forgot').onclick = () => {
+      if (!activeLocus) return;
+      // Memory slipped: reduce stability & prompt immediate mnemonic reforge!
+      activeLocus.stability = Math.max(1.5, activeLocus.stability * 0.45);
+      document.getElementById('reforge-section').style.display = 'block';
+      document.getElementById('quiz-grade-actions').style.display = 'none';
+    };
+
+    document.getElementById('btn-grade-good').onclick = () => {
+      if (!activeLocus) return;
+      activeLocus.lastReviewedDay = currentDay;
+      activeLocus.stability = activeLocus.stability * 1.8;
+      activeLocus.reviews++;
+      document.getElementById('quiz-modal').style.display = 'none';
+      refreshSidebarHUD();
+    };
+
+    document.getElementById('btn-grade-easy').onclick = () => {
+      if (!activeLocus) return;
+      activeLocus.lastReviewedDay = currentDay;
+      activeLocus.stability = activeLocus.stability * 2.6;
+      activeLocus.reviews++;
+      document.getElementById('quiz-modal').style.display = 'none';
+      refreshSidebarHUD();
+    };
+
+    document.getElementById('btn-close-quiz').onclick = () => {
+      document.getElementById('quiz-modal').style.display = 'none';
+    };
+
+    // Simulate +3 Days Passing
+    document.getElementById('btn-sim-time').onclick = () => {
+      currentDay += 3;
+      refreshSidebarHUD();
+    };
+
+    // Toggle Shadow Walk (Mental Visualization Mode)
+    document.getElementById('btn-shadow-walk').onclick = (e) => {
+      shadowWalkMode = !shadowWalkMode;
+      e.target.textContent = `👁️ Toggle "Shadow Walk" (Mental Recall Mode: ${shadowWalkMode ? 'ON' : 'OFF'})`;
+      e.target.style.borderColor = shadowWalkMode ? '#fbbf24' : '#334155';
+    };
+
+    // Add New Locus at Player's Current Spot
+    document.getElementById('btn-add-locus').onclick = () => {
+      document.getElementById('new-title').value = '';
+      document.getElementById('new-mnemonic').value = '';
+      document.getElementById('new-question').value = '';
+      document.getElementById('new-answer').value = '';
+      document.getElementById('add-modal').style.display = 'flex';
+    };
+
+    document.getElementById('btn-cancel-add').onclick = () => {
+      document.getElementById('add-modal').style.display = 'none';
+    };
+
+    document.getElementById('btn-confirm-add').onclick = () => {
+      const title = document.getElementById('new-title').value.trim() || '✨ Custom Concept';
+      const mnemonic = document.getElementById('new-mnemonic').value.trim() || 'A glowing obelisk humming with energy.';
+      const question = document.getElementById('new-question').value.trim() || 'What is the core idea of this locus?';
+      const answer = document.getElementById('new-answer').value.trim() || 'Custom user note.';
+
+      loci.push({
+        id: Date.now(),
+        order: loci.length + 1,
+        room: 'custom',
+        title,
+        x: player.x,
+        y: player.y,
+        mnemonic,
+        question,
+        answer,
+        stability: 5.0,
+        lastReviewedDay: currentDay,
+        reviews: 1
+      });
+
+      document.getElementById('add-modal').style.display = 'none';
+      refreshSidebarHUD();
+    };
+
+    // Start Engine
+    refreshSidebarHUD();
+    gameLoop();
+  </script>
+</body>
+</html>
