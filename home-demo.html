@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Screen Demo - Memory Palace</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <style>
+      #demo-controls {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        z-index: 1000;
+        background: rgba(17, 24, 39, 0.95);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 16px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      }
+      #demo-log {
+        font-size: 0.82rem;
+        color: var(--muted);
+        max-width: 280px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="demo-controls">
+      <button id="btn-empty" type="button">Empty Save</button>
+      <button id="btn-drills" type="button">30-Drill Save</button>
+      <div id="demo-log">Ready</div>
+    </div>
+    <div id="app"></div>
+    <script type="module" src="/src/ui/home-demo.ts"></script>
+  </body>
+</html>
