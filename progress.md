@@ -1,6 +1,13 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-20 22:55 - Lead: T5 reconciled, main folder clean
+- Done: FB's T5 session ended without a commit. Its main-folder `src/progress.ts` (22:44) passes 24/27 tests in `src/progress.test.ts`; the `../mp-T5` copy passes 23/27. Moved the worktree to `wt/T5` and put the main-folder version there, uncommitted; FB's next CONTINUE T5 finishes it (3 failing: dayDiff month end, updateStreak g < 0, freeze cap). Main-folder copy stashed ("lead-T5-main-folder-copy-2244"). All worktrees are now in `wt/`. Main folder clean, BUILD jobs flow.
+- State: M1 fix (FB next), T1 review (FB verifies), T5/T2/T3/T8a in-progress (FB), T12 in-progress but waits for T3. AG waits for FB.
+- Stash: "FB stray main-folder work 22:08-22:28" holds FB's newest M1 edits (`src/store.ts`, `src/math.test.ts`) that never reached `task/M1-maths`. Use only if FB's fix round asks for them.
+- Next: watch that FB now edits `wt/<ID>/...`. If files appear in the main `src/` again, Freebuff must be started with the worktree as its project folder.
+- Blockers: none.
+
 ## 2026-10-20 22:40 - Lead: Freebuff root cause, worktrees moved into wt/
 - Found: Freebuff edits files only in the project folder, whatever folder its shell is in. So M1 was committed from a stale copy (AG gave `V-M1 round 1: CHANGES`), and T2, T3, T8a, T12 files were written into the main folder.
 - Done: copied main-folder T2, T3, T8a, T12 work to new branches (`Lead: move ...` commits, state in-progress). Stashed the whole stray set (`git stash list`, "FB stray main-folder work 22:08-22:28") so nothing is lost; M1/T5 copies there are FB's newest edits. Moved worktrees T1, T2, T3, T8a, T12, M1 to `wt/<ID>`; `/wt/` added to `.git/info/exclude`. mesh: worktree path `wt/<ID>`, packet path inside it, `worktree move` for old folders, CONTINUE waits for Needs and merges verified deps. `npm test` scoped to src and scripts (9 pass). Queue prompts now say edit only `wt/<ID>/...`.
