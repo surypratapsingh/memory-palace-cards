@@ -1,6 +1,11 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-20 23:20 - Lead turn: nothing to merge
+- State: no commits and no file changes in any `wt/` since 22:54. Nothing verified, blocked or in `lead` state. Main folder clean; no stray files in main `src/`.
+- Waiting on FB: next job FIX M1 (`wt/M1`), then VERIFY T1, then CONTINUE T5, T2, T3, T8a. AG has no job until FB commits one of these.
+- Next: if FB stays idle, check that its queue is running and uses the current prompt (TASKS.md "Queue prompts").
+
 ## 2026-10-20 22:55 - Lead: T5 reconciled, main folder clean
 - Done: FB's T5 session ended without a commit. Its main-folder `src/progress.ts` (22:44) passes 24/27 tests in `src/progress.test.ts`; the `../mp-T5` copy passes 23/27. Moved the worktree to `wt/T5` and put the main-folder version there, uncommitted; FB's next CONTINUE T5 finishes it (3 failing: dayDiff month end, updateStreak g < 0, freeze cap). Main-folder copy stashed ("lead-T5-main-folder-copy-2244"). All worktrees are now in `wt/`. Main folder clean, BUILD jobs flow.
 - State: M1 fix (FB next), T1 review (FB verifies), T5/T2/T3/T8a in-progress (FB), T12 in-progress but waits for T3. AG waits for FB.
