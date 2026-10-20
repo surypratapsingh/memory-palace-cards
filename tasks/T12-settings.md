@@ -41,9 +41,9 @@ export function mountSettings(root: HTMLElement, data: SaveData, onExit: (data: 
 - `src/ui/contrast.test.ts`: read the tokens from `src/style.css` with a regex (do not copy the hex values), compute the WCAG ratio (`MATHS.md` section 10) and assert ≥ 4.5 for text/bg, text/panel, muted/panel, accent/panel, danger/panel, and #dd1111 on white.
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass.
-- [ ] Demo http://localhost:5173/settings-demo.html: every control works with keyboard only; reload keeps the settings.
-- [ ] No user text through `innerHTML`. Unmount removes listeners.
+- [x] `npm test` and `npm run build` pass.
+- [x] Demo http://localhost:5173/settings-demo.html: every control works with keyboard only; reload keeps the settings.
+- [x] No user text through `innerHTML`. Unmount removes listeners.
 
 ## Questions
 - None.
@@ -78,3 +78,24 @@ In `../mp-T12`: `npm test`, `npm run build` (paste counts), `npm run dev`.
 3. **Mutation check**: change `--muted` in `src/style.css` to `#444b55`; `contrast.test.ts` must fail; undo.
 4. Red-team `src/redteam/T12.test.ts`: at least 5 attacks on `sanitizeSettings` (arrays, prototype keys like `__proto__`, huge numbers, extra unknown keys dropped, NaN).
 Write "Verification" as TASKS.md says.
+
+## Verification (round 1)
+Verdict: PASS
+Evidence: npm test -> "pass 34, fail 0"; npm run build -> ok (built in 76ms); screenshots: docs/shots/T12-1.png, docs/shots/T12-2.png; red-team: src/redteam/T12.test.ts
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: npm test passes (pass 34, fail 0); tsc && vite build succeeds cleanly with 0 errors
+- ✔ Demo http://localhost:5173/settings-demo.html: every control works with keyboard only; reload keeps the settings: verified via browser CDP driving radio options, checkboxes, and Esc key exit; values persisted in localStorage across page reload
+- ✔ No user text through `innerHTML`. Unmount removes listeners: code audit verified createElement/textContent/createTextNode only; document.removeEventListener('keydown') called and screen.remove() executed on unmount
+Findings: none
+
+Attacks tried that failed:
+1. Arrays, Date objects, regexes, functions, numbers, booleans, strings passed to sanitizeSettings: correctly rejected and replaced with full DEFAULTS
+2. Prototype pollution and prototype inheritance: inherited properties on prototype chain ignored via Object.hasOwn; __proto__ injected keys dropped
+3. Out-of-bounds numeric values, negative values, floats, NaN, and Infinity in glideMs: safely fallback to 600 default, while exact valid GLIDE_OPTIONS (0, 300, 600, 1000) are preserved
+4. Malicious and unexpected extra keys: stripped from output object, returning strictly contract keys without mutating input object
+5. Boolean type coercion attacks: truthy/falsy non-booleans (e.g. 1, 0, 'true', 'false', [], {}) resisted and replaced with valid boolean defaults
+6. applySettings toggle behavior: verified toggle('color-safe', on) idempotency and proper classList management
+7. Trainer accessibility audit via browser CDP: aria-live="polite" confirmed on progress element, 53/53 buttons have accessible text/labels (0 empty), rating buttons announce keys "Again (1)", "Hard (2)", "Good (3)", "Easy (4)"
+
+Mutation checks:
+- Mutant: `--muted: #444b55` in `src/style.css`: KILLED (contrast.test.ts failed with `--muted on --panel has contrast 2.01, expected >= 4.5`)
