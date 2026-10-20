@@ -65,3 +65,20 @@ Mutation checks:
 - Mutant 3 (`src/srs.ts` recall: return 1 for State.New): KILLED
 - Mutant 4 (`src/store.ts` parse: remove version check): SURVIVED FB tests (killed by redteam)
 - Mutant 5 (`src/deck.ts` localDay: `getUTCDate()`): KILLED
+
+
+## Verification (round 2)
+Verdict: CHANGES
+Evidence: npm test -> "pass 30, fail 0"; npm run build -> ok (built in 89ms); red-team: src/redteam/M1.test.ts
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: npm test passes (pass 30, fail 0); npm run build succeeds cleanly with 0 errors
+- ✘ Every section 1-3 of MATHS.md has at least one test that would fail if the formula changed: Findings 3, 4, 5, 6, 7 remain unaddressed in src/math.test.ts (Mutants 1 & 4 survive FB tests; score() uncalled; strength() only tests 'new')
+- ✘ Every bug fix has a test that fails on the old code: Report section remains completely blank in tasks/M1-maths.md; no bug fixes or repair rules documented
+Findings:
+1. [S1] src/store.ts:89-93 - FIXED by FB in commit 5020d65 (build succeeds)
+2. [S2] tasks/M1-maths.md:25-32 - OPEN: Acceptance checklist left unchecked, Report section left completely blank
+3. [S2] tasks/M1-maths.md:35-36 - OPEN: Mutation 1 survives FB test suite (src/math.test.ts untouched in round 1)
+4. [S2] tasks/M1-maths.md:39 - OPEN: Mutation 4 survives FB test suite (src/math.test.ts untouched in round 1)
+5. [S2] src/math.test.ts:201-220 - OPEN: load() corrupt test does not populate mock storage
+6. [S2] src/math.test.ts:100-120 - OPEN: score() from src/deck.ts is never called in math.test.ts
+7. [S2] src/math.test.ts:190-197 - OPEN: strength() only tests 'new', omits other 4 statuses and priority order
