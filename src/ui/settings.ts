@@ -1,154 +1,118 @@
-import { save, load } from '../store.ts';
-import type { SaveData, Settings } from '../types.ts';
-import { GLIDE_OPTIONS } from '../settings.ts';
+import { save } from '../store.ts';
+import { applySettings, GLIDE_OPTIONS, sanitizeSettings } from '../settings.ts';
+import type { SaveData } from '../types.ts';
 
-// Glide speed labels
 const GLIDE_LABELS = ['Instant', 'Fast', 'Normal', 'Slow'] as const;
+const STRENGTHS = ['new', 'fading', 'learning', 'solid', 'gilded'] as const;
 
 export function mountSettings(root: HTMLElement, data: SaveData, onExit: (data: SaveData) => void): () => void {
-  let keyListener: () => void;
-  const savedata = { ...data };
+  data.settings = sanitizeSettings(data.settings);
+  const screen = document.createElement('main');
+  screen.className = 'settings-screen';
+  screen.setAttribute('aria-labelledby', 'settings-title');
+  root.append(screen);
+  let closed = false;
 
-  function render() {
-    root.innerHTML = '';
+  const persist = () => {
+    save(data);
+    applySettings(data.settings, document.documentElement);
+  };
 
-    // Glide speed section
-    const glideSection = document.createElement('div');
-    glideSection.className = 'settings-section';
-    const glideLabel = document.createElement('label');
-    glideLabel.textContent = 'Glide speed';
-    glideSection.appendChild(glideLabel);
+  function addCheckbox(labelText: string, key: 'sound' | 'colorSafe' | 'captions'): void {
+    const label = document.createElement('label');
+    label.className = 'settings-checkbox';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = data.settings[key];
+    checkbox.addEventListener('change', () => {
+      data.settings[key] = checkbox.checked;
+      persist();
+    });
+    label.append(checkbox, document.createTextNode(labelText));
+    screen.append(label);
+  }
 
-    ;(GLIDE_OPTIONS as number[]).forEach((glideMs, i) => {
+  function render(): void {
+    screen.replaceChildren();
+    const heading = document.createElement('h1');
+    heading.id = 'settings-title';
+    heading.textContent = 'Settings';
+    screen.append(heading);
+
+    const glideFieldset = document.createElement('fieldset');
+    const legend = document.createElement('legend');
+    legend.textContent = 'Glide speed';
+    glideFieldset.append(legend);
+    GLIDE_OPTIONS.forEach((glideMs, index) => {
+      const label = document.createElement('label');
+      label.className = 'settings-radio';
       const radio = document.createElement('input');
       radio.type = 'radio';
       radio.name = 'glide-speed';
       radio.value = String(glideMs);
-      radio.id = `glide-${glideMs}`;
-      if (savedata.settings.glideMs === glideMs) {
-        radio.checked = true;
-      }
+      radio.checked = data.settings.glideMs === glideMs;
       radio.addEventListener('change', () => {
-        savedata.settings.glideMs = glideMs;
-        save(savedata, localStorage);
-        applySettings(savedata.settings, { classList: { toggle: (name: string, on: boolean) => {} } });
-        render();
+        if (!radio.checked) return;
+        data.settings.glideMs = glideMs;
+        persist();
       });
-      const radioLabel = document.createElement('label');
-      radioLabel.htmlFor = `glide-${glideMs}`;
-      radioLabel.textContent = GLIDE_LABELS[i] + (glideMs === 0 ? ' (also helps with motion sickness)' : '');
-      glideSection.appendChild(radio);
-      glideSection.appendChild(radioLabel);
+      label.append(radio, document.createTextNode(GLIDE_LABELS[index]));
+      glideFieldset.append(label);
     });
+    const motionNote = document.createElement('p');
+    motionNote.className = 'settings-note';
+    motionNote.textContent = 'Instant also helps with motion sickness.';
+    glideFieldset.append(motionNote);
+    screen.append(glideFieldset);
 
-    root.appendChild(glideSection);
+    addCheckbox('Sound', 'sound');
+    addCheckbox('Colour-blind-safe colours', 'colorSafe');
+    addCheckbox('Captions under cards while memorizing', 'captions');
 
-    // Sound checkbox
-    const soundSection = document.createElement('div');
-    soundSection.className = 'settings-section';
-    const soundLabel = document.createElement('label');
-    soundLabel.textContent = 'Sound';
-    const soundCheckbox = document.createElement('input');
-    soundCheckbox.type = 'checkbox';
-    soundCheckbox.checked = savedata.settings.sound;
-    soundCheckbox.addEventListener('change', () => {
-      savedata.settings.sound = (soundCheckbox as HTMLInputElement).checked;
-      save(savedata, localStorage);
-      render();
-    });
-    soundLabel.appendChild(soundCheckbox);
-    soundSection.appendChild(soundLabel);
-    root.appendChild(soundSection);
-
-    // Colour-blind-safe colours checkbox
-    const cssSection = document.createElement('div');
-    cssSection.className = 'settings-section';
-    const cssLabel = document.createElement('label');
-    cssLabel.textContent = 'Colour-blind-safe colours';
-    const cssCheckbox = document.createElement('input');
-    cssCheckbox.type = 'checkbox';
-    cssCheckbox.checked = savedata.settings.colorSafe;
-    cssCheckbox.addEventListener('change', () => {
-      savedata.settings.colorSafe = (cssCheckbox as HTMLInputElement).checked;
-      save(savedata, localStorage);
-      // Apply the color-safe class
-      const rootEl = document.documentElement;
-      if (savedata.settings.colorSafe) {
-        rootEl.classList.add('color-safe');
-      } else {
-        rootEl.classList.remove('color-safe');
-      }
-      render();
-    });
-    cssLabel.appendChild(cssCheckbox);
-    cssSection.appendChild(cssLabel);
-    root.appendChild(cssSection);
-
-    // Captions checkbox
-    const captionsSection = document.createElement('div');
-    captionsSection.className = 'settings-section';
-    const captionsLabel = document.createElement('label');
-    captionsLabel.textContent = 'Captions under cards';
-    const captionsCheckbox = document.createElement('input');
-    captionsCheckbox.type = 'checkbox';
-    captionsCheckbox.checked = savedata.settings.captions;
-    captionsCheckbox.addEventListener('change', () => {
-      savedata.settings.captions = (captionsCheckbox as HTMLInputElement).checked;
-      save(savedata, localStorage);
-      render();
-    });
-    captionsLabel.appendChild(captionsCheckbox);
-    captionsSection.appendChild(captionsLabel);
-    root.appendChild(captionsSection);
-
-    // Preview row of 5 strength tiles
-    const previewSection = document.createElement('div');
-    previewSection.className = 'settings-section';
-    previewSection.textContent = 'Strength colours preview';
-    const strengthNames: ('new' | 'fading' | 'learning' | 'solid' | 'gilded')[] = ['new', 'fading', 'learning', 'solid', 'gilded'];
-    strengthNames.forEach((strength) => {
-      const tile = document.createElement('div');
-      tile.className = 'tile';
+    const preview = document.createElement('section');
+    preview.className = 'settings-preview';
+    preview.setAttribute('aria-label', 'Strength colour preview');
+    const previewTitle = document.createElement('h2');
+    previewTitle.textContent = 'Strength colours preview';
+    preview.append(previewTitle);
+    for (const strength of STRENGTHS) {
+      const tile = document.createElement('span');
+      tile.className = 'settings-strength-tile';
       tile.dataset.strength = strength;
-      // Apply the current color scheme
-      const rootEl = document.documentElement;
-      const colors: Record<string, string> = {
-        new: rootEl.classList.contains('color-safe') ? '#8a8a8a' : '#64748b',
-        fading: rootEl.classList.contains('color-safe') ? '#d55e00' : '#ef4444',
-        learning: rootEl.classList.contains('color-safe') ? '#56b4e9' : '#3b82f6',
-        solid: rootEl.classList.contains('color-safe') ? '#009e73' : '#22c55e',
-        gilded: rootEl.classList.contains('color-safe') ? '#f0e442' : '#fbbf24',
-      };
-      tile.style.backgroundColor = colors[strength] || '#ccc';
       tile.textContent = strength;
-      previewSection.appendChild(tile);
-    });
-    root.appendChild(previewSection);
+      preview.append(tile);
+    }
+    screen.append(preview);
 
-    // Back button
-    const backBtn = document.createElement('button');
-    backBtn.textContent = 'Back';
-    backBtn.addEventListener('click', () => {
-      save(savedata, localStorage);
-      onExit(savedata);
-    });
-    root.appendChild(backBtn);
+    const back = document.createElement('button');
+    back.type = 'button';
+    back.textContent = 'Back';
+    back.addEventListener('click', exit);
+    screen.append(back);
   }
 
-  // Initial render
+  function exit(): void {
+    if (closed) return;
+    persist();
+    unmount();
+    onExit(data);
+  }
+
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    exit();
+  };
+  document.addEventListener('keydown', onKeyDown);
+
+  function unmount(): void {
+    if (closed) return;
+    closed = true;
+    document.removeEventListener('keydown', onKeyDown);
+    screen.remove();
+  }
+
+  applySettings(data.settings, document.documentElement);
   render();
-
-  // Setup keyboard handler
-  const keydownHandler = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      save(savedata, localStorage);
-      onExit(savedata);
-    }
-  };
-
-  document.addEventListener('keydown', keydownHandler);
-
-  return () => {
-    document.removeEventListener('keydown', keydownHandler);
-  };
+  return unmount;
 }

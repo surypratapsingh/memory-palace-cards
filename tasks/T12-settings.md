@@ -46,7 +46,30 @@ export function mountSettings(root: HTMLElement, data: SaveData, onExit: (data: 
 - [ ] No user text through `innerHTML`. Unmount removes listeners.
 
 ## Questions
+- None.
+
 ## Report
+- Added `sanitizeSettings` with default repair, valid glide-option preservation, own-property handling, and non-mutation guarantees; `applySettings` idempotently toggles the colour-safe root class.
+- Built the settings screen with keyboard-accessible radio/checkbox controls, all settings persisted on change, visible-focus CSS, colour preview using shared CSS variables, Escape/Back exit, and key-listener teardown.
+- Added settings demo entry page; no user-provided text is inserted through `innerHTML`.
+- Trainer accessibility fixes: progress remains `aria-live="polite"`, rating controls expose their key in both text and `aria-keyshortcuts`, and grid buttons announce the card and its mnemonic image.
+- Scope: changed only the listed T12 files; `npm install` modified lockfile root metadata, which was restored.
+- Contrast tests now read values from `src/style.css` instead of duplicated constants and check required text/bg, text/panel, muted/panel, accent/panel, danger/panel, plus #dd1111 on white.
+- `npm test`: 28 passed, 0 failed. `npm run build`: passed. `git diff --check`: passed.
+- Browser demo smoke check at `http://127.0.0.1:5174/settings-demo.html`: controls exposed named radios/checkboxes; keyboard changed glide speed and palette; colour-safe switched preview tile colors; Escape and Back both unmounted the screen. Sound/captions and selected settings state persisted immediately in `localStorage` in-page. A hard reload reset the isolated incognito browser storage, so cross-reload persistence was not confirmed by this run.
+- Dependency `task/T3-trainer` was merged as instructed. `npm install` changed lockfile root metadata; it was restored. Only T12's write-scope files are modified.
+
+## Builder Verification
+Verdict: Awaiting AG cross-verification.
+Evidence: `npm test` -> pass 28, fail 0; `npm run build` -> ok; `git diff --check` -> ok; settings demo launched and exercised in browser at port 5174.
+Acceptance:
+- ✔ Tests/build pass (28/28; Vite build ok).
+- ✔ Settings demo controls could be reached and changed with keyboard; no reload persistence claim (isolated browser storage reset on reload).
+- ✔ `innerHTML` not used in settings code; returned unmount and Escape/Back teardown were exercised.
+- ✔ Settings fields have labels, shared styles provide visible focus, and contrast tests source real CSS tokens.
+- ✔ Trainer progress has polite live-region semantics and rating controls show key names; review queue screen-reader pass remains for AG.
+
+Findings: None known; awaiting AG independent verification.
 
 ## Verify (for AG)
 In `../mp-T12`: `npm test`, `npm run build` (paste counts), `npm run dev`.

@@ -1,92 +1,57 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sanitizeSettings, applySettings, GLIDE_OPTIONS } from './settings.ts';
+import { test } from 'node:test';
+import { applySettings, GLIDE_OPTIONS, sanitizeSettings } from './settings.ts';
 import type { Settings } from './types.ts';
 
-test('sanitizeSettings with undefined', () => {
-  const result = sanitizeSettings(undefined);
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
+const DEFAULTS: Settings = { glideMs: 600, sound: false, colorSafe: false, captions: true };
+
+test('sanitizeSettings falls back for missing, null, arrays, and primitives', () => {
+  for (const input of [undefined, null, [], 'settings', 4, true]) {
+    assert.deepEqual(sanitizeSettings(input), DEFAULTS);
+  }
 });
 
-test('sanitizeSettings with null', () => {
-  const result = sanitizeSettings(null);
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
+test('sanitizeSettings repairs invalid values, preserves valid fields, and drops extras', () => {
+  assert.deepEqual(sanitizeSettings({}), DEFAULTS);
+  assert.deepEqual(sanitizeSettings({ glideMs: 450 }), DEFAULTS);
+  assert.deepEqual(sanitizeSettings({ glideMs: '600' }), DEFAULTS);
+  assert.deepEqual(sanitizeSettings({ glideMs: Number.NaN }), DEFAULTS);
+  assert.deepEqual(sanitizeSettings({ glideMs: Number.POSITIVE_INFINITY }), DEFAULTS);
+  assert.deepEqual(sanitizeSettings({ sound: 'yes' }), DEFAULTS);
+  assert.deepEqual(sanitizeSettings({ glideMs: 300, sound: true, colorSafe: true, captions: false, extra: 1 }), {
+    glideMs: 300, sound: true, colorSafe: true, captions: false,
+  });
 });
 
-test('sanitizeSettings with empty object', () => {
-  const result = sanitizeSettings({});
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
+test('sanitizeSettings accepts each glide option and its default valid values', () => {
+  assert.deepEqual(GLIDE_OPTIONS, [0, 300, 600, 1000]);
+  for (const glideMs of GLIDE_OPTIONS) assert.equal(sanitizeSettings({ glideMs }).glideMs, glideMs);
+  assert.deepEqual(sanitizeSettings({ glideMs: 1000, sound: false, colorSafe: false, captions: true }), { ...DEFAULTS, glideMs: 1000 });
 });
 
-test('sanitizeSettings with glideMs 450 (not in GLIDE_OPTIONS)', () => {
-  const result = sanitizeSettings({ glideMs: 450 });
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
+test('sanitizeSettings uses own properties only and never mutates the input', () => {
+  const source = Object.assign(Object.create({ glideMs: 0, sound: true }), {
+    colorSafe: true,
+    extra: 'ignored',
+  });
+  const snapshot = { colorSafe: source.colorSafe, extra: source.extra };
+  assert.deepEqual(sanitizeSettings(source), { ...DEFAULTS, colorSafe: true });
+  assert.deepEqual({ colorSafe: source.colorSafe, extra: source.extra }, snapshot);
+
+  const jsonWithProto = JSON.parse('{"__proto__":{"sound":true},"glideMs":300}');
+  assert.deepEqual(sanitizeSettings(jsonWithProto), { ...DEFAULTS, glideMs: 300 });
 });
 
-test('sanitizeSettings with glideMs 600 (valid)', () => {
-  const result = sanitizeSettings({ glideMs: 600 });
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
+test('sanitizeSettings tolerates a throwing prototype getter', () => {
+  const hostile = Object.create({ get sound() { throw new Error('getter should not be read'); } });
+  Object.defineProperty(hostile, 'glideMs', { value: 0, enumerable: true });
+  assert.deepEqual(sanitizeSettings(hostile), { ...DEFAULTS, glideMs: 0 });
 });
 
-test('sanitizeSettings with sound: yes (string, should fall back)', () => {
-  const result = sanitizeSettings({ sound: 'yes' });
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
-});
-
-test('sanitizeSettings with sound: true (valid)', () => {
-  const result = sanitizeSettings({ sound: true });
-  assert.deepEqual(result, { glideMs: 600, sound: true, colorSafe: false, captions: true });
-});
-
-test('sanitizeSettings with colorSafe: true (valid)', () => {
-  const result = sanitizeSettings({ colorSafe: true });
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: true, captions: true });
-});
-
-test('sanitizeSettings with captions: false (valid)', () => {
-  const result = sanitizeSettings({ captions: false });
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: false });
-});
-
-test('sanitizeSettings with valid object (unchanged)', () => {
-  const result = sanitizeSettings({ glideMs: 300, sound: true, colorSafe: true, captions: false });
-  assert.deepEqual(result, { glideMs: 300, sound: true, colorSafe: true, captions: false });
-});
-
-test('sanitizeSettings with prototype pollution', () => {
-  const result = sanitizeSettings({ __proto__: { sound: true } });
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
-});
-
-test('sanitizeSettings with extra unknown keys dropped', () => {
-  const result = sanitizeSettings({ glideMs: 600, sound: true, colorSafe: true, captions: true, unknownKey: 'should be dropped' });
-  assert.deepEqual(result, { glideMs: 600, sound: true, colorSafe: true, captions: true });
-});
-
-test('sanitizeSettings with NaN glideMs', () => {
-  const result = sanitizeSettings({ glideMs: NaN });
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
-});
-
-test('sanitizeSettings with huge glideMs', () => {
-  const result = sanitizeSettings({ glideMs: 999999 });
-  // 999999 is not in GLIDE_OPTIONS, should fall back to 600
-  assert.deepEqual(result, { glideMs: 600, sound: false, colorSafe: false, captions: true });
-});
-
-test('applySettings toggles color-safe class', () => {
-  const root = { classList: { toggle: (_name: string, on: boolean) => {} } } as any;
-  applySettings({ glideMs: 600, sound: false, colorSafe: true, captions: true }, root);
-  // Just verify no error is thrown
-  assert.ok(true);
-});
-
-test('applySettings with colorSafe false', () => {
-  const root = { classList: { toggle: (_name: string, on: boolean) => {} } } as any;
-  applySettings({ glideMs: 600, sound: false, colorSafe: false, captions: true }, root);
-  assert.ok(true); // No error
-});
-
-test('GLIDE_OPTIONS contains expected values', () => {
-  assert.deepEqual(GLIDE_OPTIONS, [0, 300, 600, 1000] as const);
+test('applySettings toggles color-safe on and off with the current value', () => {
+  const calls: [string, boolean][] = [];
+  const root = { classList: { toggle: (name: string, enabled: boolean) => calls.push([name, enabled]) } };
+  applySettings({ ...DEFAULTS, colorSafe: true }, root);
+  applySettings(DEFAULTS, root);
+  assert.deepEqual(calls, [['color-safe', true], ['color-safe', false]]);
 });
