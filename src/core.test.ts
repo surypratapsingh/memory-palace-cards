@@ -69,6 +69,7 @@ test('store: round trip, corrupt save kept, bad import rejected', () => {
 });
 
 test('card images are well formed', () => {
+  assert.equal(CARD_IMAGES.length, 52, '52 card images required');
   const ids = CARD_IMAGES.map((c) => c.card);
   assert.equal(new Set(ids).size, ids.length, 'duplicate card');
   for (const c of CARD_IMAGES) {
