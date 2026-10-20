@@ -50,7 +50,24 @@ export function leeches(srs: SaveData['srs']): CardId[];
 - [ ] Signatures exactly as above. Every constant used, no magic numbers in function bodies.
 
 ## Questions
+- None.
+
 ## Report
+- Implemented empirical-Bayes miss-rate shrinkage and weak-locus selection, ghost fade/warning helpers, latest-drill ghost extraction, and leech ordering.
+- Defensive input handling excludes malformed locus stats, invalid timestamps and non-deck SRS keys; no dependencies added.
+- `npm test`: 24 passed, 0 failed. `npm run build`: passed. `git diff --check`: passed.
+- Tests cover both MATHS.md worked examples to 1e-9, weak-locus thresholds/ranking/tie/cap/string keys and invalid data, ghost fade/warn/hide/future/invalid dates and latest drill, plus leech boundary and order.
+- Scope: only `src/living.ts` and `src/living.test.ts` are changed. `npm install` modified lockfile root metadata, which was restored.
+
+## Builder Verification
+Verdict: Awaiting AG cross-verification.
+Evidence: `npm test` -> pass 24, fail 0; `npm run build` -> ok; `git diff --check` -> ok.
+Acceptance:
+- ✔ Tests/build pass (24/24; Vite build ok).
+- ✔ Public constants and function signatures match packet; all formula constants are named.
+- ✔ MATHS.md weak-locus formula/tolerance and ghost fade equations are tested.
+
+Findings: None known; awaiting AG independent red-team verification.
 
 ## Verify (for AG)
 In `../mp-T8a`: `npm test`, `npm run build`, paste counts.

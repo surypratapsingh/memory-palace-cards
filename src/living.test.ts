@@ -1,239 +1,235 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { shrunkMissRates, weakLoci, PRIOR_K, WEAK_MARGIN, WEAK_MAX, WEAK_MIN_TRIES } from './living.ts';
-import { ghostOpacity, ghosts, ghostWarning } from './living.ts';
-import { leeches } from './living.ts';
-import type { SaveData, DrillResult, CardId } from './types.ts';
+import { test } from 'node:test';
+import { emptySave } from './store.ts';
+import type { CardId, DrillResult, SaveData, SrsState } from './types.ts';
+import {
+  GHOST_HALF_LIFE_H,
+  GHOST_MIN,
+  GHOST_START,
+  GHOST_WARN,
+  PRIOR_K,
+  WEAK_MARGIN,
+  WEAK_MAX,
+  WEAK_MIN_TRIES,
+  ghostOpacity,
+  ghostWarning,
+  ghosts,
+  leeches,
+  shrunkMissRates,
+  weakLoci,
+} from './living.ts';
 
-test('PRIOR_K = 5', () => {
-  assert.equal(PRIOR_K, 5);
+const NOW = new Date('2026-10-20T12:00:00.000Z');
+const rateAt = (hoursAgo: number) => new Date(NOW.getTime() - hoursAgo * 60 * 60 * 1000).toISOString();
+const emptyStats = (): SaveData['locusStats'] => ({});
+const drill = (at: string, sequence: CardId[]): DrillResult => ({
+  at,
+  seed: 'seed',
+  daily: false,
+  sequence,
+  answers: sequence,
+  memorizeMs: 1,
+  recallMs: 1,
+});
+const stateWithLapses = (lapses: number): SrsState => ({
+  ...emptySave().srs.AS!,
+  lapses,
 });
 
-test('WEAK_MARGIN = 0.15', () => {
+test('living constants match the spec', () => {
+  assert.equal(PRIOR_K, 5);
+  assert.equal(WEAK_MARGIN, 0.15);
+  assert.equal(WEAK_MIN_TRIES, 3);
+  assert.equal(WEAK_MAX, 5);
+  assert.equal(GHOST_START, 0.35);
+  assert.equal(GHOST_HALF_LIFE_H, 2);
+  assert.equal(GHOST_MIN, 0.05);
+  assert.equal(GHOST_WARN, 0.15);
+});
+
+test('shrunkMissRates matches both worked examples to 1e-9', () => {
+  const worked: SaveData['locusStats'] = {
+    0: { tries: 10, misses: 8 },
+    1: { tries: 10, misses: 2 },
+    2: { tries: 10, misses: 2 },
+    3: { tries: 10, misses: 2 },
+    4: { tries: 10, misses: 2 },
+    5: { tries: 10, misses: 2 },
+    6: { tries: 10, misses: 2 },
+    7: { tries: 10, misses: 2 },
+    8: { tries: 10, misses: 2 },
+    9: { tries: 10, misses: 2 },
+    10: { tries: 2, misses: 2 },
+  };
+  const rates = shrunkMissRates(worked);
+  const globalRate = 28 / 102;
+  assert.ok(Math.abs(rates.get(0)! - (8 + PRIOR_K * globalRate) / 15) < 1e-9);
+  for (let index = 1; index <= 9; index++) {
+    assert.ok(Math.abs(rates.get(index)! - (2 + PRIOR_K * globalRate) / 15) < 1e-9);
+  }
+  assert.ok(Math.abs(rates.get(10)! - (2 + PRIOR_K * globalRate) / 7) < 1e-9);
+  assert.deepEqual(weakLoci(worked), [0]);
+
+  const equal: SaveData['locusStats'] = {};
+  for (let index = 0; index < 10; index++) equal[index] = { tries: 10, misses: 5 };
+  const equalRates = shrunkMissRates(equal);
+  assert.equal(equalRates.size, 10);
+  for (const rate of equalRates.values()) assert.ok(Math.abs(rate - 0.5) < 1e-9);
+  assert.deepEqual(weakLoci(equal), []);
+});
+
+test('shrunkMissRates returns numeric locus keys and an empty map when no tries exist', () => {
+  const stats = JSON.parse(JSON.stringify({ '17': { tries: 5, misses: 4 } })) as SaveData['locusStats'];
+  assert.deepEqual([...shrunkMissRates(stats).keys()], [17]);
+  assert.deepEqual(shrunkMissRates(emptyStats()), new Map());
+  assert.deepEqual(shrunkMissRates({ 0: { tries: 0, misses: 0 } }), new Map());
+});
+
+test('weakLoci enforces sample and relative-margin thresholds', () => {
+  assert.deepEqual(weakLoci(emptyStats()), []);
+  assert.deepEqual(weakLoci({ 0: { tries: 2, misses: 2 } }), []);
+  assert.deepEqual(weakLoci({ 0: { tries: 10, misses: 1 } }), []);
+  assert.deepEqual(weakLoci({
+    0: { tries: 10, misses: 8 },
+    1: { tries: 10, misses: 2 },
+    2: { tries: 10, misses: 2 },
+    3: { tries: 10, misses: 2 },
+    4: { tries: 10, misses: 2 },
+    5: { tries: 10, misses: 2 },
+    6: { tries: 10, misses: 2 },
+    7: { tries: 10, misses: 2 },
+    8: { tries: 10, misses: 2 },
+    9: { tries: 10, misses: 2 },
+    10: { tries: 2, misses: 2 },
+  }), [0]);
+  assert.deepEqual(weakLoci({ 0: { tries: 10, misses: 8 } }), []);
+  assert.equal(WEAK_MIN_TRIES, 3);
   assert.equal(WEAK_MARGIN, 0.15);
 });
 
-test('WEAK_MAX = 5', () => {
-  assert.equal(WEAK_MAX, 5);
-});
+test('weakLoci returns five highest rates and resolves ties by ascending index', () => {
+  const stats: SaveData['locusStats'] = {};
+  for (let index = 0; index < 10; index++) {
+    stats[index] = { tries: 10, misses: index === 0 ? 8 : 2 };
+  }
+  assert.deepEqual(weakLoci(stats), [0]);
 
-test('WEAK_MIN_TRIES = 3', () => {
-  assert.equal(WEAK_MIN_TRIES, 3);
-});
-
-test('shrunkMissRates with worked example from MATHS.md section 5', () => {
-  // From MATHS.md: 10 loci each 10 tries, locus 0: 8 misses, loci 1-9: 2 misses each, locus 10: 2 misses in 2 tries
-  // m = 28/102 = 0.27451, k·m = 1.37255
-  const stats: SaveData['locusStats'] = {
-    '0': { tries: 10, misses: 8 },
-    '1': { tries: 10, misses: 2 },
-    '2': { tries: 10, misses: 2 },
-    '3': { tries: 10, misses: 2 },
-    '4': { tries: 10, misses: 2 },
-    '5': { tries: 10, misses: 2 },
-    '6': { tries: 10, misses: 2 },
-    '7': { tries: 10, misses: 2 },
-    '8': { tries: 10, misses: 2 },
-    '9': { tries: 10, misses: 2 },
-    '10': { tries: 2, misses: 2 },
+  const tie: SaveData['locusStats'] = {
+    0: { tries: 10, misses: 8 },
+    1: { tries: 10, misses: 8 },
+    2: { tries: 10, misses: 0 },
   };
-
-  const result = shrunkMissRates(stats);
-
-  // Locus 0: (8 + 1.37255) / 15 = 0.62484
-  assert.ok(result.get(0)!.toFixed(5) === '0.62484', `locus 0: expected 0.62484, got ${result.get(0)}`);
-
-  // Loci 1-9: (2 + 1.37255) / 15 = 0.22484
-  for (let i = 1; i <= 9; i++) {
-    const r = result.get(i);
-    assert.ok(r!.toFixed(5) === '0.22484', `locus ${i}: expected 0.22484, got ${r}`);
-  }
-
-  // Locus 10: (2 + 1.37255) / 7 = 0.48179, but tries < 3 so not weak
-  assert.ok(result.get(10)!.toFixed(5) === '0.48179', `locus 10: expected 0.48179, got ${result.get(10)}`);
+  assert.deepEqual(weakLoci(tie), [0, 1]);
+  const tiedRates = shrunkMissRates(tie);
+  assert.equal(tiedRates.get(0), tiedRates.get(1));
 });
 
-test('shrunkMissRates with empty stats', () => {
-  const result = shrunkMissRates({});
-  assert.deepEqual(result, new Map<number, number>());
+test('weakLoci treats the 0.15 margin as inclusive', () => {
+  const stats: SaveData['locusStats'] = {
+    0: { tries: 5, misses: 4 },
+    1: { tries: 5, misses: 1 },
+  };
+  const rates = shrunkMissRates(stats);
+  const globalRate = 0.5;
+  assert.ok(Math.abs((rates.get(0)! - globalRate) - WEAK_MARGIN) < 1e-12);
+  assert.deepEqual(weakLoci(stats), [0]);
 });
 
-test('shrunkMissRates with zero tries', () => {
-  const result = shrunkMissRates({ '0': { tries: 0, misses: 0 } });
-  assert.deepEqual(result, new Map<number, number>());
-});
-
-test('weakLoci with no stats', () => {
-  const result = weakLoci({});
-  assert.deepEqual(result, []);
-});
-
-test('weakLoci with one locus below margin', () => {
-  const stats = { '0': { tries: 10, misses: 1 } };
+test('weakLoci caps output at five among multiple eligible loci', () => {
+  const stats: SaveData['locusStats'] = {
+    0: { tries: 100, misses: 90 },
+    1: { tries: 100, misses: 90 },
+    2: { tries: 100, misses: 90 },
+    3: { tries: 100, misses: 90 },
+    4: { tries: 100, misses: 90 },
+    5: { tries: 100, misses: 90 },
+    6: { tries: 100, misses: 10 },
+    7: { tries: 100, misses: 10 },
+    8: { tries: 100, misses: 10 },
+    9: { tries: 100, misses: 10 },
+    10: { tries: 100, misses: 10 },
+    11: { tries: 100, misses: 10 },
+  };
   const result = weakLoci(stats);
-  assert.deepEqual(result, []);
-});
-
-test('weakLoci with one locus above margin', () => {
-  const stats = { '0': { tries: 10, misses: 8 } }; // r = 0.62484, m = 0.27451, r - m = 0.35033 >= 0.15
-  const result = weakLoci(stats);
-  assert.ok(result.includes(0), 'locus 0 should be weak');
-});
-
-test('weakLoci returns at most 5', () => {
-  // Create 10 loci all above margin
-  const stats: SaveData['locusStats'] = {};
-  for (let i = 0; i < 10; i++) {
-    ;(stats as any)[String(i)] = { tries: 10, misses: 8 };
-  }
-  const result = weakLoci(stats);
-  assert.ok(result.length <= 5, `Expected at most 5, got ${result.length}`);
-});
-
-test('weakLoci with more than 5 candidates returns 5', () => {
-  const stats: SaveData['locusStats'] = {};
-  for (let i = 0; i < 10; i++) {
-    ;(stats as any)[String(i)] = { tries: 10, misses: 8 };
-  }
-  const result = weakLoci(stats);
-  assert.equal(result.length, 5, 'Expected exactly 5 weak loci');
-});
-
-test('weakLoci ties broken by lower index', () => {
-  // All loci have same r, so should sort by index ascending
-  const stats: SaveData['locusStats'] = {};
-  for (let i = 0; i < 5; i++) {
-    ;(stats as any)[String(i)] = { tries: 10, misses: 8 };
-  }
-  const result = weakLoci(stats);
-  // Should be 0, 1, 2, 3, 4 (already in order)
+  assert.equal(result.length, WEAK_MAX);
   assert.deepEqual(result, [0, 1, 2, 3, 4]);
 });
 
-test('weakLoci with string keys after JSON round trip', () => {
-  const stats = JSON.parse(JSON.stringify({
-    '0': { tries: 10, misses: 8 },
-    '1': { tries: 10, misses: 2 },
-  }));
-  const result = weakLoci(stats);
-  // After JSON round trip, keys are strings, shrunkMissRates should convert with Number()
-  assert.ok(result.length > 0);
+test('weakLoci ignores malformed entries without letting them poison valid loci', () => {
+  const stats = {
+    0: { tries: 10, misses: 8 },
+    1: { tries: 10, misses: 2 },
+    '-1': { tries: 1000, misses: 1000 },
+    2: { tries: -3, misses: 0 },
+    3: { tries: 10, misses: 11 },
+    4: { tries: Number.NaN, misses: 0 },
+    5: { tries: 10, misses: Number.NaN },
+    bad: { tries: 100, misses: 100 },
+    '01': { tries: 100, misses: 100 },
+  } as unknown as SaveData['locusStats'];
+  assert.deepEqual(weakLoci(stats), [0]);
 });
 
-test('weakLoci with tries < 3 never weak', () => {
-  const stats = { '0': { tries: 2, misses: 2 } };
-  const result = weakLoci(stats);
-  assert.deepEqual(result, []);
+test('ghostOpacity matches h=0, 2, and 4 exactly', () => {
+  assert.equal(ghostOpacity(rateAt(0), NOW), 0.35);
+  assert.equal(ghostOpacity(rateAt(2), NOW), 0.175);
+  assert.equal(ghostOpacity(rateAt(4), NOW), 0.0875);
 });
 
-test('weakLoci m + 0.15 > 1 no weak loci', () => {
-  // If global miss rate is very high, r_i - m can't exceed 0.15
-  const stats = { '0': { tries: 10, misses: 9 } }; // m = 0.9, r = (9 + 0.45) / 15 = 0.63, r - m = -0.27
-  const result = weakLoci(stats);
-  assert.deepEqual(result, []);
+test('ghostOpacity applies warning and hide cutoffs around 2.445h and 5.615h', () => {
+  assert.ok(ghostOpacity(rateAt(2.44), NOW) >= GHOST_WARN);
+  assert.ok(ghostOpacity(rateAt(2.45), NOW) < GHOST_WARN);
+  assert.ok(ghostOpacity(rateAt(5.61), NOW) >= GHOST_MIN);
+  assert.equal(ghostOpacity(rateAt(5.62), NOW), 0);
 });
 
-test('ghostOpacity at h = 0', () => {
-  const now = new Date();
-  const result = ghostOpacity('2026-10-20T10:00:00Z', now);
-  // At h = 0: opacity = 0.35
-  assert.ok(Math.abs(result - 0.35) < 1e-9, `At h=0: expected 0.35, got ${result}`);
+test('ghostOpacity clamps future drill dates and rejects invalid timestamps', () => {
+  assert.equal(ghostOpacity('2026-10-21T12:00:00.000Z', NOW), GHOST_START);
+  assert.equal(ghostOpacity('', NOW), 0);
+  assert.equal(ghostOpacity('not a date', NOW), 0);
+  assert.equal(ghostOpacity(rateAt(0), new Date(Number.NaN)), 0);
 });
 
-test('ghostOpacity at h = 2', () => {
-  const now = new Date();
-  // 2 hours ago
-  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-  const result = ghostOpacity(twoHoursAgo.toISOString(), now);
-  // At h = 2: opacity = 0.35 * 2^(-2/2) = 0.35 * 0.5 = 0.175
-  assert.ok(Math.abs(result - 0.175) < 1e-9, `At h=2: expected 0.175, got ${result}`);
-});
-
-test('ghostOpacity at h = 4', () => {
-  const now = new Date();
-  const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
-  const result = ghostOpacity(fourHoursAgo.toISOString(), now);
-  // At h = 4: opacity = 0.35 * 2^(-4/2) = 0.35 * 0.25 = 0.0875
-  assert.ok(Math.abs(result - 0.0875) < 1e-9, `At h=4: expected 0.0875, got ${result}`);
-});
-
-test('ghostOpacity negative h (= 0)', () => {
-  const now = new Date();
-  // Future date - should treat as h = 0
-  const result = ghostOpacity('2099-12-31T00:00:00Z', now);
-  // h < 0, use h = 0, so opacity = 0.35
-  assert.ok(Math.abs(result - 0.35) < 1e-9, `Negative h: expected 0.35, got ${result}`);
-});
-
-test('ghostOpacity invalid date', () => {
-  const now = new Date();
-  const result = ghostOpacity('not a date', now);
-  assert.ok(result === 0, `Invalid date: expected 0, got ${result}`);
-});
-
-test('ghosts picks latest by at when array out of order', () => {
-  const drills: DrillResult[] = [
-    { at: '2026-10-18T10:00:00Z', seed: 's1', daily: false, answers: ['AS'], sequence: ['AS'], daily: false, memorizeMs: 100, recallMs: 50 },
-    { at: '2026-10-20T10:00:00Z', seed: 's2', daily: false, answers: ['2S'], sequence: ['2S'], daily: false, memorizeMs: 100, recallMs: 50 },
-    { at: '2026-10-19T10:00:00Z', seed: 's3', daily: false, answers: ['3S'], sequence: ['3S'], daily: false, memorizeMs: 100, recallMs: 50 },
+test('ghosts chooses the largest valid at timestamp, even when drills are unordered', () => {
+  const drills = [
+    drill('2026-10-18T10:00:00Z', ['AS']),
+    drill('2026-10-20T11:00:00Z', ['2S', '3S']),
+    drill('2026-10-19T10:00:00Z', ['4S']),
+    drill('invalid', ['5S']),
   ];
-
-  const result = ghosts(drills, new Date('2026-10-20T15:00:00Z'));
-  // Latest is 2026-10-20T10:00:00Z (index 1)
-  assert.equal(result[0].index, 1, 'Should pick the drill with latest at');
-  assert.equal(result[0].card, '2S', 'Should be the card from the latest drill');
+  assert.deepEqual(ghosts(drills, NOW), [
+    { index: 0, card: '2S', opacity: GHOST_START * 2 ** (-1 / GHOST_HALF_LIFE_H) },
+    { index: 1, card: '3S', opacity: GHOST_START * 2 ** (-1 / GHOST_HALF_LIFE_H) },
+  ]);
+  assert.deepEqual(ghosts([], NOW), []);
+  assert.deepEqual(ghosts([drill(rateAt(6), ['AS'])], NOW), []);
 });
 
-test('ghosts empty array', () => {
-  const result = ghosts([], new Date());
-  assert.deepEqual(result, []);
+test('ghostWarning follows opacity threshold of the latest drill', () => {
+  assert.equal(ghostWarning([drill(rateAt(2.4), ['AS'])], NOW), true);
+  assert.equal(ghostWarning([drill(rateAt(2.5), ['AS'])], NOW), false);
+  assert.equal(ghostWarning([drill('invalid', ['AS'])], NOW), false);
+  assert.equal(ghostWarning([], NOW), false);
 });
 
-test('ghostWarning true at 2.4 h', () => {
-  const now = new Date();
-  const drills: DrillResult[] = [
-    { at: new Date(now.getTime() - 2.4 * 60 * 60 * 1000).toISOString(), seed: 's1', daily: false, answers: ['AS'], sequence: ['AS'], daily: false, memorizeMs: 100, recallMs: 50 },
-  ];
-
-  const result = ghostWarning(drills, now);
-  assert.ok(result, 'ghostWarning should be true at 2.4 h');
-});
-
-test('ghostWarning false at 2.5 h', () => {
-  const now = new Date();
-  const drills: DrillResult[] = [
-    { at: new Date(now.getTime() - 2.5 * 60 * 60 * 1000).toISOString(), seed: 's1', daily: false, answers: ['AS'], sequence: ['AS'], daily: false, memorizeMs: 100, recallMs: 50 },
-  ];
-
-  const result = ghostWarning(drills, now);
-  assert.ok(!result, 'ghostWarning should be false at 2.5 h');
-});
-
-test('leeches finds cards with lapses >= 4', () => {
+test('leeches applies the four-lapse boundary, ignores invalid keys and sorts by lapses then deck order', () => {
   const srs: SaveData['srs'] = {
-    'AS': { state: 'learning', stability: 30, due: new Date('2026-11-01').toISOString(), lapses: 5 },
-    '2S': { state: 'solid', stability: 100, due: new Date('2026-11-01').toISOString(), lapses: 3 }, // < 4, should not include
-    '3S': { state: 'solid', stability: 100, due: new Date('2026-11-01').toISOString(), lapses: 4 },
+    QS: stateWithLapses(5),
+    AS: stateWithLapses(5),
+    KS: stateWithLapses(7),
+    '2S': stateWithLapses(3),
+    AD: stateWithLapses(4),
   };
-
-  const result = leeches(srs);
-  assert.ok(result.includes('AS'), 'AS with 5 lapses should be included');
-  assert.ok(!result.includes('2S'), '2S with 3 lapses should not be included');
-  assert.ok(result.includes('3S'), '3S with 4 lapses should be included');
+  (srs as Record<string, SrsState>).JOKER = stateWithLapses(99);
+  assert.deepEqual(leeches(srs), ['KS', 'AS', 'QS', 'AD']);
 });
 
-test('leeches sorted by lapses descending then DECK order', () => {
-  const srs: SaveData['srs'] = {
-    'KS': { lapses: 6 }, // King of spades - higher rank, but lapses 6
-    'AS': { lapses: 5 }, // Ace of spades - lapses 5
-    'QS': { lapses: 5 }, // Queen of spades - lapses 5, same as AS
-  };
-
-  const result = leeches(srs);
-  // Both AS and QS have lapses 5, KS has lapses 6
-  // Sorted by lapses descending: KS first (6), then AS and QS (5)
-  // Among AS and QS (same lapses), DECK order: AS comes before QS
-  assert.equal(result[0], 'KS', 'KS should be first (lapses 6)');
-  assert.equal(result[1], 'AS', 'AS should be second (lapses 5, DECK order first)');
-  assert.equal(result[2], 'QS', 'QS should be third (lapses 5, DECK order second)');
+test('leeches ignores non-finite and non-numeric lapses', () => {
+  const srs = {
+    AS: { lapses: Number.NaN },
+    '2S': { lapses: Number.POSITIVE_INFINITY },
+    '3S': { lapses: '4' },
+    '4S': { lapses: 4 },
+  } as unknown as SaveData['srs'];
+  assert.deepEqual(leeches(srs), ['4S']);
 });

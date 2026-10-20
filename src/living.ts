@@ -1,173 +1,131 @@
 import type { CardId, DrillResult, SaveData, SrsState } from './types.ts';
-import { DECK } from './deck.ts';
 
-// MATHS.md section 5: Weak loci empirical Bayes
-// Shrink each locus toward the player's global miss rate with a Beta prior
 export const PRIOR_K = 5;
-
-// Posterior miss rate per locus, MATHS.md section 5
-// Keys are numbers even when locusStats keys are strings. Empty map when there are no tries.
-export function shrunkMissRates(stats: SaveData['locusStats']): Map<number, number> {
-  const result = new Map<number, number>();
-
-  // Calculate global miss rate m = Σ misses / Σ tries over all loci
-  let totalTries = 0;
-  let totalMisses = 0;
-
-  for (const [key, statsEntry] of Object.entries(stats)) {
-    const tries = statsEntry.tries;
-    const misses = statsEntry.misses;
-    totalTries += tries;
-    totalMisses += misses;
-  }
-
-  if (totalTries === 0) return result;
-
-  const m = totalMisses / totalTries;
-  const k = PRIOR_K;
-  const k_m = k * m; // prior strength for misses
-
-  // For each locus, compute posterior mean: (misses_i + k·m) / (tries_i + k)
-  for (const [key, statsEntry] of Object.entries(stats)) {
-    const tries = statsEntry.tries;
-    const misses = statsEntry.misses;
-    const r = (misses + k_m) / (tries + k);
-    result.set(Number(key), r);
-  }
-
-  return result;
-}
-
-// Weak locus indexes, MATHS.md section 5: at most WEAK_MAX, highest rate first, ties by lower index
-export const WEAK_MAX = 5;
 export const WEAK_MARGIN = 0.15;
 export const WEAK_MIN_TRIES = 3;
-
-export function weakLoci(stats: SaveData['locusStats']): number[] {
-  const shrunk = shrunkMissRates(stats);
-  const result: number[] = [];
-
-  if (shrunk.size === 0) return result;
-
-  // Calculate global miss rate m
-  let totalTries = 0;
-  let totalMisses = 0;
-
-  for (const [key, statsEntry] of Object.entries(stats)) {
-    totalTries += statsEntry.tries;
-    totalMisses += statsEntry.misses;
-  }
-
-  const m = totalTries > 0 ? totalMisses / totalTries : 0;
-
-  // Collect loci that are weak: tries_i >= 3 and r_i - m >= 0.15
-  const weakCandidates: { index: number; r: number }[] = [];
-
-  for (const [key, r] of shrunk) {
-    const tries = stats[Number(key)].tries;
-    if (tries >= WEAK_MIN_TRIES && r - m >= WEAK_MARGIN) {
-      weakCandidates.push({ index: Number(key), r });
-    }
-  }
-
-  // Sort by r descending, then by index ascending for ties
-  weakCandidates.sort((a, b) => {
-    if (b.r !== a.r) return b.r - a.r;
-    return a.index - b.index;
-  });
-
-  // Return at most WEAK_MAX
-  for (let i = 0; i < Math.min(WEAK_MAX, weakCandidates.length); i++) {
-    result.push(weakCandidates[i].index);
-  }
-
-  return result;
-}
-
-// MATHS.md section 6: Ghosts: exponential fade
-
+export const WEAK_MAX = 5;
 export const GHOST_START = 0.35;
 export const GHOST_HALF_LIFE_H = 2;
 export const GHOST_MIN = 0.05;
 export const GHOST_WARN = 0.15;
 
-// MATHS.md section 6: opacity(h) = 0.35 · 2^(−h / 2)
-// Returns 0 below GHOST_MIN and for an invalid date
-export function ghostOpacity(drillAt: string, now: Date): number {
-  // If h < 0 (clock moved back), use h = 0
-  if (!drillAt) return 0;
+const WEAK_TOLERANCE = 1e-9;
+const MS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const MS_PER_HOUR = MS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+const MIN_LEECH_LAPSES = 4;
+const RANK_ORDER = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'];
+const SUIT_ORDER = ['S', 'H', 'D', 'C'];
+const RANKS_PER_SUIT = RANK_ORDER.length;
 
-  // Check for invalid date
-  const drillDate = new Date(drillAt);
-  if (isNaN(drillDate.getTime())) return 0;
+type LocusStat = { index: number; tries: number; misses: number };
+type Ghost = { index: number; card: CardId; opacity: number };
 
-  const h = Math.max(0, now.getTime() - drillDate.getTime()) / (1000 * 60 * 60);
-  // opacity = 0.35 * 2^(-h / 2)
-  const opacity = GHOST_START * Math.pow(2, -h / GHOST_HALF_LIFE_H);
-
-  // Return 0 below GHOST_MIN
-  return opacity < GHOST_MIN ? 0 : opacity;
-}
-
-// Ghosts of the latest drill (largest `at`, not the last array item):
-// One per locus with the memorized card. Empty when opacity is 0.
-export function ghosts(drills: readonly DrillResult[], now: Date): { index: number; card: CardId; opacity: number }[] {
-  if (drills.length === 0) return [];
-
-  // Find the drill with the largest `at` date (not necessarily the last array item)
-  let latestIndex = 0;
-  for (let i = 1; i < drills.length; i++) {
-    if (new Date(drills[i].at).getTime() > new Date(drills[latestIndex].at).getTime()) {
-      latestIndex = i;
-    }
+function validStats(stats: SaveData['locusStats']): LocusStat[] {
+  if (!stats || typeof stats !== 'object') return [];
+  const result: LocusStat[] = [];
+  for (const [key, entry] of Object.entries(stats)) {
+    const index = Number(key);
+    if (!Number.isSafeInteger(index) || index < 0 || String(index) !== key) continue;
+    if (!entry || typeof entry !== 'object') continue;
+    if (!Number.isFinite(entry.tries) || !Number.isFinite(entry.misses)) continue;
+    if (entry.tries < 0 || entry.misses < 0 || entry.misses > entry.tries) continue;
+    result.push({ index, tries: entry.tries, misses: entry.misses });
   }
-
-  const latestDrill = drills[latestIndex];
-  const h = Math.max(0, now.getTime() - new Date(latestDrill.at).getTime()) / (1000 * 60 * 60);
-
-  const opacity = ghostOpacity(latestDrill.at, now);
-
-  // One per locus with the memorized card
-  // The latest drill has cards in sequence order
-  const result: { index: number; card: CardId; opacity: number }[] = [];
-
-  for (let i = 0; i < latestDrill.sequence.length; i++) {
-    const card = latestDrill.sequence[i];
-    result.push({ index: i, card, opacity });
-  }
-
   return result;
 }
 
-// True when the latest drill's ghost opacity is at least GHOST_WARN
-export function ghostWarning(drills: readonly DrillResult[], now: Date): boolean {
-  const ghostsList = ghosts(drills, now);
-  if (ghostsList.length === 0) return false;
-
-  // Check if any ghost has opacity >= GHOST_WARN
-  return ghostsList.some(g => g.opacity >= GHOST_WARN);
+function globalMissRate(stats: readonly LocusStat[]): number | null {
+  const tries = stats.reduce((sum, entry) => sum + entry.tries, 0);
+  if (tries === 0 || !Number.isFinite(tries)) return null;
+  const misses = stats.reduce((sum, entry) => sum + entry.misses, 0);
+  return Number.isFinite(misses) ? misses / tries : null;
 }
 
-// Card images that keep failing: lapses >= 4
-// Sorted by lapses descending, then DECK order
-export function leeches(srs: SaveData['srs']): CardId[] {
-  // Collect cards with lapses >= 4
-  const failingCards: { card: CardId; lapses: number }[] = [];
+/** Posterior miss rate per locus. Empty when there are no valid tries. */
+export function shrunkMissRates(stats: SaveData['locusStats']): Map<number, number> {
+  const entries = validStats(stats);
+  const m = globalMissRate(entries);
+  if (m === null) return new Map();
+  return new Map(entries.map(({ index, tries, misses }) => [
+    index,
+    (misses + PRIOR_K * m) / (tries + PRIOR_K),
+  ]));
+}
 
-  for (const [card, srsEntry] of Object.entries(srs)) {
-    if (srsEntry && typeof (srsEntry as any).lapses === 'number' && (srsEntry as any).lapses >= 4) {
-      failingCards.push({ card, lapses: (srsEntry as any).lapses });
+/** Weak locus indexes, highest posterior rate first, then lower index. */
+export function weakLoci(stats: SaveData['locusStats']): number[] {
+  const entries = validStats(stats);
+  const m = globalMissRate(entries);
+  if (m === null) return [];
+  const rates = shrunkMissRates(stats);
+  return entries
+    .filter(({ index, tries }) => tries >= WEAK_MIN_TRIES && rates.get(index)! - m + WEAK_TOLERANCE >= WEAK_MARGIN)
+    .sort((a, b) => rates.get(b.index)! - rates.get(a.index)! || a.index - b.index)
+    .slice(0, WEAK_MAX)
+    .map(({ index }) => index);
+}
+
+/** MATHS.md section 6; expired and invalid drill timestamps have no ghost. */
+export function ghostOpacity(drillAt: string, now: Date): number {
+  const then = new Date(drillAt).getTime();
+  const current = now.getTime();
+  if (!Number.isFinite(then) || !Number.isFinite(current)) return 0;
+  const hours = Math.max(0, (current - then) / MS_PER_HOUR);
+  const opacity = GHOST_START * 2 ** (-hours / GHOST_HALF_LIFE_H);
+  return opacity < GHOST_MIN ? 0 : opacity;
+}
+
+function latestDrill(drills: readonly DrillResult[]): DrillResult | undefined {
+  let latest: DrillResult | undefined;
+  let latestTime = -Infinity;
+  for (const drill of drills) {
+    const timestamp = new Date(drill.at).getTime();
+    if (Number.isFinite(timestamp) && timestamp > latestTime) {
+      latest = drill;
+      latestTime = timestamp;
     }
   }
+  return latest;
+}
 
-  // Sort by lapses descending, then by DECK order (index ascending)
-  failingCards.sort((a, b) => {
-    if (b.lapses !== a.lapses) return b.lapses - a.lapses;
-    // Find DECK order
-    const indexA = DECK.indexOf(a.card);
-    const indexB = DECK.indexOf(b.card);
-    return indexA - indexB;
-  });
+/** Ghosts from the latest valid drill timestamp, one per memorized card. */
+export function ghosts(drills: readonly DrillResult[], now: Date): Ghost[] {
+  const drill = latestDrill(drills);
+  if (!drill) return [];
+  const opacity = ghostOpacity(drill.at, now);
+  if (opacity === 0) return [];
+  return drill.sequence.map((card, index) => ({ index, card, opacity }));
+}
 
-  return failingCards.map((f) => f.card);
+/** Whether the latest drill still warrants a fresh-ghost warning. */
+export function ghostWarning(drills: readonly DrillResult[], now: Date): boolean {
+  const drill = latestDrill(drills);
+  return drill !== undefined && ghostOpacity(drill.at, now) >= GHOST_WARN;
+}
+
+function deckIndex(card: string): number {
+  const rank = RANK_ORDER.indexOf(card[0]);
+  const suit = SUIT_ORDER.indexOf(card[1]);
+  return rank < 0 || suit < 0 || card.length !== 2 ? -1 : suit * RANKS_PER_SUIT + rank;
+}
+
+/** Card images with at least four lapses, sorted by lapses descending then DECK order. */
+export function leeches(srs: SaveData['srs']): CardId[] {
+  if (!srs || typeof srs !== 'object') return [];
+  const failing: { card: CardId; lapses: number; order: number }[] = [];
+  for (const key of Object.keys(srs)) {
+    const order = deckIndex(key);
+    if (order < 0) continue;
+    const card = key as CardId;
+    const state: SrsState | undefined = srs[card];
+    const lapses = state?.lapses;
+    if (typeof lapses === 'number' && Number.isFinite(lapses) && lapses >= MIN_LEECH_LAPSES) {
+      failing.push({ card, lapses, order });
+    }
+  }
+  return failing
+    .sort((a, b) => b.lapses - a.lapses || a.order - b.order)
+    .map(({ card }) => card);
 }
