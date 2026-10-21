@@ -1,6 +1,12 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-21 12:35 - Lead turn: merged T6 and T1, Gemini props in main
+- Done: merged T6 (FB PASS round 2) and T1 (Lead PASS round 4 after 3 CHANGES rounds; FB's last S2 was a limit of its preview, no pointer lock). Lead browser check: free walk moves with WASD, stops at walls, `dispose()` leaves 0 canvases, no console errors; home demo renders all panels, no console errors. Tests 171 pass, build ok. Added `src/scene/props.ts` + test from Gemini (22 low-poly procedural locus models, <= 3 meshes each, cached geometry; 6/6 own tests pass, typecheck ok; viewed all 22 in the browser, each kind recognisable). T9 packet now says: wire `buildProp` into `objectKit.ts` with the primitives as fallback. Moved a stray save export `memory-palace-2026-10-21.json` from the main folder to `wt/`. Score AG 16, FB 21.
+- Found (S3, for Q1): `src/scene/palaceView.ts:127` keys stored by `e.key` (Shift/Caps Lock "W" does not move); free walk has no furniture collision; home demo "Practice: Level 0 · 3 cards" while accuracy is 100% and levels 0-3 are beaten - check the T5 staircase input.
+- State: AG builds T4 (drill). FB waits for T4 (T7 needs it).
+- Next: Lead turn when T4 is verified. Gemini can take another self-contained task.
+
 ## 2026-10-21 09:40 - Gemini sound module in main
 - Done: `src/sound.ts` + `src/sound.test.ts` from Gemini 4 Argon (user's chat). Lead review: lazy AudioContext (none at import or when sound is off), every node stopped and disconnected, ambience crossfade, stopAll closes the context. 7/7 own tests pass, full suite 136 pass, build ok. T9 packet now says: wire `play` / `ambience` / `stopAll` in, do not rewrite. Removed the wall-clock limit from `src/redteam/T8a.test.ts` (failed 2 of 5 runs under parallel load; the palace has 52 loci, the spec sets no time limit).
 - In progress: Gemini prompt for `src/scene/props.ts` (low-poly procedural locus models, 21 kinds, footprints from T1's object kit, <= 3 meshes per locus). The user saves the reply to `wt/`.

@@ -14,7 +14,7 @@ test('board parses', () => {
 });
 
 test('state follows commit subjects', () => {
-  const t1 = byId('T1');
+  const t1 = { ...byId('T1'), status: '-' }; // board status 'done' would win over the branch
   const s = (subjects, main = [], exists = true) => stateFrom(t1, exists, subjects, main).state;
   assert.equal(s([], [], false), 'todo');
   assert.equal(s(['WIP']), 'in-progress');

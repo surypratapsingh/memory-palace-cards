@@ -6,7 +6,7 @@
 Make the palace beautiful and memorable without moving anything players have memorized.
 
 ## Write scope
-- `src/scene/**` (not `src/data/palace.ts`)
+- `src/scene/**` (not `src/data/palace.ts`; `src/scene/props.ts` is already in main, written by Gemini and checked by the Lead: use it, change it only to fix a bug)
 - `public/assets/**` (new), `ASSETS.md` (new)
 - `src/sound.ts` (already in main, written by Gemini and checked by the Lead; wire it in, change it only to fix a bug)
 - `docs/shots/T9-*.png`
@@ -18,7 +18,7 @@ Make the palace beautiful and memorable without moving anything players have mem
 - A missing or failed model falls back to the T1 primitive kit, so the palace never breaks.
 
 ## Requirements
-- Replace primitive locus objects with low-poly models (GLTFLoader from `three/examples/jsm`). Same kind, same colour family, same footprint.
+- Locus models: in `buildLocusObject` (`src/scene/objectKit.ts`) call `buildProp(locus.kind, { main: mainMat, accent: accentMat, gold: goldMat })` from `src/scene/props.ts` and add the group; when it returns null, build the old primitives. Call `disposeProps()` where the kit disposes its shared geometries. Room decorations may use GLTF files (GLTFLoader from `three/examples/jsm`, CC0 only) or more procedural parts.
 - Room character: materials, light colour, small decorations away from loci (never between a locus and its viewpoint).
 - Sound: call `play('flip' | 'whoosh' | 'correct' | 'wrong', data.settings.sound)` and `ambience(roomName, data.settings.sound)` from `src/sound.ts` at the right moments; call `stopAll()` in `dispose()`. Sound is off by default. Volume is low.
 
