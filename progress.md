@@ -1,6 +1,13 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-21 08:55 - Lead turn: merged M1, T5, T2, T3, T8a, T12
+- Done: merged 6 verified tasks into main in board order, `npm test` + `npm run build` after each (final: 129 pass, 0 fail, build ok). Browser check: trainer demo (8 new cards learned and rated by keyboard only, Again re-queues, summary "Reviewed 9 · Again 1 · New learned 8", saves to localStorage) and settings demo (labelled controls, colour-safe toggles root class, survives reload). Verification evidence read: mutation checks and >= 5 red-team tests per task. Mesh score AG 15, FB 15. Worktrees removed; `wt/T3` and `wt/T12` folders stayed on disk (file locked, probably a running dev server), git no longer tracks them. Added `.claude/launch.json` (vite dev server).
+- Found (S3, for Q1): stray duplicate `src/ui/settings-demo.html` (the real demo is `settings-demo.html` in root).
+- State: T1 review (FB verifies, waiting since 21:57), T6 review (FB verifies). AG next: T4 after T1 verified. FB next: VERIFY T1, VERIFY T6, then T7 after T4 + T6 verified.
+- Next: Lead turn when T1/T6 are verified; at T1 merge, browser check of the palace.
+- Note: two old stashes ("FB stray main-folder work", "lead-T5-main-folder-copy") are obsolete now; safe to drop.
+
 ## 2026-10-20 23:20 - Lead turn: nothing to merge
 - State: no commits and no file changes in any `wt/` since 22:54. Nothing verified, blocked or in `lead` state. Main folder clean; no stray files in main `src/`.
 - Waiting on FB: next job FIX M1 (`wt/M1`), then VERIFY T1, then CONTINUE T5, T2, T3, T8a. AG has no job until FB commits one of these.

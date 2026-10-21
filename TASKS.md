@@ -14,13 +14,13 @@ Project: 3D memory palace game for memorizing card order. Read `plan.md` for the
 | ID | Task | Build | Verify | Est. | Wave | Needs | Branch | Status |
 |---|---|---|---|---|---|---|---|---|
 | T0 | Foundation: contracts, deck, SRS, storage | Lead | - | - | 0 | - | main | done |
-| M1 | Maths audit of T0 + invariant tests | FB | AG | 1.5h | 1 | - | task/M1-maths | - |
+| M1 | Maths audit of T0 + invariant tests | FB | AG | 1.5h | 1 | - | task/M1-maths | done |
 | T1 | 3D palace world + geometry tests | AG | FB | 4h | 1 | - | task/T1-scene | - |
-| T5 | Progress logic + difficulty staircase | FB | AG | 2h | 1 | - | task/T5-progress | - |
-| T2 | 52 default card images | FB | AG | 1h | 1 | - | task/T2-card-images | - |
-| T3 | Card-image trainer screen | FB | AG | 2.5h | 1 | - | task/T3-trainer | - |
-| T8a | Living-palace rules (weak loci, ghosts) | FB | AG | 1.5h | 2 | - | task/T8a-living-rules | - |
-| T12 | Settings screen + accessibility | FB | AG | 1.5h | 2 | T3 | task/T12-settings | - |
+| T5 | Progress logic + difficulty staircase | FB | AG | 2h | 1 | - | task/T5-progress | done |
+| T2 | 52 default card images | FB | AG | 1h | 1 | - | task/T2-card-images | done |
+| T3 | Card-image trainer screen | FB | AG | 2.5h | 1 | - | task/T3-trainer | done |
+| T8a | Living-palace rules (weak loci, ghosts) | FB | AG | 1.5h | 2 | - | task/T8a-living-rules | done |
+| T12 | Settings screen + accessibility | FB | AG | 1.5h | 2 | T3 | task/T12-settings | done |
 | T4 | Drill: memorize and recall in 3D | AG | FB | 3h | 2 | T1 | task/T4-drill | - |
 | T6 | Home screen | AG | FB | 2.5h | 2 | T5 | task/T6-home | - |
 | T7 | Integration: playable v1 | FB | AG + Lead | 2.5h | 3 | T2, T3, T4, T5, T6, T12 | task/T7-integrate | - |
@@ -93,8 +93,8 @@ The verifier's job is to **break** the builder's work, not to approve it. A PASS
 
 | Agent | Score | Notes |
 |---|---|---|
-| AG | 0 | |
-| FB | 0 | |
+| AG | 15 | M1 verify: 1 S1 + 6 S2 confirmed (+15). |
+| FB | 15 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). |
 
 ## Queue prompts (the user pastes these; every copy is the same)
 
