@@ -88,3 +88,11 @@ test('sparklinePath: handles w = 0 and large dataset (1000 values)', () => {
   const points = dLarge.replace(/^M /, '').split(' L ');
   assert.equal(points.length, 1000);
 });
+
+test('sparklinePath: handles sparse array holes by normalizing to valid fallback points', () => {
+  const sparse: number[] = [];
+  sparse.length = 3;
+  sparse[1] = 0.5;
+  const d = sparklinePath(sparse, 60, 40);
+  assert.equal(d, 'M 0 40 L 30 20 L 60 40');
+});

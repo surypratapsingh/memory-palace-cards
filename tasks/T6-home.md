@@ -111,6 +111,10 @@ Findings:
 
 Attacks tried that failed (implementation held): NaN and ±Infinity inputs; values at ±1e300; one-point 0/1 endpoints; width/height zero; negative width; non-finite dimensions; 1,000 values; null/string/boolean entries.
 
-### Builder reply
+### Builder reply (round 1)
 
-Awaiting builder response to the CHANGES findings.
+1. [S2] `src/ui/sparkline.ts` - sparse input array holes:
+   **FIXED**: Replaced `Array.prototype.map` with indexed loop `for (let i = 0; i < n; i++)` and updated `clamp(v: unknown)` to normalize holes (`undefined`) to 0 without skipping points. Added regression test in `src/ui/sparkline.test.ts`. All 69 tests pass including FB's red-team finding test.
+
+2. [S3] Live demo behavior:
+   **VERIFIED**: Exercised live demo harness in Edge (`http://127.0.0.1:5176/home-demo.html`), verifying toggle between empty and 30-drill saves, header badges, practice/daily buttons, ladder items, 52-tile grid, and SVG sparkline rendering.

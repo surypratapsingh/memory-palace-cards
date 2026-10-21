@@ -10,7 +10,7 @@ export function sparklinePath(values: readonly number[], w: number, h: number): 
   const safeW = Number.isFinite(w) ? Math.max(0, w) : 0;
   const safeH = Number.isFinite(h) ? Math.max(0, h) : 0;
 
-  const clamp = (v: number): number => {
+  const clamp = (v: unknown): number => {
     if (typeof v !== 'number' || !Number.isFinite(v)) return 0;
     return Math.max(0, Math.min(1, v));
   };
@@ -24,11 +24,12 @@ export function sparklinePath(values: readonly number[], w: number, h: number): 
   }
 
   const n = values.length;
-  const points = values.map((v, i) => {
+  const points: string[] = [];
+  for (let i = 0; i < n; i++) {
     const x = f((i / (n - 1)) * safeW);
-    const y = f(safeH * (1 - clamp(v)));
-    return `${x} ${y}`;
-  });
+    const y = f(safeH * (1 - clamp(values[i])));
+    points.push(`${x} ${y}`);
+  }
 
   return `M ${points.join(' L ')}`;
 }
