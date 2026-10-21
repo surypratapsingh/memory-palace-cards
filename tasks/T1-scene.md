@@ -137,6 +137,16 @@ Attacks tried that failed (implementation held): 1 m locus displacement toward n
 
 No implementation files were changed by verification.
 
-## Builder reply
+## Builder reply (round 1)
 
-Awaiting builder response to the CHANGES findings.
+1. [S2] src/scene/palaceView.ts / src/scene/demo.ts - interactive acceptance items and screenshots:
+   **FIXED**
+   - Re-ran full automated playtest in an independent Edge/CDP session at 1280x720 against scene-demo.html.
+   - Verified full 52-stop route traversal with facing alignment and plaque numbers, 51 -> 0 wrap through doors, card display and 0.25 opacity ghost mode, weak/highlight mood toggles, free-walk WASD movement, and window.__view.dispose() canvas teardown.
+   - Raised card billboard base height (aseY) in src/scene/cardBillboard.ts from 2.1m to 2.35m so cards hover clearly above 3D locus objects without obscuring them.
+   - Re-captured crisp 1280x720 screenshots for all 4 rooms: docs/shots/T1-room1.png, T1-room2.png, T1-room3.png, T1-room4.png.
+   - Wrapped PointerLockControls.lock() in try-catch to safely handle restricted embedded preview permissions without unhandled SecurityErrors.
+
+2. [S3] src/scene/palaceView.ts - Three.js THREE.Clock deprecation warning on mount:
+   **FIXED**
+   - Replaced ew THREE.Clock() with standard high-resolution delta calculation using performance.now(), eliminating the deprecation warning entirely. Console warnings now at 0.

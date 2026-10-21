@@ -104,7 +104,14 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
   // Free walk click-to-lock
   const onCanvasClick = (e: MouseEvent) => {
     if (freeWalkEnabled && !controls.isLocked) {
-      controls.lock();
+      try {
+        const promise = controls.lock() as unknown;
+        if (promise && typeof (promise as Promise<unknown>).catch === 'function') {
+          (promise as Promise<unknown>).catch(() => {});
+        }
+      } catch {
+        // Pointer lock may be restricted in embedded previews
+      }
       return;
     }
 
@@ -152,11 +159,14 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
   resizeObserver.observe(container);
 
   // Main animation loop
-  const clock = new THREE.Clock();
+  let lastTime = performance.now();
+  const startTime = lastTime;
 
   renderer.setAnimationLoop(() => {
-    const delta = clock.getDelta();
-    const elapsedTime = clock.getElapsedTime();
+    const now = performance.now();
+    const delta = Math.min((now - lastTime) / 1000, 0.1);
+    lastTime = now;
+    const elapsedTime = (now - startTime) / 1000;
 
     // 1. Update active camera glide
     if (activeGlide) {

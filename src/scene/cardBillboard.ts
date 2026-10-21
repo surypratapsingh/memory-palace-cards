@@ -138,7 +138,7 @@ export class CardBillboardManager {
     });
 
     const mesh = new THREE.Mesh(cardPlaneGeom, material);
-    const baseY = 2.1;
+    const baseY = 2.35;
     mesh.position.set(pos[0], baseY, pos[1]);
     this.scene.add(mesh);
 
