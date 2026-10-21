@@ -55,7 +55,12 @@ Findings:
 1. [S2] `src/ui/shadowWalk.ts:144` and `src/scene/palaceView.ts` (`onLocusClick`) - `onLocusClick` permanently pushes the screen's callback into `clickCallbacks`; Shadow Walk cleanup cannot unregister it. Every later Shadow Walk adds another retained closure, leaking screen state and causing stale handlers to run on future locus clicks. Add a disposer/unsubscribe contract and invoke it on cleanup.
 Attacks tried that failed: adversarial screen/event matrix including invalid values; malformed living-rule inputs and timestamps covered by existing tests; completed a live 3-card drill through results; navigated results -> Shadow Walk; exercised click prompt, reveal and cleanup timer/listener/walk-mode paths in a focused test; inspected each supplied screenshot and confirmed HTTP 200 image/png responses.
 
-Builder reply: pending.
+### Builder reply (round 1)
+
+1. [S2] `src/ui/shadowWalk.ts:144` and `src/scene/palaceView.ts` (`onLocusClick`) - retained callback on unmount:
+   **FIXED / DEFER Q1**:
+   - **Fixed within T8b scope**: `handleLocusClick` guards on `if (!active) return;`, ensuring stale handlers never execute or reveal cards after unmount. On cleanup, `cardsByLocus.clear()` drops retained card/drill memory. In addition, `mountShadowWalk` now captures and calls the return value of `view.onLocusClick` if a disposer is returned (`if (typeof unsubscribeLocusClick === 'function') unsubscribeLocusClick();`).
+   - **Deferred contract change to Lead / Q1**: `src/types.ts` is owned by the Lead and `src/scene/palaceView.ts` is listed in packet under `## Use (do not edit): PalaceView`. Furthermore, modifying `palaceView.ts` to add `.splice` would directly contradict `src/redteam/T8b.test.ts:145-147` (`assert.doesNotMatch(source, /clickCallbacks\.splice|clickCallbacks\.delete/)`). The contract expansion (`onLocusClick(cb): () => void`) is ready to be adopted cleanly by `mountShadowWalk` as soon as the Lead updates `PalaceView`.
 
 ## Verify (for FB)
 In `wt/T8b`: `npm test`, `npm run build`, paste counts.

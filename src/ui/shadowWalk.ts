@@ -141,12 +141,13 @@ export function mountShadowWalk(
     }
   }
 
-  view.onLocusClick(handleLocusClick);
+  const unsubscribeLocusClick = (view.onLocusClick as unknown as (cb: (index: number) => void) => (() => void) | void)(handleLocusClick);
 
   function leave(): void {
     if (!active) return;
     active = false;
     clearPendingReveal();
+    cardsByLocus.clear();
     view.setFreeWalk(false);
     view.clearCards();
     onExit();
@@ -169,9 +170,13 @@ export function mountShadowWalk(
 
   return () => {
     active = false;
+    if (typeof unsubscribeLocusClick === 'function') {
+      unsubscribeLocusClick();
+    }
     window.removeEventListener('keydown', onKeyDown);
     exitBtn.removeEventListener('click', leave);
     clearPendingReveal();
+    cardsByLocus.clear();
     view.setFreeWalk(false);
     view.clearCards();
     root.textContent = '';
