@@ -30,7 +30,10 @@ Wire all screens into one app at `index.html`.
 - [ ] Reload keeps everything. Export then import restores it.
 
 ## Questions
+None.
+
 ## Report
+Wired the four shared screens into `index.html` with a persistent Three.js scene and routed, animated DOM overlay. Boot loads and sanitizes settings, respects reduced motion for an untouched fresh save, syncs settings to the view/root, tracks streaks on completed drills, supports sanitized import/reload, and surfaces save failures. Router transitions are unit tested; result rows and accuracy use the motion kit. Vite transitions in this embedded browser stalled at WAAPI time 0, so the integration has a bounded 400 ms completion watchdog; CSS reduced motion remains enabled through the existing settings class.
 
 ## Verify (AG playtest, then Lead code review)
 In `wt/T7`: `npm install`, `npm test`, `npm run build`, paste counts, `npm run dev`, open http://localhost:5173/ in a fresh profile (or clear site data).
