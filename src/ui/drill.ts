@@ -1,4 +1,4 @@
-import { cardLabel, deal, isRed, LADDER, score } from '../deck.ts';
+import { cardLabel, deal, isRed, LADDER, localDay, score } from '../deck.ts';
 import { applyResult, cardFromKeys, drillSeed } from '../drill-logic.ts';
 import { imageFor, save } from '../store.ts';
 import type { CardId, DrillResult, PalaceView, SaveData } from '../types.ts';
@@ -26,6 +26,20 @@ export function mountDrill(
 
   // Sub-cleanup for current drill phase/round
   let roundCleanup: (() => void) | null = null;
+  let activeQuitCleanup: (() => void) | null = null;
+
+  // Track async camera glides to prevent action after phase changes or unmount
+  let currentGlideToken = 0;
+  function safeGlideTo(locusIndex: number): Promise<void> {
+    const token = ++currentGlideToken;
+    const p = view.glideTo(locusIndex);
+    if (p && typeof p.then === 'function') {
+      return p.then(() => {
+        if (unmounted || token !== currentGlideToken) return;
+      }).catch(() => {});
+    }
+    return Promise.resolve();
+  }
 
   function clearOverlay(): void {
     while (overlay.firstChild) {
@@ -34,6 +48,7 @@ export function mountDrill(
   }
 
   function resetPalaceVisuals(): void {
+    currentGlideToken++;
     view.clearCards();
     for (const idx of modifiedLoci) {
       view.setLocusMood(idx, 'normal');
@@ -51,6 +66,9 @@ export function mountDrill(
   // --- Confirm Dialog on Esc ---
   let isConfirmingQuit = false;
   function showQuitConfirm(onConfirm: () => void): () => void {
+    if (isConfirmingQuit && activeQuitCleanup) {
+      activeQuitCleanup();
+    }
     isConfirmingQuit = true;
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'drill-confirm-overlay';
@@ -87,18 +105,19 @@ export function mountDrill(
     modalOverlay.appendChild(box);
     overlay.appendChild(modalOverlay);
 
+    let closed = false;
     const closeConfirm = () => {
+      if (closed) return;
+      closed = true;
       isConfirmingQuit = false;
+      window.removeEventListener('keydown', onKey);
       if (modalOverlay.parentElement) {
-        modalOverlay.parentElement.removeChild(modalOverlay.parentElement === overlay ? modalOverlay : modalOverlay);
+        modalOverlay.parentElement.removeChild(modalOverlay);
+      }
+      if (activeQuitCleanup === closeConfirm) {
+        activeQuitCleanup = null;
       }
     };
-
-    cancelBtn.addEventListener('click', closeConfirm);
-    quitBtn.addEventListener('click', () => {
-      closeConfirm();
-      onConfirm();
-    });
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -112,10 +131,14 @@ export function mountDrill(
     };
     window.addEventListener('keydown', onKey);
 
-    return () => {
-      window.removeEventListener('keydown', onKey);
+    cancelBtn.addEventListener('click', closeConfirm);
+    quitBtn.addEventListener('click', () => {
       closeConfirm();
-    };
+      onConfirm();
+    });
+
+    activeQuitCleanup = closeConfirm;
+    return closeConfirm;
   }
 
   // --- Start a new drill round ---
@@ -205,7 +228,7 @@ export function mountDrill(
     function showMemorize(): void {
       clearOverlay();
       const startDate = new Date();
-      const seed = drillSeed(daily, startDate);
+      const seed = daily ? localDay(startDate) : drillSeed(false, startDate);
       const sequence = deal(n, seed);
       const startTime = performance.now();
       const atIso = startDate.toISOString();
@@ -321,7 +344,7 @@ export function mountDrill(
         }
 
         view.clearCards();
-        view.glideTo(currentStep);
+        safeGlideTo(currentStep);
         view.showCard(currentStep, card, {
           caption: captionsOn ? captionText : undefined,
         });
@@ -414,7 +437,7 @@ export function mountDrill(
     function showRecall(sequence: CardId[], seed: string, atIso: string, memorizeMs: number): void {
       clearOverlay();
       view.clearCards();
-      view.glideTo(0);
+      safeGlideTo(0);
 
       const recallStartTime = performance.now();
       const answers: (CardId | null)[] = new Array(n).fill(null);
@@ -509,7 +532,7 @@ export function mountDrill(
 
         backBtn.disabled = recallStep === 0 && !pendingRank;
 
-        view.glideTo(recallStep);
+        safeGlideTo(recallStep);
         const existingAns = answers[recallStep];
         if (existingAns) {
           view.showCard(recallStep, existingAns, { opacity: 0.5 });
@@ -816,8 +839,8 @@ export function mountDrill(
 
       const doAgain = () => {
         window.removeEventListener('keydown', onKeyDown);
-        // Start again with same level, fresh seed, without re-saving
-        startRound(currentLevel, false);
+        // Start again with same level, preserving daily setting
+        startRound(currentLevel, isDaily);
       };
 
       const doExit = () => {
@@ -841,6 +864,10 @@ export function mountDrill(
       exitBtn.addEventListener('click', doExit);
 
       roundCleanup = () => {
+        if (activeQuitCleanup) {
+          activeQuitCleanup();
+          activeQuitCleanup = null;
+        }
         window.removeEventListener('keydown', onKeyDown);
         clearOverlay();
       };
@@ -856,6 +883,11 @@ export function mountDrill(
   // Return unmount function
   return () => {
     unmounted = true;
+    currentGlideToken++;
+    if (activeQuitCleanup) {
+      activeQuitCleanup();
+      activeQuitCleanup = null;
+    }
     if (roundCleanup) {
       roundCleanup();
       roundCleanup = null;

@@ -114,3 +114,15 @@ Findings:
 4. [S3] `src/ui/drill.ts:804-815` - Again always starts a practice round even when the completed round was daily.
 
 Attacks tried that failed: all 52 rank/suit pairs including 0->T and whitespace; malformed key inputs; full-deck stats with skip/mismatch; JSON string-key stats and input immutability; short answer array; daily seed equality; browser keyboard recall and Backspace correction; duplicate picker blocking; unmount and cancel quit; source scan for dynamic `innerHTML`.
+
+### Builder reply (round 1)
+
+1. [S2] `src/ui/drill.ts:259` - daily seed determinism:
+   **FIXED**: Daily seed now explicitly uses `localDay(startDate)`. Verified deterministic across page reloads in browser playtest (`2026-10-21`, identical 3-card sequence generated).
+2. [S2] `src/ui/drill.ts:97-117` - confirm-dialog keyboard listener cleanup:
+   **FIXED**: `closeConfirm()` now removes the window `keydown` listener immediately on cancel/dismissal and clears `activeQuitCleanup`. Verified in browser that pressing Enter after dismissing the modal continues the drill without quitting.
+3. [S2] `src/ui/drill.ts:324-325, 416-417, 512-515` - asynchronous `glideTo` tracking:
+   **FIXED**: Implemented `safeGlideTo` with monotonic `currentGlideToken` tracking, guarding against camera motion callbacks after phase changes or unmount.
+4. [S3] `src/ui/drill.ts:804-815` - Again button daily mode preservation:
+   **FIXED**: `doAgain()` preserves `isDaily` mode (`startRound(currentLevel, isDaily)`), verified in browser playtest with '★ Daily Deck' badge retained.
+
