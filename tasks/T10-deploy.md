@@ -28,3 +28,6 @@ In `wt/T10`: `npm run build`, `npx vite preview`, open the preview URL, play the
 2. After the Lead pushes: open the Actions tab, both workflows green; open the Pages URL and play 3 cards.
 3. Red-team `src/redteam/T10.test.ts`: parse the workflow files as text and assert `npm test` comes before the deploy step, Node version is 24, and `base` in `vite.config.ts` is `'./'`.
 Write "Verification" as TASKS.md says.
+
+## Report
+Added independent CI for pushes/pull requests and a main-only Pages pipeline. CI and Pages build run under Node 24 with `npm ci`, tests, and build before artifact upload/deployment; only the deploy job receives Pages/id-token write permissions. Vite uses a relative base for repository subpaths; README includes the expected repository Pages link. Verified the production preview's app shell and relative JS/CSS asset URLs/content types, and exercised the three-card flow through results and back home in the browser. The repository is private and account plan/Pages entitlement cannot be established locally, so deployment availability must be confirmed by the Lead after merge; Pages is not claimed live.
