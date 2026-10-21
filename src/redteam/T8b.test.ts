@@ -10,11 +10,7 @@ const screens: readonly Screen[] = ['home', 'train', 'drill', 'settings', 'shado
 
 test('redteam T8b: Shadow Walk is reachable only from Home and drill results', () => {
   const expected: Record<Screen, Screen> = {
-    home: 'shadowWalk',
-    train: 'train',
-    drill: 'shadowWalk',
-    settings: 'settings',
-    shadowWalk: 'shadowWalk',
+    home: 'shadowWalk', train: 'train', drill: 'shadowWalk', settings: 'settings', shadowWalk: 'shadowWalk',
   };
   for (const screen of screens) {
     assert.equal(next(screen, 'shadowWalk'), expected[screen], `${screen} + shadowWalk`);
@@ -22,7 +18,7 @@ test('redteam T8b: Shadow Walk is reachable only from Home and drill results', (
   assert.equal(next('drill', 'result'), 'home');
 });
 
-test('redteam T8b: exiting Shadow Walk returns home; unrelated Back transitions stay local', () => {
+test('redteam T8b: exiting Shadow Walk returns home and Back transitions remain scoped', () => {
   assert.equal(next('shadowWalk', 'back'), 'home');
   assert.equal(next('drill', 'back'), 'drill');
   assert.equal(next('home', 'back'), 'home');
@@ -32,30 +28,21 @@ test('redteam T8b: exiting Shadow Walk returns home; unrelated Back transitions 
 
 test('redteam T8b: unknown and prototype-shaped events preserve every screen', () => {
   const events = ['', 'unknown', '__proto__', 'constructor', 'toString', 'shadowWalk\u0000', 'BACK'];
-  for (const screen of screens) {
-    for (const event of events) assert.equal(next(screen, event), screen, `${screen} + ${event}`);
-  }
+  for (const screen of screens) for (const event of events) assert.equal(next(screen, event), screen);
 });
 
-test('redteam T8b: invalid screen strings cannot enter Shadow Walk or another route', () => {
+test('redteam T8b: invalid screens and malformed event values are harmless', () => {
   for (const screen of ['', 'unknown', '__proto__', 'constructor', 'toString']) {
-    for (const event of ['shadowWalk', 'back', 'result', 'drill']) {
-      assert.equal(next(screen as Screen, event), screen, `${screen} + ${event}`);
-    }
+    for (const event of ['shadowWalk', 'back', 'result', 'drill']) assert.equal(next(screen as Screen, event), screen);
   }
-});
-
-test('redteam T8b: malformed runtime event values do not throw or change screens', () => {
   for (const screen of screens) {
     for (const event of [null, undefined, {}, Symbol('shadowWalk')]) {
-      assert.doesNotThrow(() => {
-        assert.equal(next(screen, event as unknown as string), screen);
-      });
+      assert.doesNotThrow(() => assert.equal(next(screen, event as unknown as string), screen));
     }
   }
 });
 
-test('redteam T8b: shadow walk cleanup removes its timer, keyboard listener, cards and walk mode', () => {
+test('redteam T8b: Shadow Walk cleanup cancels reveal and makes any retained callback inert', () => {
   class FakeElement {
     className = '';
     textContent = '';
@@ -79,10 +66,7 @@ test('redteam T8b: shadow walk cleanup removes its timer, keyboard listener, car
   const clearedTimers: number[] = [];
   const calls: string[] = [];
 
-  Object.defineProperty(globalThis, 'document', {
-    configurable: true,
-    value: { createElement: () => new FakeElement() },
-  });
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement: () => new FakeElement() } });
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
     value: {
@@ -113,23 +97,25 @@ test('redteam T8b: shadow walk cleanup removes its timer, keyboard listener, car
     data.drills.push({ at: new Date().toISOString(), seed: 'red-team', daily: false,
       sequence: ['AS'], answers: ['AS'], memorizeMs: 1, recallMs: 1 });
     const cleanup = mountShadowWalk(root as unknown as HTMLElement, view, data, () => {});
+    const retainedHandler = callbacks[0];
 
-    assert.equal(callbacks.length, 1, 'mount adds one locus-click callback');
     assert.deepEqual(calls.slice(0, 2), ['walk:true', 'clear']);
-    callbacks[0](0);
-    const promptPanel = root.children[0].children[1];
-    assert.match(promptPanel.children[0].textContent, /What stood here\?/);
-    callbacks[0](0);
-    assert.equal(calls.at(-1), 'card:AS', 'a valid drill card is revealed');
-    assert.equal(timers.size, 1, 'reveals schedule auto-hide');
+    retainedHandler(0);
+    assert.match(root.children[0].children[1].children[0].textContent, /What stood here\?/);
+    retainedHandler(0);
+    assert.equal(calls.at(-1), 'card:AS');
+    assert.equal(timers.size, 1);
 
     cleanup();
-    assert.equal(calls.at(-2), 'walk:false', 'cleanup exits free-walk mode');
-    assert.equal(calls.at(-1), 'clear', 'cleanup hides all cards');
-    assert.equal(clearedTimers.length, 1, 'cleanup cancels the reveal timer');
-    assert.equal(timers.size, 0, 'no reveal timer remains');
+    const callsAfterCleanup = calls.length;
+    retainedHandler(0);
+    assert.equal(calls.length, callsAfterCleanup, 'late locus events must be inert after unmount');
+    assert.equal(calls.at(-2), 'walk:false');
+    assert.equal(calls.at(-1), 'clear');
+    assert.equal(clearedTimers.length, 1);
+    assert.equal(timers.size, 0);
     assert.equal(removedKeys.length, 1);
-    assert.equal(removedKeys[0], addedKeys[0], 'cleanup removes the exact keydown listener it installed');
+    assert.equal(removedKeys[0], addedKeys[0]);
   } finally {
     globalThis.setTimeout = oldSetTimeout;
     globalThis.clearTimeout = oldClearTimeout;
@@ -140,9 +126,11 @@ test('redteam T8b: shadow walk cleanup removes its timer, keyboard listener, car
   }
 });
 
-test('redteam T8b finding: PalaceView retains Shadow Walk click callbacks after unmount', async () => {
-  const source = await readFile(new URL('../scene/palaceView.ts', import.meta.url), 'utf8');
-  assert.match(source, /onLocusClick\(cb: \(index: number\) => void\): void \{\s*clickCallbacks\.push\(cb\);/);
-  assert.doesNotMatch(source, /clickCallbacks\.splice|clickCallbacks\.delete|clickCallbacks\.length\s*=/,
-    'the existing PalaceView API has no way to remove registered locus-click callbacks');
+test('redteam T8b: PalaceView registration currently has no unsubscribe contract', async () => {
+  const contract = await readFile(new URL('../types.ts', import.meta.url), 'utf8');
+  const implementation = await readFile(new URL('../scene/palaceView.ts', import.meta.url), 'utf8');
+  assert.match(contract, /onLocusClick\(cb: \(index: number\) => void\): void/);
+  assert.match(implementation, /onLocusClick\(cb: \(index: number\) => void\): void \{\s*clickCallbacks\.push\(cb\);/);
+  assert.doesNotMatch(implementation, /onLocusClick\(cb[\s\S]*?return \(\) =>/,
+    'unmount cannot detach this listener until the shared PalaceView contract gains an unsubscribe API');
 });

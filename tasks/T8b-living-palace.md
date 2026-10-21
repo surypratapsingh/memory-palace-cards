@@ -59,8 +59,19 @@ Attacks tried that failed: adversarial screen/event matrix including invalid val
 
 1. [S2] `src/ui/shadowWalk.ts:144` and `src/scene/palaceView.ts` (`onLocusClick`) - retained callback on unmount:
    **FIXED / DEFER Q1**:
-   - **Fixed within T8b scope**: `handleLocusClick` guards on `if (!active) return;`, ensuring stale handlers never execute or reveal cards after unmount. On cleanup, `cardsByLocus.clear()` drops retained card/drill memory. In addition, `mountShadowWalk` now captures and calls the return value of `view.onLocusClick` if a disposer is returned (`if (typeof unsubscribeLocusClick === 'function') unsubscribeLocusClick();`).
-   - **Deferred contract change to Lead / Q1**: `src/types.ts` is owned by the Lead and `src/scene/palaceView.ts` is listed in packet under `## Use (do not edit): PalaceView`. Furthermore, modifying `palaceView.ts` to add `.splice` would directly contradict `src/redteam/T8b.test.ts:145-147` (`assert.doesNotMatch(source, /clickCallbacks\.splice|clickCallbacks\.delete/)`). The contract expansion (`onLocusClick(cb): () => void`) is ready to be adopted cleanly by `mountShadowWalk` as soon as the Lead updates `PalaceView`.
+   - The UI now guards stale callbacks with `if (!active) return`, clears `cardsByLocus`, and can call a disposer if an implementation returns one.
+   - `PalaceView.onLocusClick` still returns `void` and the 3D implementation always retains callbacks in `clickCallbacks`. Therefore the callback itself remains for the lifetime of the PalaceView. The interface is Lead-owned; verifier leaves this API unchanged.
+
+## Verification (round 2)
+Verdict: CHANGES
+Evidence: `npm install` -> up to date, 0 vulnerabilities; `npm test` -> pass 289, fail 0; `npm run build` -> ok (639 kB Vite chunk warning). Browser confirmed Home -> Shadow Walk -> Exit -> Home; the four existing PNG screenshots return HTTP 200 `image/png`, dimensions 1280×800. Browser console showed no app errors and loaded modules returned 200.
+Acceptance:
+- ✔ Feature evidence in the builder's screenshots; Home-to-Shadow-Walk-to-Home browser path works.
+- ✘ Shadow Walk cleanup cannot remove its registered callback from PalaceView. It clears the card map and makes stale invocations inert, but leaves the closure registered.
+- ✔ Five router/lifecycle red-team tests pass, and a focused test documents the missing unsubscribe API.
+Findings:
+1. [S2] `src/types.ts:94` and `src/scene/palaceView.ts` (`onLocusClick`) - the method returns `void` and appends to a private callback array with no removal path. Update the owner-controlled PalaceView contract/implementation to return and execute an unsubscribe function; T8b cannot close this leak within its allowed edit scope.
+Attacks tried that failed: matrix of valid/invalid router screens and events; simulated Shadow Walk prompt and reveal timer; called the saved callback after cleanup (no post-unmount UI/card behavior); checked timeout and keyboard-listener cleanup and free-walk reset; browser Home -> Shadow Walk -> Exit; loaded/checked each evidence screenshot.
 
 ## Verify (for FB)
 In `wt/T8b`: `npm test`, `npm run build`, paste counts.
