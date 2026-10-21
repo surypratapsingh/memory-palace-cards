@@ -102,5 +102,41 @@ In `../mp-T1`: `npm install`, `npm test`, `npm run build`, paste counts.
 2. **Mutation check**: move one locus 1 m toward its neighbour, run `npm test`, confirm `palace.test.ts` fails, undo with `git checkout -- src`. Same for changing the `4t³` branch of `easeInOutCubic` to `3t³`.
 3. **Code review of `src/scene/`**: count `addEventListener` vs `removeEventListener`; `setAnimationLoop(null)`, `renderer.dispose()`, `ResizeObserver.disconnect()` in `dispose`; textures from canvases disposed when a card is replaced (GPU leak); a second `glideTo` during a glide resolves the first promise; `glideMs = 0` path; imports only from the allowed list; no `any` without a reason.
 4. Look at the 4 screenshots: rooms easy to tell apart? Neighbouring objects different?
-5. **Lock test** (only in the round you PASS): write `src/redteam/T1-lock.test.ts` that freezes every locus as a literal table (index, room, name, kind, pos, face), copied from the PASSing code, and asserts `LOCI` deep-equals it. From then on, any move of a locus fails `npm test` (T9 depends on this).
+5. **Lock test** (only in the round you PASS): write `src/redteam/T1-lock.test.ts` that freezes every locus as a literal table (index, room, name, kind, pos, face), copied from the PASSing code, and asserts `LOCI` deep-equals it. From then on, any move of a locus fails `npm test` (T9 depends on this). Not added: this round's verdict is CHANGES.
 Write "Verification" as TASKS.md says. The Lead does the browser check at merge.
+
+## Verification (round 1)
+
+Verdict: CHANGES
+
+Evidence:
+- `npm install` -> up to date, audited 27 packages, 0 vulnerabilities. It rewrote package-lock root metadata (name/version/license); restored that generated-only change and confirmed a clean baseline.
+- `npm test` before adding verifier tests -> pass 21, fail 0.
+- `npm run build` -> TypeScript and Vite build passed.
+- `npm test` with the independent red-team test -> pass 27, fail 0.
+- Final `npm run build` -> passed; `git diff --check` -> passed.
+- Independent checks in `src/redteam/T1.test.ts`: all 1,326 pairwise distances; every face/viewpoint against the room bounds; all 2,704 ordered glide paths sampled at 5 cm; self paths, route paths 0→51 and 51→0; wall and door boundaries; equal, opposite, large-turn, and endpoint angle inputs.
+- Mutation: moved locus 1 by 1 m toward locus 2. Both builder G3 and independent red-team G3 failed (distance became 1.6 m). Restored the implementation. Mutation: changed `4t³` to `3t³`. Easing symmetry and finite-difference slope tests failed. Restored the implementation; final source contains the original values.
+- Review: `palaceView.ts` registers 2 window listeners and 1 canvas click listener and removes all 3; dispose stops animation loop, disconnects ResizeObserver, disposes controls/cards/world/locus resources and renderer, removes canvas, and resolves an active glide. `CardBillboardManager` disposes replaced texture/material and shared plane geometry. Scene TypeScript has no `any` occurrences. Imports in runtime scene files are within the permitted package and local module set.
+- Browser exercise at `http://127.0.0.1:5175/scene-demo.html`: scene canvas was created; HUD initially showed locus 1 / Library; ArrowRight advanced the HUD, and a later input showed locus 38 / Greenhouse. The canvas WebGL context returned no error. Preview panel reported a `THREE.Clock` deprecation warning and attempted pointer lock produced a SecurityError in the embedded preview; screenshot capture failed because the webview produced no frames. Existing four builder screenshots are valid 1280×720 PNGs and visibly show the four themed rooms/card/object scenes, but they show cards obscuring parts of the main objects; I cannot confirm a complete 52-step browser route, click-ray selection, pointer-lock controls, free-walk wall/door behavior, or dispose/canvas removal in this environment.
+
+Acceptance:
+- ✔ Tests/build pass: final suite 28/28; production typecheck/Vite build succeeds.
+- ✘ Full browser traversal/facing/plaque labels and 51→0 camera glide: route data was independently sampled, but live visual behavior for all 52 stops and live camera path/facing were not independently confirmed.
+- ✘ Cards readable, red suits red, opacity 0.25 visibly faint: existing screenshots show readable card labels and red suit color, but their card overlay obscures the object; opacity toggle was not verified in the live UI.
+- ✘ Free walk, walls/doors, and Escape unlock: pointer-lock capability was blocked by embedded preview SecurityError, so this is unverified.
+- ✘ No console errors and `window.__view.dispose()` removes the canvas: preview logged a deprecation warning and pointer-lock errors; disposal was not exercised. No other runtime exceptions were recorded.
+- ✔ Four screenshot files exist and are valid 1280×720 PNGs; room colors/themes differ. Their framing/cards obscure object details and limit verification of object distinctness.
+- ✔ No added dependencies; scene runtime imports conform to the allowed package/local modules.
+
+Findings:
+1. [S2] `src/scene/palaceView.ts` / `src/scene/demo.ts` - interactive acceptance items (pointer lock/free-walk behavior, canvas cleanup, complete route/facing/plaque and opacity checks) lack successful live evidence; embedded preview refuses pointer lock and screenshot capture yields no frames. Re-run the scene demo in a normal browser/Edge session and capture the prescribed evidence before PASS.
+2. [S3] `src/scene/palaceView.ts` - Three.js emits `THREE.Clock` deprecation warning on mount; consider replacing with `THREE.Timer` in a follow-up, without changing T1 scope during this verification.
+
+Attacks tried that failed (implementation held): 1 m locus displacement toward neighbor; easing coefficient 4→3; every pair's distance below 2 m; every ordered pair path crossing non-walkable space; room viewpoint/face violations; wall-line/door boundary behavior; equal/opposite/large angle and endpoint interpolation.
+
+No implementation files were changed by verification.
+
+## Builder reply
+
+Awaiting builder response to the CHANGES findings.
