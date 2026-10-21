@@ -62,25 +62,25 @@ const LOCAL_SPECS: readonly LocalSpec[] = [
   { kind: 'utensil_rail', room: 1, zone: 'wall', lx0: 9.75, y0: 1.25, lz0: 13.48, lx1: 10.25, y1: 1.95, lz1: 13.78 },
   { kind: 'corner_column', room: 1, zone: 'wall', lx0: 0.22, y0: 0.0, lz0: 0.22, lx1: 0.62, y1: 3.98, lz1: 0.62 },
 
-  // Room 2: Greenhouse
+  // Room 2: Greenhouse — 0.45 m terracotta hanging baskets
   { kind: 'stone_path', room: 2, zone: 'floor', lx0: 2.2, y0: 0.0, lz0: 5.6, lx1: 11.8, y1: 0.024, lz1: 8.4 },
   { kind: 'roof_frame', room: 2, zone: 'ceiling', lx0: 1.2, y0: 3.75, lz0: 1.2, lx1: 12.8, y1: 3.98, lz1: 12.8 },
-  { kind: 'hanging_basket', room: 2, zone: 'ceiling', lx0: 4.1, y0: 2.62, lz0: 4.4, lx1: 4.9, y1: 3.96, lz1: 5.2 },
-  { kind: 'hanging_basket', room: 2, zone: 'ceiling', lx0: 9.1, y0: 2.62, lz0: 4.4, lx1: 9.9, y1: 3.96, lz1: 5.2 },
-  { kind: 'hanging_basket', room: 2, zone: 'ceiling', lx0: 4.1, y0: 2.62, lz0: 8.8, lx1: 4.9, y1: 3.96, lz1: 9.6 },
-  { kind: 'hanging_basket', room: 2, zone: 'ceiling', lx0: 9.1, y0: 2.62, lz0: 8.8, lx1: 9.9, y1: 3.96, lz1: 9.6 },
+  { kind: 'hanging_basket', room: 2, zone: 'ceiling', lx0: 4.275, y0: 2.62, lz0: 4.575, lx1: 4.725, y1: 3.96, lz1: 5.025 },
+  { kind: 'hanging_basket', room: 2, zone: 'ceiling', lx0: 9.275, y0: 2.62, lz0: 4.575, lx1: 9.725, y1: 3.96, lz1: 5.025 },
+  { kind: 'hanging_basket', room: 2, zone: 'ceiling', lx0: 4.275, y0: 2.62, lz0: 8.975, lx1: 4.725, y1: 3.96, lz1: 9.425 },
+  { kind: 'hanging_basket', room: 2, zone: 'ceiling', lx0: 9.275, y0: 2.62, lz0: 8.975, lx1: 9.725, y1: 3.96, lz1: 9.425 },
   { kind: 'wall_trellis', room: 2, zone: 'wall', lx0: 3.75, y0: 0.4, lz0: 13.48, lx1: 4.25, y1: 2.45, lz1: 13.78 },
   { kind: 'wall_trellis', room: 2, zone: 'wall', lx0: 9.75, y0: 0.4, lz0: 13.48, lx1: 10.25, y1: 2.45, lz1: 13.78 },
   { kind: 'corner_column', room: 2, zone: 'wall', lx0: 0.22, y0: 0.0, lz0: 13.38, lx1: 0.62, y1: 3.98, lz1: 13.78 },
 
-  // Room 3: Observatory
+  // Room 3: Observatory — slender meridian arcs and compact star orbs
   { kind: 'zodiac_ring', room: 3, zone: 'floor', lx0: 3.8, y0: 0.0, lz0: 3.8, lx1: 10.2, y1: 0.025, lz1: 10.2 },
-  { kind: 'meridian_arc', room: 3, zone: 'ceiling', lx0: 2.0, y0: 2.85, lz0: 6.65, lx1: 12.0, y1: 3.96, lz1: 7.35 },
-  { kind: 'meridian_arc', room: 3, zone: 'ceiling', lx0: 6.65, y0: 2.85, lz0: 2.0, lx1: 7.35, y1: 3.96, lz1: 12.0 },
-  { kind: 'star_lamp', room: 3, zone: 'ceiling', lx0: 4.2, y0: 2.68, lz0: 4.2, lx1: 4.8, y1: 3.96, lz1: 4.8 },
-  { kind: 'star_lamp', room: 3, zone: 'ceiling', lx0: 9.2, y0: 2.68, lz0: 4.2, lx1: 9.8, y1: 3.96, lz1: 4.8 },
-  { kind: 'star_lamp', room: 3, zone: 'ceiling', lx0: 4.2, y0: 2.68, lz0: 9.2, lx1: 4.8, y1: 3.96, lz1: 9.8 },
-  { kind: 'star_lamp', room: 3, zone: 'ceiling', lx0: 9.2, y0: 2.68, lz0: 9.2, lx1: 9.8, y1: 3.96, lz1: 9.8 },
+  { kind: 'meridian_arc', room: 3, zone: 'ceiling', lx0: 2.0, y0: 2.85, lz0: 6.92, lx1: 12.0, y1: 3.96, lz1: 7.08 },
+  { kind: 'meridian_arc', room: 3, zone: 'ceiling', lx0: 6.92, y0: 2.85, lz0: 2.0, lx1: 7.08, y1: 3.96, lz1: 12.0 },
+  { kind: 'star_lamp', room: 3, zone: 'ceiling', lx0: 4.35, y0: 2.68, lz0: 4.35, lx1: 4.65, y1: 3.96, lz1: 4.65 },
+  { kind: 'star_lamp', room: 3, zone: 'ceiling', lx0: 9.35, y0: 2.68, lz0: 4.35, lx1: 9.65, y1: 3.96, lz1: 4.65 },
+  { kind: 'star_lamp', room: 3, zone: 'ceiling', lx0: 4.35, y0: 2.68, lz0: 9.35, lx1: 4.65, y1: 3.96, lz1: 9.65 },
+  { kind: 'star_lamp', room: 3, zone: 'ceiling', lx0: 9.35, y0: 2.68, lz0: 9.35, lx1: 9.65, y1: 3.96, lz1: 9.65 },
   { kind: 'star_plaque', room: 3, zone: 'wall', lx0: 3.75, y0: 1.1, lz0: 13.48, lx1: 4.25, y1: 2.35, lz1: 13.78 },
   { kind: 'star_plaque', room: 3, zone: 'wall', lx0: 9.75, y0: 1.1, lz0: 13.48, lx1: 10.25, y1: 2.35, lz1: 13.78 },
   { kind: 'corner_column', room: 3, zone: 'wall', lx0: 0.22, y0: 0.0, lz0: 0.22, lx1: 0.62, y1: 3.98, lz1: 0.62 },
@@ -111,6 +111,49 @@ export function decorLayout(): readonly DecorItem[] {
   });
 }
 
+export function lampPositions(): readonly [number, number, number][] {
+  const positions: [number, number, number][] = [];
+  for (const item of decorLayout()) {
+    const [x0, y0, z0] = item.min;
+    const [x1, y1, z1] = item.max;
+    const cx = (x0 + x1) * 0.5;
+    const cz = (z0 + z1) * 0.5;
+    const sx = x1 - x0;
+
+    if (item.kind === 'chandelier') {
+      const r = sx * 0.42;
+      const flameY = Number((y0 + 0.5).toFixed(4));
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI) / 3;
+        positions.push([
+          Number((cx + Math.cos(angle) * r).toFixed(4)),
+          flameY,
+          Number((cz + Math.sin(angle) * r).toFixed(4)),
+        ]);
+      }
+    } else if (item.kind === 'wall_sconce') {
+      positions.push([
+        Number(cx.toFixed(4)),
+        Number((y1 - 0.1).toFixed(4)),
+        Number((z0 + 0.08).toFixed(4)),
+      ]);
+    } else if (item.kind === 'pendant_lamp') {
+      positions.push([
+        Number(cx.toFixed(4)),
+        Number((y0 + 0.12).toFixed(4)),
+        Number(cz.toFixed(4)),
+      ]);
+    } else if (item.kind === 'star_lamp') {
+      positions.push([
+        Number(cx.toFixed(4)),
+        Number((y0 + 0.14).toFixed(4)),
+        Number(cz.toFixed(4)),
+      ]);
+    }
+  }
+  return positions;
+}
+
 function toCleanNonIndexed(src: THREE.BufferGeometry): THREE.BufferGeometry {
   const geo = src.index ? src.toNonIndexed() : src.clone();
   src.dispose();
@@ -130,8 +173,14 @@ function boxPart(
   sx: number,
   sy: number,
   sz: number,
+  rx = 0,
+  ry = 0,
+  rz = 0,
 ): Part {
   const raw = new THREE.BoxGeometry(sx, sy, sz);
+  if (rx !== 0) raw.rotateX(rx);
+  if (ry !== 0) raw.rotateY(ry);
+  if (rz !== 0) raw.rotateZ(rz);
   raw.translate(cx, cy, cz);
   return { geo: toCleanNonIndexed(raw), mat };
 }
@@ -145,8 +194,24 @@ function cylPart(
   rBot: number,
   h: number,
   segs = 10,
+  ry = 0,
 ): Part {
   const raw = new THREE.CylinderGeometry(rTop, rBot, h, segs);
+  if (ry !== 0) raw.rotateY(ry);
+  raw.translate(cx, cy, cz);
+  return { geo: toCleanNonIndexed(raw), mat };
+}
+
+function spherePart(
+  mat: MaterialKey,
+  cx: number,
+  cy: number,
+  cz: number,
+  radius: number,
+  wSegs = 10,
+  hSegs = 8,
+): Part {
+  const raw = new THREE.SphereGeometry(radius, wSegs, hSegs);
   raw.translate(cx, cy, cz);
   return { geo: toCleanNonIndexed(raw), mat };
 }
@@ -167,7 +232,6 @@ function ringFlatPart(
   return { geo: toCleanNonIndexed(raw), mat };
 }
 
-// Fits all parts of a DecorItem so their combined vertex bounds match [item.min, item.max].
 function fitPartsToItemAABB(parts: Part[], item: DecorItem): void {
   let gx0 = Infinity;
   let gy0 = Infinity;
@@ -254,8 +318,9 @@ function buildItemParts(item: DecorItem, rand: () => number): Part[] {
         const r = sx * 0.42;
         const ax = cx + Math.cos(angle) * r;
         const az = cz + Math.sin(angle) * r;
-        parts.push(cylPart('brass', ax, y0 + 0.3, az, 0.06, 0.04, 0.14, 8));
-        parts.push(cylPart('warmGlow', ax, y0 + 0.44, az, 0.03, 0.045, 0.16, 8));
+        parts.push(cylPart('brass', ax, y0 + 0.28, az, 0.06, 0.04, 0.12, 8));
+        parts.push(cylPart('warmGlow', ax, y0 + 0.42, az, 0.028, 0.038, 0.16, 8));
+        parts.push(spherePart('warmGlow', ax, y0 + 0.53, az, 0.038, 6, 6));
       }
       parts.push(cylPart('brass', cx, y0 + 0.08, cz, 0.12, 0.02, 0.16, 8));
       break;
@@ -265,7 +330,8 @@ function buildItemParts(item: DecorItem, rand: () => number): Part[] {
       parts.push(boxPart('darkWood', cx, cy, z1 - 0.04, sx * 0.85, sy * 0.9, 0.08));
       parts.push(boxPart('brass', cx, cy - 0.1, cz, 0.08, 0.08, sz * 0.8));
       parts.push(cylPart('brass', cx, cy + 0.04, z0 + 0.08, 0.09, 0.06, 0.16, 8));
-      parts.push(cylPart('warmGlow', cx, y1 - 0.12, z0 + 0.08, 0.055, 0.07, 0.24, 8));
+      parts.push(cylPart('warmGlow', cx, y1 - 0.14, z0 + 0.08, 0.045, 0.06, 0.2, 8));
+      parts.push(spherePart('warmGlow', cx, y1 - 0.02, z0 + 0.08, 0.04, 6, 6));
       break;
     }
 
@@ -281,16 +347,14 @@ function buildItemParts(item: DecorItem, rand: () => number): Part[] {
     }
 
     case 'tile_inlay': {
-      parts.push(boxPart('stone', cx, y0 + sy * 0.35, cz, sx, sy * 0.7, sz));
-      const bw = 0.22;
-      parts.push(boxPart('slateIron', cx, y0 + sy * 0.75, z0 + bw * 0.5, sx, sy * 0.5, bw));
-      parts.push(boxPart('slateIron', cx, y0 + sy * 0.75, z1 - bw * 0.5, sx, sy * 0.5, bw));
-      parts.push(boxPart('slateIron', x0 + bw * 0.5, y0 + sy * 0.75, cz, bw, sy * 0.5, sz));
-      parts.push(boxPart('slateIron', x1 - bw * 0.5, y0 + sy * 0.75, cz, bw, sy * 0.5, sz));
-      for (let i = 0; i < 5; i++) {
-        const tx = x0 + 1.1 + i * 1.25;
-        parts.push(boxPart('crimson', tx, y0 + sy * 0.8, cz, 0.65, sy * 0.4, 0.65));
-      }
+      // Subtle woven mat in the kitchen's cool whites with thin slate weave strips
+      parts.push(boxPart('stone', cx, y0 + sy * 0.4, cz, sx, sy * 0.8, sz));
+      // Lead: thin border only; the six inner strips read as court lines at eye height.
+      const edge = 0.08;
+      parts.push(boxPart('slateIron', cx, y0 + sy * 0.82, z0 + edge * 0.5, sx, sy * 0.36, edge));
+      parts.push(boxPart('slateIron', cx, y0 + sy * 0.82, z1 - edge * 0.5, sx, sy * 0.36, edge));
+      parts.push(boxPart('slateIron', x0 + edge * 0.5, y0 + sy * 0.82, cz, edge, sy * 0.36, sz));
+      parts.push(boxPart('slateIron', x1 - edge * 0.5, y0 + sy * 0.82, cz, edge, sy * 0.36, sz));
       break;
     }
 
@@ -305,7 +369,9 @@ function buildItemParts(item: DecorItem, rand: () => number): Part[] {
         [x0 + 0.2, z1 - 0.2],
         [x1 - 0.2, z1 - 0.2],
       ] as const) {
-        parts.push(cylPart('slateIron', rx, (y0 + 0.52 + y1) * 0.5, rz, 0.025, 0.025, y1 - (y0 + 0.52), 6));
+        parts.push(
+          cylPart('slateIron', rx, (y0 + 0.52 + y1) * 0.5, rz, 0.025, 0.025, y1 - (y0 + 0.52), 6),
+        );
       }
       for (let i = 0; i < 4; i++) {
         const px = x0 + 0.45 + i * 0.62;
@@ -320,7 +386,7 @@ function buildItemParts(item: DecorItem, rand: () => number): Part[] {
       parts.push(cylPart('slateIron', cx, y1 - 0.05, cz, 0.12, 0.12, 0.1, 8));
       parts.push(cylPart('slateIron', cx, cy + 0.12, cz, 0.02, 0.02, sy * 0.72, 6));
       parts.push(cylPart('slateIron', cx, y0 + 0.24, cz, 0.08, sx * 0.46, 0.28, 12));
-      parts.push(cylPart('warmGlow', cx, y0 + 0.1, cz, 0.09, 0.06, 0.2, 10));
+      parts.push(spherePart('warmGlow', cx, y0 + 0.1, cz, 0.08, 8, 8));
       break;
     }
 
@@ -350,13 +416,20 @@ function buildItemParts(item: DecorItem, rand: () => number): Part[] {
     }
 
     case 'stone_path': {
-      parts.push(boxPart('slateIron', cx, y0 + sy * 0.3, cz, sx, sy * 0.6, sz));
-      for (let i = 0; i < 7; i++) {
-        const px = x0 + 0.75 + i * 1.35;
-        parts.push(boxPart('stone', px, y0 + sy * 0.75, cz - 0.55, 1.05, sy * 0.5, 1.1));
-        parts.push(boxPart('stone', px, y0 + sy * 0.75, cz + 0.55, 1.05, sy * 0.5, 1.1));
+      // Irregular polygonal stepping stones without a frame, close to the floor tone
+      const count = 11;
+      for (let i = 0; i < count; i++) {
+        const t = i / (count - 1);
+        const px = x0 + 0.65 + t * (sx - 1.3);
+        const zJitter = (i % 2 === 0 ? -1 : 1) * (0.28 + (i % 3) * 0.14);
+        const pz = cz + zJitter;
+        const r = 0.42 + ((i * 3) % 4) * 0.06;
+        const segs = 6 + (i % 3);
+        const mat: MaterialKey = 'slateIron'; // Lead: one stone colour; brown and slate together read as game tokens
+        parts.push(
+          cylPart(mat, px, y0 + sy * 0.5, pz, r * 0.94, r, sy, segs, i * 0.7),
+        );
       }
-      parts.push(cylPart('brass', cx, y0 + sy * 0.85, cz, 0.9, 0.9, sy * 0.3, 12));
       break;
     }
 
@@ -375,15 +448,31 @@ function buildItemParts(item: DecorItem, rand: () => number): Part[] {
     }
 
     case 'hanging_basket': {
-      parts.push(cylPart('slateIron', cx, y1 - 0.3, cz, 0.02, 0.02, 0.6, 6));
-      parts.push(cylPart('stone', cx, cy + 0.12, cz, sx * 0.44, sx * 0.25, 0.28, 10));
-      parts.push(cylPart('foliage', cx, cy + 0.26, cz, sx * 0.48, sx * 0.42, 0.18, 10));
-      for (let i = 0; i < 5; i++) {
-        const angle = (i * Math.PI * 2) / 5;
-        const vx = cx + Math.cos(angle) * (sx * 0.32);
-        const vz = cz + Math.sin(angle) * (sz * 0.32);
-        const vh = 0.55 + (i % 2) * 0.2 + rand() * 0.08;
-        parts.push(boxPart('foliage', vx, y0 + vh * 0.5, vz, 0.09, vh, 0.09));
+      // Small ~0.45 m terracotta pot with hanging wire, thin trailing vine strands and small leaf quads
+      const potY = y1 - 0.52;
+      parts.push(cylPart('slateIron', cx, y1 - 0.22, cz, 0.012, 0.012, 0.44, 6));
+      parts.push(cylPart('crimson', cx, potY, cz, 0.17, 0.1, 0.22, 9));
+      parts.push(ringFlatPart('crimson', cx, potY + 0.1, cz, 0.17, 0.022, 6, 12));
+
+      const vineCount = 6;
+      for (let i = 0; i < vineCount; i++) {
+        const angle = (i * Math.PI * 2) / vineCount + 0.2;
+        const vr = 0.14 + (i % 2) * 0.03;
+        const vx = cx + Math.cos(angle) * vr;
+        const vz = cz + Math.sin(angle) * vr;
+        const vh = 0.48 + (i % 3) * 0.14;
+        const stemTop = potY + 0.04;
+        parts.push(boxPart('foliage', vx, stemTop - vh * 0.5, vz, 0.02, vh, 0.02));
+
+        for (let l = 0; l < 3; l++) {
+          const ly = stemTop - 0.12 - l * (vh * 0.3);
+          const side = l % 2 === 0 ? 1 : -1;
+          const lx = vx + Math.cos(angle + side * 0.5) * 0.035;
+          const lz = vz + Math.sin(angle + side * 0.5) * 0.035;
+          parts.push(
+            boxPart('foliage', lx, ly, lz, 0.065, 0.012, 0.045, 0.35 * side, angle, 0.25),
+          );
+        }
       }
       break;
     }
@@ -409,40 +498,41 @@ function buildItemParts(item: DecorItem, rand: () => number): Part[] {
         const raw = new THREE.BoxGeometry(sx * 0.92, sy * 0.35, 0.06);
         raw.rotateY((i * Math.PI) / 6);
         raw.translate(cx, y0 + sy * 0.75, cz);
-        parts.push({ geo: toCleanNonIndexed(raw), mat: 'celestialGlow' });
+        parts.push({ geo: toCleanNonIndexed(raw), mat: 'brass' }); // Lead: brass spokes, glowing ones glared like a target
       }
       break;
     }
 
     case 'meridian_arc': {
+      // Smooth thin brass TorusGeometry arch (arc = PI, tube ~ 0.04 m) across the Observatory ceiling
       const spanX = sx > sz;
-      const span = spanX ? sx : sz;
-      const segs = 12;
-      for (let i = 0; i < segs; i++) {
-        const t0 = i / segs;
-        const t1 = (i + 1) / segs;
-        const tm = (t0 + t1) * 0.5;
-        const arcH = Math.sin(tm * Math.PI);
-        const py = y0 + arcH * (sy - 0.12) + 0.06;
-        if (spanX) {
-          const px = x0 + tm * span;
-          parts.push(boxPart('brass', px, py, cz, span / segs + 0.05, 0.1, sz * 0.8));
-          parts.push(boxPart('slateIron', px, (py + y1) * 0.5, cz, 0.06, y1 - py, 0.06));
-        } else {
-          const pz = z0 + tm * span;
-          parts.push(boxPart('brass', cx, py, pz, sx * 0.8, 0.1, span / segs + 0.05));
-          parts.push(boxPart('slateIron', cx, (py + y1) * 0.5, pz, 0.06, y1 - py, 0.06));
-        }
+      const radius = (spanX ? sx : sz) * 0.5;
+      const arch = new THREE.TorusGeometry(radius, 0.04, 8, 36, Math.PI);
+      arch.scale(1, (sy - 0.05) / radius, 1);
+      if (!spanX) {
+        arch.rotateY(Math.PI / 2);
       }
+      arch.translate(cx, y0 + 0.04, cz);
+      parts.push({ geo: toCleanNonIndexed(arch), mat: 'brass' });
+
+      const innerArch = new THREE.TorusGeometry(radius * 0.96, 0.022, 6, 32, Math.PI);
+      innerArch.scale(1, (sy - 0.12) / radius, 1);
+      if (!spanX) {
+        innerArch.rotateY(Math.PI / 2);
+      }
+      innerArch.translate(cx, y0 + 0.04, cz);
+      parts.push({ geo: toCleanNonIndexed(innerArch), mat: 'slateIron' });
       break;
     }
 
     case 'star_lamp': {
-      parts.push(cylPart('brass', cx, cy + 0.18, cz, 0.02, 0.02, sy * 0.65, 6));
-      parts.push(boxPart('warmGlow', cx, y0 + 0.22, cz, sx * 0.75, 0.18, 0.18));
-      parts.push(boxPart('warmGlow', cx, y0 + 0.22, cz, 0.18, 0.42, 0.18));
-      parts.push(boxPart('warmGlow', cx, y0 + 0.22, cz, 0.18, 0.18, sz * 0.75));
-      parts.push(ringFlatPart('brass', cx, y0 + 0.22, cz, sx * 0.42, 0.03, 6, 12));
+      // Small glowing celestial orb with thin brass suspension rod and delicate gimbal ring
+      const orbY = y0 + 0.14;
+      const rodH = y1 - orbY;
+      parts.push(cylPart('brass', cx, orbY + rodH * 0.5, cz, 0.012, 0.012, rodH, 6));
+      parts.push(cylPart('brass', cx, y1 - 0.03, cz, 0.06, 0.04, 0.06, 8));
+      parts.push(spherePart('celestialGlow', cx, orbY, cz, 0.095, 10, 8));
+      parts.push(ringFlatPart('brass', cx, orbY, cz, 0.13, 0.014, 6, 14));
       break;
     }
 
@@ -470,22 +560,22 @@ function createMaterials(): Record<MaterialKey, THREE.MeshStandardMaterial> {
   return {
     darkWood: new THREE.MeshStandardMaterial({ color: 0x3b2314, roughness: 0.8, metalness: 0.1 }),
     brass: new THREE.MeshStandardMaterial({ color: 0xc89d3c, roughness: 0.35, metalness: 0.85 }),
-    crimson: new THREE.MeshStandardMaterial({ color: 0x7a1c1c, roughness: 0.9, metalness: 0.05 }),
+    crimson: new THREE.MeshStandardMaterial({ color: 0x9e3828, roughness: 0.85, metalness: 0.05 }),
     slateIron: new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6, metalness: 0.5 }),
-    stone: new THREE.MeshStandardMaterial({ color: 0x8a9a86, roughness: 0.85, metalness: 0.05 }),
+    stone: new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.85, metalness: 0.05 }),
     foliage: new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.75, metalness: 0.05 }),
     warmGlow: new THREE.MeshStandardMaterial({
-      color: 0xfff1c1,
+      color: 0xfff3cc,
       emissive: 0xffb74d,
-      emissiveIntensity: 1.4,
-      roughness: 0.3,
+      emissiveIntensity: 1.5, // Lead: round 1 cap; lampHalos adds the glow
+      roughness: 0.25,
       metalness: 0.0,
     }),
     celestialGlow: new THREE.MeshStandardMaterial({
-      color: 0x93c5fd,
-      emissive: 0x38bdf8,
-      emissiveIntensity: 1.2,
-      roughness: 0.3,
+      color: 0xdbeafe,
+      emissive: 0x60a5fa,
+      emissiveIntensity: 1.5,
+      roughness: 0.25,
       metalness: 0.1,
     }),
   };
@@ -496,7 +586,7 @@ export function buildDecor(): { root: THREE.Group; dispose(): void } {
   root.name = 'decor';
 
   const items = decorLayout();
-  const rand = rng('decor-v1');
+  const rand = rng('decor-v2');
   const materials = createMaterials();
   const buckets = new Map<MaterialKey, THREE.BufferGeometry[]>();
 

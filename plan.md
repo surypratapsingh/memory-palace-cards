@@ -68,7 +68,7 @@ A desktop web game where you walk a 3D memory palace and use it to memorize the 
 - [x] Mesh replan for AG + FB, MATHS.md, GitHub repo
 - [x] Queue coordinator `scripts/mesh.mjs` and identical queue prompts
 - [x] Gemini round 1: motion kit, room textures, room decor (in main)
-- [ ] Gemini round 2: card art (D), walk collision (E), atmosphere and decor v2 (F); prompts in tasks/gemini-argon.md
+- [x] Gemini round 2: card art (D), walk collision (E), atmosphere and decor v2 (F) (in main; wired by T9); prompts in tasks/gemini-argon.md
 - [ ] Wave 1: M1 maths audit, T1 3D palace, T5 progress + staircase, T2 card images, T3 trainer
 - [ ] Wave 2: T8a living rules, T12 settings, T4 drill, T6 home
 - [ ] Wave 3: T7 integration (playable v1), T10 deploy

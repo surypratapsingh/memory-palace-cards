@@ -676,3 +676,18 @@ FILE 4: atmosphere-demo.html (project root) and FILE 5: src/scene/atmosphere-dem
 
 THE CURRENT src/scene/decor.ts FOLLOWS (paste the file here before sending).
 ````
+
+---
+
+## Round 2 review (Lead, 2026-10-21)
+
+All three are merged. No more Gemini tasks are planned for now (the user's call).
+- D card art: 15/15 own tests pass. Double-ended court figures read well at 60 px, the ace of spades is ornate, four-colour works; each card is 2-6 kB. No changes.
+- E walk collision: 19 tests. One test started with velocity against the pressed keys and expected one braking step to flip its sign; the Lead fixed the test, the code was right.
+- F atmosphere and decor v2: the user saved two replies; the Lead took the second (it syncs the shadow camera and adds a glide-route test). Lead changes:
+  - shadow frustum fitted to the current room's corners in light space (the fixed 21 m box reached the next room and failed its own test);
+  - decor emissive back to 1.5 (round 1 rule; the halos carry the glow now);
+  - Library and Observatory moods raised: measured at all 52 loci, before vs after, the Observatory was 34% darker. Now every room is at least as bright at its loci as before (Library 1.12x, Kitchen 1.46x, Greenhouse 1.16x, Observatory 1.09x);
+  - kitchen mat: border only (six inner strips read as court lines); greenhouse stones one slate colour (brown + slate read as game tokens); zodiac spokes brass instead of glowing white.
+- Wiring is in the T9 packet: atmosphere, free walk with collision and `KeyboardEvent.code`, card faces and card textures.
+
