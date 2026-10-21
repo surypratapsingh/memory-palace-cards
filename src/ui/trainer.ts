@@ -64,8 +64,10 @@ export function mountTrainer(root: HTMLElement, data: SaveData, onExit: (data: S
       const tile = document.createElement('button');
       tile.type = 'button';
       tile.className = 'trainer-tile';
+      const label = `${card} — ${imageFor(data, card)}`;
       tile.textContent = card;
-      tile.setAttribute('aria-label', `Show ${card} image`);
+      tile.setAttribute('aria-label', `Show ${label} image`);
+      tile.title = label;
       const state = data.srs?.[card];
       tile.dataset.strength = state ? strength(state, new Date()) : 'new';
       tile.style.backgroundColor = 'var(--s)';
@@ -150,7 +152,8 @@ export function mountTrainer(root: HTMLElement, data: SaveData, onExit: (data: S
     for (const rating of ratings) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = `${rating.key} · ${rating.label}`;
+      button.textContent = `${rating.label} (${rating.key})`;
+      button.setAttribute('aria-keyshortcuts', rating.key);
       button.addEventListener('click', () => rate(rating.value));
       buttons.append(button);
     }

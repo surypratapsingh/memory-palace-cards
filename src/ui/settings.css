@@ -1,0 +1,57 @@
+.settings-screen {
+  display: grid;
+  gap: 1rem;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+  color: var(--text);
+}
+
+.settings-screen h1,
+.settings-screen h2 { margin: 0; }
+.settings-screen fieldset {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+.settings-radio,
+.settings-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.5rem;
+}
+.settings-note { margin: 0; color: var(--muted); }
+.settings-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+.settings-preview h2 { flex-basis: 100%; font-size: 1rem; }
+.settings-strength-tile {
+  display: grid;
+  place-items: center;
+  min-width: 5.5rem;
+  min-height: 2.75rem;
+  padding: 0.4rem;
+  border-radius: 0.3rem;
+  color: #fff;
+  background: var(--s);
+  text-shadow: 0 1px 2px #000;
+}
+.settings-screen button:focus-visible,
+.settings-screen input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .settings-screen { padding: 1rem; }
+  .settings-strength-tile { flex: 1 1 5rem; }
+}
