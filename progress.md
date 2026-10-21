@@ -1,6 +1,13 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-21 16:10 - Lead: Gemini round 2 (D/E/F) merged
+- Done: `src/ui/cardArt.ts` + `src/scene/cardTexture.ts` (original SVG deck, two themes), `src/scene/collide.ts` + `src/scene/walkInput.ts` (furniture collision, sliding, no tunnelling, `KeyboardEvent.code` keys), `src/scene/atmosphere.ts` + decor v2 (tone mapping, fog, room-fitted shadows, contact shadows, lamp halos, per-room moods blended at doors), each with tests and a demo page. Took the second of two F replies. Fixed: one walk test, shadow frustum fit, decor emissive cap, darker Observatory/Library loci (measured at all 52 loci), three decor items too contrasty. Details in `tasks/gemini-argon.md` "Round 2 review". Tests 258 pass, build ok.
+- T9 packet: wire atmosphere, free walk (collide + walkInput), card faces (`cardFace` renders `cardSvg`, four-colour when colour-safe) and card textures. Est. now 5 h.
+- User: no more Gemini tasks for now.
+- State: T4 got CHANGES in round 1, AG pushed "fix round 1"; FB re-verifies. AG waits for T7.
+- Next: Lead turn when T4 is verified (merge T4, then FB builds T7). After v1 (Wave 5): Wave 6 UI design competition.
+
 ## 2026-10-21 15:10 - Lead: Gemini round 1 merged, round 2 written
 - Done: reviewed and merged Gemini A/B/C from `wt/`: `src/ui/motion.{ts,css}` (WAAPI motion kit), `src/scene/textures.ts` (8 seamless procedural textures with bump maps), `src/scene/decor.ts` (per-room decor with zone rules), each with tests and a demo page. Fixed one wrong index in a motion test (code was right); wrote the missing `src/scene/textures-demo.ts`. `applySettings` now also toggles `reduce-motion` when glide is instant. T7 packet: use motion.css/swap/feedback/countUp. T9 packet: use roomMaterials/scaleUVs/buildDecor, do not rewrite. Composite browser check of textures + decor + props in all 4 rooms: good, weak spots listed in `tasks/gemini-argon.md` "Round 1 review".
 - Done: round 2 prompts D (SVG card art + card textures), E (furniture collision + `KeyboardEvent.code` walk controller; fixes the Shift/Caps "W" bug), F (lighting/fog/shadows/contact shadows/halos + decor v2 fixes). Plan: Wave 6 UI design competition AG vs FB after the v1 build (not started).

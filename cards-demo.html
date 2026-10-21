@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Palace - Card Art Demo</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #0b0f19;
+        color: #f8fafc;
+        font-family: system-ui, sans-serif;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding: 14px 18px;
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 10px;
+      }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      button {
+        padding: 8px 14px;
+        border-radius: 6px;
+        border: 1px solid #374151;
+        background: #1e293b;
+        color: #f8fafc;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.active {
+        background: #2563eb;
+        border-color: #60a5fa;
+      }
+      .preview-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: flex-start;
+        margin-bottom: 28px;
+      }
+      #three-wrap {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 10px;
+        padding: 12px;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 20px 0 10px;
+        color: #cbd5e1;
+      }
+      .card-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: flex-start;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <strong>Memory Palace — Original SVG Deck</strong>
+      </div>
+      <div class="controls">
+        <span>Theme:</span>
+        <button id="btn-classic" type="button" class="active">Classic</button>
+        <button id="btn-four" type="button">Four-Colour</button>
+      </div>
+    </header>
+
+    <div class="preview-row">
+      <div id="three-wrap">
+        <h2>3D Billboard Texture Check (QH)</h2>
+        <div id="canvas-host"></div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Picker Scale — 60 px wide (52 cards + back)</h2>
+      <div id="grid-60" class="card-grid"></div>
+    </section>
+
+    <section>
+      <h2>Medium Scale — 120 px wide (52 cards + back)</h2>
+      <div id="grid-120" class="card-grid"></div>
+    </section>
+
+    <section>
+      <h2>Trainer Flashcard Scale — 250 px wide (52 cards + back)</h2>
+      <div id="grid-250" class="card-grid"></div>
+    </section>
+
+    <script type="module" src="/src/ui/cards-demo.ts"></script>
+  </body>
+</html>
