@@ -84,3 +84,33 @@ In `wt/T6`: `npm test`, `npm run build`, paste counts.
 2. Code review: each content item 1-8 present and wired to the right action; first-run state shows only the 3-card offer; ladder, next-unlock text, bests and recommended level come from `progress.ts` (no copied logic); import error path changes nothing; export file name uses the local date; no `innerHTML` with dynamic text; unmount removes listeners and object URLs (`URL.revokeObjectURL`).
 3. Check the screenshots against the content list.
 Write "Verification" as TASKS.md says.
+
+## Verification (round 1)
+
+Verdict: CHANGES
+
+Evidence:
+- `npm install` -> up to date, audited 27 packages, 0 vulnerabilities. It rewrote only package-lock root metadata; restored that generated change, with a clean implementation baseline.
+- Baseline `npm test` -> pass 60, fail 0. Baseline `npm run build` -> TypeScript and Vite build passed.
+- Added `src/redteam/T6.test.ts` with adversarial checks for NaN/infinities, extreme values outside [0,1], one-point endpoints, zero dimensions, negative/non-finite dimensions, 1,000 values, non-number runtime inputs, and sparse array holes.
+- Final `npm test` with red-team tests -> pass 67, fail 1 (the deliberate sparse-hole finding). The sparse-array attack fails: `sparklinePath([, 0.5, ], 60, 40)` returns `M  L 60 20` rather than three valid points, so the output is not a valid SVG path. All other red-team tests pass. Builder source was not changed.
+- Browser screenshots `docs/shots/T6-empty.png` and `docs/shots/T6-drills.png` were inspected: first-run hero, dashboard sections, card grid, progress chart, ladder, and save controls are visible. No live demo browser verification was possible in this environment during this round.
+- Code review: all eight sections are present and call the expected actions/helpers; first-run hides normal dashboard sections; progress calculations delegate to `progress.ts`; import parses before confirming and calls `replaceSave` only when confirmed; error path only sets the banner and clears file input; export uses `localDay()` in the filename; dynamic strings are assigned with `textContent`, no `innerHTML`; unmount removes registered home listeners and revokes active object URLs.
+
+Acceptance:
+- ✔ Baseline `npm test` and `npm run build` pass (60/60 before red-team).
+- ✔ Demo screenshots exist for empty and 30-drill states; visually show first-run and populated dashboard content.
+- ✔ All interactive control wiring and helpers checked in code; first-run offers drill and learn link while hiding dashboard sections.
+- ✔ No `innerHTML` in home implementation; import failure does not call `replaceSave`, export filename uses local date, unmount removes listeners and revokes URLs (code review).
+- ✘ Red-team path generation: sparse input holes produce invalid SVG path data (`M  L 60 20`); ensure each index is converted to a finite value while preserving point count.
+- ✘ Live browser verification: dev server/demo could not be reached from the preview environment; screenshots were reviewed instead.
+
+Findings:
+1. [S2] `src/ui/sparkline.ts` - sparse input arrays are accepted by the typed API but `Array.prototype.map` skips holes, leaving an empty coordinate in the SVG path (`M  L 60 20` for a length-3 sparse array). Normalize each index (including holes) to a finite fallback or reject sparse input explicitly; add a regression test.
+2. [S3] Live demo behavior was not independently exercised in the browser during this round; builder screenshots provide visual but not interaction evidence.
+
+Attacks tried that failed (implementation held): NaN and ±Infinity inputs; values at ±1e300; one-point 0/1 endpoints; width/height zero; negative width; non-finite dimensions; 1,000 values; null/string/boolean entries.
+
+### Builder reply
+
+Awaiting builder response to the CHANGES findings.
