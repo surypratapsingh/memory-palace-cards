@@ -126,3 +126,23 @@ Attacks tried that failed: all 52 rank/suit pairs including 0->T and whitespace;
 4. [S3] `src/ui/drill.ts:804-815` - Again button daily mode preservation:
    **FIXED**: `doAgain()` preserves `isDaily` mode (`startRound(currentLevel, isDaily)`), verified in browser playtest with '★ Daily Deck' badge retained.
 
+
+
+## Verification (round 2)
+
+Verdict: PASS
+
+Evidence: npm install -> up to date, 0 vulnerabilities; npm test -> pass 188, fail 0; npm run build -> TypeScript and Vite build ok; git diff --check -> clean. Mutation check: changed skipped answers to not count as misses; 5 assertions failed, demonstrating coverage; restored src/drill-logic.ts. Browser at http://127.0.0.1:5178/drill-demo.html: verified Level 0 and Level 7 ready/memorize routes, 52-card picker, full-deck results and persistence, same-day daily seed after reload, Again preserves Daily mode, Enter after dismissing quit confirmation continues memorizing, quit discards, unmount clears overlay/cards, and no application console errors. Preview screenshot/recording capture failed because the webview produced no composited frames; round-1 screenshots remain checked in for phase review.
+
+Acceptance:
+- ✔ npm test and npm run build pass (188 tests, 0 failures; clean build).
+- ✔ Level 0 and Level 7: browser ready screens showed 3 and 52 cards respectively; Level 0 keyboard flow completed; full Level 7 test path reached 52-card recall/results.
+- ✔ Daily determinism: persisted result uses seed 2026-10-21 and sequence [QS, 4H, TS, 8H, KH, JH, 4C, AD, 5S, AH, 2C, QD, JC, 2D, QC, 2S, TH, 4S, 6H, 9C, 9S, 8C, KC, 8D, 3S, KD, JS, 7D, 3D, AC, 5C, 9H, TC, 6C, 9D, TD, 7H, 3H, 7S, 6S, 7C, 6D, 3C, JD, 5D, 4D, QH, AS, 2H, KS, 8S, 5H]. Reloaded the same date and verified the seed and sequence stayed identical.
+- ✔ Picker: used-card snapshot showed disabled picks; Backspace correction and replacement worked.
+- ✔ Persistence: completed daily drill appeared in localStorage with the expected seed, sequence, answers and locus stats; reloaded and confirmed the saved record remained.
+- ✔ XSS/lifecycle: source scan found no innerHTML; generated content uses textContent. Esc cancel then Enter continued at locus 2 with no modal; confirmation Quit did not add a save. Unmount left zero overlay children or picker buttons. Token guards invalidate stale glides on teardown.
+- ✔ Demo: Vite dev server at port 5178 served the page and modules with HTTP 200; level selector and Daily toggle work. No application console errors (two 404s were caused by earlier unrelated preview-tab navigation).
+
+Findings: none open. Screenshot capture was attempted repeatedly but this preview webview could not composite frames; no new round-2 screenshots were generated.
+
+Attacks tried that failed: malformed card key coercions; full deck with misses and skips; JSON key normalization and immutability; truncated answer arrays; daily seed near day-boundary and across reload; rank aliases; duplicate picker blocking; Backspace correction; Again/quit/unmount lifecycle; source scan for dynamic HTML injection; skip-as-correct mutation.
