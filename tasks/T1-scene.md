@@ -149,4 +149,34 @@ No implementation files were changed by verification.
 
 2. [S3] src/scene/palaceView.ts - Three.js THREE.Clock deprecation warning on mount:
    **FIXED**
-   - Replaced ew THREE.Clock() with standard high-resolution delta calculation using performance.now(), eliminating the deprecation warning entirely. Console warnings now at 0.
+   - Replaced THREE.Clock() with standard high-resolution delta calculation using performance.now(), eliminating the deprecation warning entirely.
+
+## Verification (round 2)
+
+Verdict: CHANGES
+
+Evidence:
+- `npm install` -> up to date, audited 27 packages, 0 vulnerabilities. It rewrote package-lock root metadata only; restored it and confirmed no unrelated worktree modifications.
+- `npm test` -> pass 28, fail 0 (including independent tests and the all-52-loci lock table).
+- `npm run build` -> TypeScript and Vite production build passed. `git diff --check` -> passed.
+- Added `src/redteam/T1-lock.test.ts`, a literal freeze of all 52 released locus indices, rooms, names, kinds, positions, and face vectors. Mutation attack changing locus 0 x-coordinate from 0.8 to 0.9 made the lock test fail; restored the expected literal and reran the full suite successfully.
+- Existing independent `src/redteam/T1.test.ts` passes all G3/G4/G5 geometry checks, all 2,704 ordered paths sampled at 5 cm, both full route directions, self paths, wall/door bounds, and lerpAngle adversarial cases.
+- Browser at `http://127.0.0.1:5176/scene-demo.html`: confirmed 52 loci and PalaceView methods, canvas and WebGL context; ArrowRight advances locus 1→2. With glide speed 0, ran camera glides through all 52 loci in bounded batches and verified the final name at each batch; also verified route wrap 51→0, card show/clear and mood updates, and interrupted glide promise resolves when a second glide supersedes it. `dispose()` removed the canvas (1→0). No console messages on the clean run.
+- Attempting PointerLockControls in the embedded preview remains blocked: PointerLockControls itself logs `Unable to use Pointer Lock API` / WrongDocumentError even though the updated handler catches the rejected/throwing request. The application did not show an uncaught error, but actual OS/browser pointer lock, WASD movement, wall/door collision, and Escape unlock cannot be confirmed in this embedded preview; these require the normal browser session described in builder evidence.
+- Inspected the four updated 1280×720 screenshots. The themed rooms are distinct and cards are now positioned higher, no longer obscuring the central objects in the verified views. The embedded preview cannot produce a screenshot frame, so the provided builder screenshots were used for visual comparison.
+
+Acceptance:
+- ✔ `npm test` and `npm run build`: final test suite 28/28; build clean.
+- ✔ Route traversal and wrap: all 52 loci’ data order verified; live camera traversed 52 loci in bounded batches at zero duration, and 51→0 completed.
+- ✔ Cards and mood: card show/clear and weak/highlight/normal mood API calls executed; updated screenshots show card above objects and red suits.
+- ✘ Free walk, wall/door blocking, Escape release: embedded document disallows pointer lock, so real pointer-lock and movement/collision behavior remain unverified here despite guarded failure behavior.
+- ✔ Runtime cleanup and console: `window.__view.dispose()` removed canvas; clean browser log had no console output. Pointer-lock attempt logs from Three.js are a dependency diagnostic, not an uncaught application exception.
+- ✔ Updated four room screenshots exist, are 1280×720 PNGs, show distinct room themes and less-obscured loci.
+- ✔ No new dependencies; implementation imports remain scoped to allowed Three.js/local modules.
+
+Findings:
+1. [S2] `src/scene/palaceView.ts` - free walk and its movement constraints remain unverified in this embedded browser because `document.requestPointerLock()` rejects with WrongDocumentError. The requested browser playtest in a regular Edge/Chrome session is needed to close this final gap. Builder reported a successful separate Edge/CDP playtest, but this verifier could not independently reproduce it here.
+
+Attacks tried that failed (implementation held): mutation of locked locus coordinate; all-pairs minimum separation violation; viewpoint outside room; ordered glide path through non-walkable area; wall boundary and doorway edge; self-path and route reversal; equal/opposite and large angle interpolation; active-glide replacement promise behavior.
+
+No implementation files were changed by this verifier.
