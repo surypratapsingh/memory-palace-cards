@@ -1,10 +1,60 @@
 import type { CardImage } from '../types.ts';
 
-// Default image system. Task T2 fills all 52 cards. See tasks/T2-card-images.md.
-// Rank gives the object (shape or sound), suit gives the flavour:
-//   Spades = digging, tools, dark   Hearts = love, people, fire
-//   Diamonds = money, gold, shine   Clubs = plants, nature, fighting
+// Rank gives the object; suit gives the scene's flavour.
 export const CARD_IMAGES: CardImage[] = [
-  { card: '8D', image: 'A snowman made of gold coins', hook: '8 = snowman shape, Diamonds = money' },
-  { card: '2H', image: 'Two swans kissing, necks making a heart', hook: '2 = swan shape, Hearts = love' },
+  { card: 'AS', image: 'A rocket drills into a moonlit graveyard', hook: 'A = rocket, Spades = digging' },
+  { card: '2S', image: 'A swan digs with a tiny spade by a tomb', hook: '2 = swan, Spades = digging' },
+  { card: '3S', image: 'A trident pries open a shadowy crypt door', hook: '3 = trident, Spades = darkness' },
+  { card: '4S', image: 'A sailboat races through a midnight storm', hook: '4 = sailboat, Spades = darkness' },
+  { card: '5S', image: 'A giant hand digs a lantern from a grave', hook: '5 = giant hand, Spades = digging' },
+  { card: '6S', image: 'A snail drags a shovel through black mud', hook: '6 = snail, Spades = tools' },
+  { card: '7S', image: 'A boomerang whistles past crooked headstones', hook: '7 = boomerang, Spades = graveyards' },
+  { card: '8S', image: 'A coal snowman shovels its own dark path', hook: '8 = snowman, Spades = darkness' },
+  { card: '9S', image: 'A balloon snags on a graveyard iron fence', hook: '9 = balloon, Spades = graveyards' },
+  { card: 'TS', image: 'A bat and ball smash a tombstone at dusk', hook: 'T = bat and ball, Spades = graveyards' },
+  { card: 'JS', image: 'A jester digs for treasure with a black spade', hook: 'J = jester, Spades = tools' },
+  { card: 'QS', image: 'A queen plants a white rose beside a grave', hook: 'Q = queen, Spades = graveyards' },
+  { card: 'KS', image: 'A king swings a pickaxe into a dark cliff', hook: 'K = king, Spades = tools' },
+
+  { card: 'AH', image: 'A rocket delivers a love note to a balcony', hook: 'A = rocket, Hearts = love' },
+  { card: '2H', image: 'Two swans kiss, their necks shaping a heart', hook: '2 = swan, Hearts = love' },
+  { card: '3H', image: 'A trident lights three flames at a wedding', hook: '3 = trident, Hearts = fire' },
+  { card: '4H', image: 'A sailboat carries roses to a waiting couple', hook: '4 = sailboat, Hearts = romance' },
+  { card: '5H', image: 'A giant hand waves to a cheering family', hook: '5 = giant hand, Hearts = people' },
+  { card: '6H', image: 'A snail delivers a rose to its sweetheart', hook: '6 = snail, Hearts = romance' },
+  { card: '7H', image: 'A boomerang returns with a love letter', hook: '7 = boomerang, Hearts = love' },
+  { card: '8H', image: 'A snowman serenades a couple beside a fire', hook: '8 = snowman, Hearts = fire' },
+  { card: '9H', image: 'A balloon lifts love notes above a dance', hook: '9 = balloon, Hearts = romance' },
+  { card: 'TH', image: 'A bat and ball lead a lovers parade', hook: 'T = bat and ball, Hearts = people' },
+  { card: 'JH', image: 'A jester tosses roses to a laughing crowd', hook: 'J = jester, Hearts = people' },
+  { card: 'QH', image: 'A queen warms her family beside a hearth', hook: 'Q = queen, Hearts = fire' },
+  { card: 'KH', image: 'A king dances with his partner at sunset', hook: 'K = king, Hearts = romance' },
+
+  { card: 'AD', image: 'A rocket blasts a gold vault door open', hook: 'A = rocket, Diamonds = gold' },
+  { card: '2D', image: 'Two swans dive for coins in a gold fountain', hook: '2 = swan, Diamonds = money' },
+  { card: '3D', image: 'A trident spears three jewels from a chest', hook: '3 = trident, Diamonds = jewels' },
+  { card: '4D', image: 'A sailboat unfurls bright diamond-shaped golden sails', hook: '4 = sailboat, Diamonds = luxury' },
+  { card: '5D', image: 'A giant hand scoops rubies into a purse', hook: '5 = giant hand, Diamonds = jewels' },
+  { card: '6D', image: 'A snail carries a jeweled ring to market', hook: '6 = snail, Diamonds = luxury' },
+  { card: '7D', image: 'A boomerang returns with a diamond necklace', hook: '7 = boomerang, Diamonds = jewels' },
+  { card: '8D', image: 'A snowman tosses gold coins into the air', hook: '8 = snowman, Diamonds = money' },
+  { card: '9D', image: 'A balloon lifts a golden crown above a palace', hook: '9 = balloon, Diamonds = gold' },
+  { card: 'TD', image: 'A bat and ball crack open a jeweled piggy bank', hook: 'T = bat and ball, Diamonds = money' },
+  { card: 'JD', image: 'A jester juggles gems beneath a chandelier', hook: 'J = jester, Diamonds = luxury' },
+  { card: 'QD', image: 'A queen auctions her glittering diamond necklace', hook: 'Q = queen, Diamonds = jewels' },
+  { card: 'KD', image: 'A king raises a jeweled scepter above his throne', hook: 'K = king, Diamonds = luxury' },
+
+  { card: 'AC', image: 'A rocket sprouts vines over a jungle canopy', hook: 'A = rocket, Clubs = plants' },
+  { card: '2C', image: 'Two swans race along a jungle river', hook: '2 = swan, Clubs = jungle' },
+  { card: '3C', image: 'A trident parts the vines of a wild jungle', hook: '3 = trident, Clubs = jungle' },
+  { card: '4C', image: 'A sailboat glides down a river through jungle', hook: '4 = sailboat, Clubs = jungle' },
+  { card: '5C', image: 'A giant hand punches tangled jungle vines', hook: '5 = giant hand, Clubs = fighting' },
+  { card: '6C', image: 'A snail munches leaves on a jungle trail', hook: '6 = snail, Clubs = plants' },
+  { card: '7C', image: 'A boomerang knocks coconuts from jungle palms', hook: '7 = boomerang, Clubs = jungle' },
+  { card: '8C', image: 'A snowman melts beneath broad jungle leaves', hook: '8 = snowman, Clubs = plants' },
+  { card: '9C', image: 'A balloon tangles in a jungle canopy', hook: '9 = balloon, Clubs = jungle' },
+  { card: 'TC', image: 'A bat and ball knock a boar off a jungle bridge', hook: 'T = bat and ball, Clubs = fighting' },
+  { card: 'JC', image: 'A jester swings from vines above a fern grove', hook: 'J = jester, Clubs = plants' },
+  { card: 'QC', image: 'A queen plants bright ferns across a clearing', hook: 'Q = queen, Clubs = plants' },
+  { card: 'KC', image: 'A king fights back a wall of jungle vines', hook: 'K = king, Clubs = fighting' },
 ];
