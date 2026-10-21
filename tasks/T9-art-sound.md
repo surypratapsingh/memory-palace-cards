@@ -19,7 +19,7 @@ Make the palace beautiful and memorable without moving anything players have mem
 
 ## Requirements
 - Locus models: in `buildLocusObject` (`src/scene/objectKit.ts`) call `buildProp(locus.kind, { main: mainMat, accent: accentMat, gold: goldMat })` from `src/scene/props.ts` and add the group; when it returns null, build the old primitives. Call `disposeProps()` where the kit disposes its shared geometries. Room decorations may use GLTF files (GLTFLoader from `three/examples/jsm`, CC0 only) or more procedural parts.
-- Room character: materials, light colour, small decorations away from loci (never between a locus and its viewpoint).
+- Room character (Lead, 2026-10-21): `src/scene/textures.ts` and `src/scene/decor.ts` are already in main (from Gemini); use them, change them only to fix a bug. In `palaceWorld.ts` give floors and walls `roomMaterials(room)` and call `scaleUVs(geometry, widthM, heightM, TILE_METERS[kind])` on each floor/wall geometry (kind `<room>-floor` / `<room>-wall`). Add `buildDecor().root` to the scene and call its `dispose()` and `disposeTextures()` in `dispose()`. Decor rules (never between a locus and its viewpoint, never on the glide route or in a door) are tested in `src/scene/decor.test.ts`.
 - Sound: call `play('flip' | 'whoosh' | 'correct' | 'wrong', data.settings.sound)` and `ambience(roomName, data.settings.sound)` from `src/sound.ts` at the right moments; call `stopAll()` in `dispose()`. Sound is off by default. Volume is low.
 
 ## Acceptance

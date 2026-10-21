@@ -137,3 +137,9 @@ Format per entry:
 - Context: User wants better visual taste, interaction and motion for buttons and screens. The user chose project scope.
 - Alternatives rejected: global install in `~/.claude/skills` (user chose project scope); Emil's Expo, Swift, mobile-native and Sonner skills (not used by a web game); a combined third-party "frontend skills" marketplace (unofficial repackaging).
 - Consequences: About 5 MB in the repo. The taste skill's scripts start Chrome and download public-domain images; impeccable's scripts run in the browser. Read a script before running it. Update by copying a newer upstream folder.
+
+## 2026-10-21 - UI design competition after v1 (AG vs FB)
+- Decision: After the v1 build (Wave 6), AG and FB improve the UI by turns. One designs a screen, the other rates it against the design skills (emil-design-eng, impeccable, taste) and suggests fixes, then they swap roles. The Lead merges the better design per screen.
+- Context: The user wants a better UI and asked for a create/rate competition, later, after the build.
+- Alternatives rejected: Lead designs every screen alone (one point of view, slower); start now (would collide with T7/T9/T11 still in the queue).
+- Consequences: Needs a scoring rubric and per-screen task packets when Wave 5 is done. Gemini's motion kit is the shared base.

@@ -48,10 +48,10 @@ test('sanitizeSettings tolerates a throwing prototype getter', () => {
   assert.deepEqual(sanitizeSettings(hostile), { ...DEFAULTS, glideMs: 0 });
 });
 
-test('applySettings toggles color-safe on and off with the current value', () => {
+test('applySettings toggles color-safe and reduce-motion with the current values', () => {
   const calls: [string, boolean][] = [];
   const root = { classList: { toggle: (name: string, enabled: boolean) => calls.push([name, enabled]) } };
-  applySettings({ ...DEFAULTS, colorSafe: true }, root);
-  applySettings(DEFAULTS, root);
-  assert.deepEqual(calls, [['color-safe', true], ['color-safe', false]]);
+  applySettings({ ...DEFAULTS, colorSafe: true, glideMs: 0 }, root);
+  applySettings({ ...DEFAULTS, glideMs: 600 }, root);
+  assert.deepEqual(calls, [['color-safe', true], ['reduce-motion', true], ['color-safe', false], ['reduce-motion', false]]);
 });
