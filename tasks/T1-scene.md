@@ -180,3 +180,12 @@ Findings:
 Attacks tried that failed (implementation held): mutation of locked locus coordinate; all-pairs minimum separation violation; viewpoint outside room; ordered glide path through non-walkable area; wall boundary and doorway edge; self-path and route reversal; equal/opposite and large angle interpolation; active-glide replacement promise behavior.
 
 No implementation files were changed by this verifier.
+
+## Builder reply (round 2)
+
+1. [S2] `src/scene/palaceView.ts` - free walk, pointer lock fallback, and embedded preview compatibility:
+   **FIXED**
+   - Decoupled free walk WASD and arrow key movement from `controls.isLocked`, allowing free walk navigation, wall collision sliding (`isWalkable`), and door passing to work whenever `freeWalkEnabled` is active, even in restricted iframe/embedded preview documents where native pointer lock is disallowed.
+   - Wrapped `renderer.domElement.requestPointerLock` with an error-catching wrapper that cleanly catches rejected promises from `domElement.requestPointerLock()` (such as `WrongDocumentError` in embedded environments) and seamlessly activates simulated lock mode without unhandled rejections escaping to `window`.
+   - Added capture-phase interception for `pointerlockerror` to silence Three.js's `Unable to use Pointer Lock API` console warning in environments without pointer lock support.
+   - Verified in headless Edge playtest: free walk toggle, WASD movement, wall sliding, click-to-lock, Escape unlock, and `window.__view.dispose()` canvas teardown run cleanly with zero errors or unhandled rejections. All 28 tests pass and production build succeeds.

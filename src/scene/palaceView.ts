@@ -63,6 +63,7 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
   let currentLocusIndex = 0;
   let glideMs = 600;
   let freeWalkEnabled = false;
+  let isSimulatedLock = false;
   let activeGlide: ActiveGlide | null = null;
   const clickCallbacks: ((index: number) => void)[] = [];
 
@@ -73,6 +74,35 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
 
   // PointerLockControls for free walk
   const controls = new PointerLockControls(camera, renderer.domElement);
+
+  // Wrap renderer.domElement.requestPointerLock to handle restricted environments
+  // (e.g. embedded previews or iframes where requestPointerLock rejects with WrongDocumentError)
+  const origRequestPointerLock = renderer.domElement.requestPointerLock
+    ? renderer.domElement.requestPointerLock.bind(renderer.domElement)
+    : null;
+  if (origRequestPointerLock) {
+    renderer.domElement.requestPointerLock = function (options?: PointerLockOptions) {
+      try {
+        const res = origRequestPointerLock(options);
+        if (res && typeof (res as Promise<void>).catch === 'function') {
+          (res as Promise<void>).catch(() => {
+            isSimulatedLock = true;
+          });
+        }
+        return res;
+      } catch {
+        isSimulatedLock = true;
+        return Promise.resolve();
+      }
+    };
+  }
+
+  // Intercept pointerlockerror during capture phase to prevent noisy Three.js
+  // console errors when running inside restricted iframes / embedded previews
+  const onPointerLockError = (e: Event) => {
+    e.stopImmediatePropagation();
+  };
+  document.addEventListener('pointerlockerror', onPointerLockError, true);
 
   // Keyboard state for free walk
   const keys = {
@@ -87,6 +117,12 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && freeWalkEnabled) {
+      if (controls.isLocked) {
+        controls.unlock();
+      }
+      isSimulatedLock = false;
+    }
     if (e.key in keys) {
       keys[e.key as keyof typeof keys] = true;
     }
@@ -103,21 +139,23 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
 
   // Free walk click-to-lock
   const onCanvasClick = (e: MouseEvent) => {
-    if (freeWalkEnabled && !controls.isLocked) {
+    if (freeWalkEnabled && !controls.isLocked && !isSimulatedLock) {
       try {
         const promise = controls.lock() as unknown;
         if (promise && typeof (promise as Promise<unknown>).catch === 'function') {
-          (promise as Promise<unknown>).catch(() => {});
+          (promise as Promise<unknown>).catch(() => {
+            isSimulatedLock = true;
+          });
         }
       } catch {
-        // Pointer lock may be restricted in embedded previews
+        isSimulatedLock = true;
       }
       return;
     }
 
     // Raycast locus click
     const raycaster = new THREE.Raycaster();
-    if (controls.isLocked) {
+    if (controls.isLocked || isSimulatedLock) {
       raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     } else {
       const rect = renderer.domElement.getBoundingClientRect();
@@ -206,7 +244,7 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
     }
 
     // 2. Free walk update
-    if (freeWalkEnabled && controls.isLocked) {
+    if (freeWalkEnabled) {
       const moveForward = keys.w || keys.ArrowUp;
       const moveBackward = keys.s || keys.ArrowDown;
       const moveLeft = keys.a || keys.ArrowLeft;
@@ -336,8 +374,11 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
 
     setFreeWalk(on: boolean): void {
       freeWalkEnabled = on;
-      if (!on && controls.isLocked) {
-        controls.unlock();
+      if (!on) {
+        isSimulatedLock = false;
+        if (controls.isLocked) {
+          controls.unlock();
+        }
       }
     },
 
@@ -360,6 +401,10 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       renderer.domElement.removeEventListener('click', onCanvasClick);
+      document.removeEventListener('pointerlockerror', onPointerLockError, true);
+      if (origRequestPointerLock) {
+        renderer.domElement.requestPointerLock = origRequestPointerLock;
+      }
 
       // 4. Resolve pending glide promise
       if (activeGlide) {
