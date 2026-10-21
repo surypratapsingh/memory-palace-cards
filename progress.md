@@ -1,6 +1,11 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-21 09:40 - Gemini sound module in main
+- Done: `src/sound.ts` + `src/sound.test.ts` from Gemini 4 Argon (user's chat). Lead review: lazy AudioContext (none at import or when sound is off), every node stopped and disconnected, ambience crossfade, stopAll closes the context. 7/7 own tests pass, full suite 136 pass, build ok. T9 packet now says: wire `play` / `ambience` / `stopAll` in, do not rewrite. Removed the wall-clock limit from `src/redteam/T8a.test.ts` (failed 2 of 5 runs under parallel load; the palace has 52 loci, the spec sets no time limit).
+- In progress: Gemini prompt for `src/scene/props.ts` (low-poly procedural locus models, 21 kinds, footprints from T1's object kit, <= 3 meshes per locus). The user saves the reply to `wt/`.
+- Next: Lead reviews the props files like the sound files and commits them; T9 then only wires props into `objectKit.ts` with the T1 primitives as fallback. Mesh: FB verifies T1 and T6.
+
 ## 2026-10-21 08:55 - Lead turn: merged M1, T5, T2, T3, T8a, T12
 - Done: merged 6 verified tasks into main in board order, `npm test` + `npm run build` after each (final: 129 pass, 0 fail, build ok). Browser check: trainer demo (8 new cards learned and rated by keyboard only, Again re-queues, summary "Reviewed 9 · Again 1 · New learned 8", saves to localStorage) and settings demo (labelled controls, colour-safe toggles root class, survives reload). Verification evidence read: mutation checks and >= 5 red-team tests per task. Mesh score AG 15, FB 15. Worktrees removed; `wt/T3` and `wt/T12` folders stayed on disk (file locked, probably a running dev server), git no longer tracks them. Added `.claude/launch.json` (vite dev server).
 - Found (S3, for Q1): stray duplicate `src/ui/settings-demo.html` (the real demo is `settings-demo.html` in root).

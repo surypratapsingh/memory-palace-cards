@@ -8,7 +8,7 @@ Make the palace beautiful and memorable without moving anything players have mem
 ## Write scope
 - `src/scene/**` (not `src/data/palace.ts`)
 - `public/assets/**` (new), `ASSETS.md` (new)
-- `src/sound.ts` (new)
+- `src/sound.ts` (already in main, written by Gemini and checked by the Lead; wire it in, change it only to fix a bug)
 - `docs/shots/T9-*.png`
 
 ## Hard rules
@@ -20,7 +20,7 @@ Make the palace beautiful and memorable without moving anything players have mem
 ## Requirements
 - Replace primitive locus objects with low-poly models (GLTFLoader from `three/examples/jsm`). Same kind, same colour family, same footprint.
 - Room character: materials, light colour, small decorations away from loci (never between a locus and its viewpoint).
-- `src/sound.ts`: card flip, glide whoosh, correct/wrong chime, room ambience. Generated with Web Audio or CC0 files. Plays only when `data.settings.sound` is true (default off). Volume low.
+- Sound: call `play('flip' | 'whoosh' | 'correct' | 'wrong', data.settings.sound)` and `ambience(roomName, data.settings.sound)` from `src/sound.ts` at the right moments; call `stopAll()` in `dispose()`. Sound is off by default. Volume is low.
 
 ## Acceptance
 - [ ] `npm test` (including `src/redteam/T1-lock.test.ts`) and `npm run build` pass.

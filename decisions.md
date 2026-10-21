@@ -125,3 +125,9 @@ Format per entry:
 - Context: Freebuff's file edits always land in its project folder, not in the folder its shell `cd`s into. Its M1 edits never reached `task/M1-maths`; it committed the stale copy, and kept writing T2/T3/T5/T8a/T12 files into the main folder.
 - Alternatives rejected: worktrees in `../mp-<ID>` (Freebuff cannot edit there); FB switching branches in the main folder (a branch can be checked out in only one worktree, so AG could not verify); `wt/` in `.gitignore` (Freebuff may hide ignored files).
 - Consequences: Supersedes the `../mp-<ID>` paths in "Queue coordination by git state". Agents must edit `wt/<ID>/src/...`, never `src/...`.
+
+## 2026-10-21 - Gemini (chat only) builds self-contained files
+- Decision: The user's Gemini 4 Argon chat writes self-contained modules from a Lead prompt (first `src/sound.ts`, next `src/scene/props.ts`). The user saves the reply in `wt/` (ignored by git). The Lead reviews it, runs the tests and the build, and commits it to main. The mesh task that wires it in (T9) verifies it.
+- Context: Gemini cannot see the repo, run tests or use git. AG and FB are busy with the board.
+- Alternatives rejected: give Gemini a board task (needs repo access, tests and git); put Gemini in the mesh queue (it cannot run `mesh next`).
+- Consequences: Gemini tasks must have an exact API, the numbers they need, and their own test file. T9 shrinks to wiring and art.
