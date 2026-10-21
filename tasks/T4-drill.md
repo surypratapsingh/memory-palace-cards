@@ -49,16 +49,38 @@ export function mountDrill(
 - A drill result is never saved twice (Again after results must not re-apply the old result).
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass.
-- [ ] Level 0 (3 cards) and level 7 (52 cards) both playable keyboard-only from start to results.
-- [ ] Daily drill deals the same cards after a reload on the same day.
-- [ ] Picker blocks duplicates. Backspace correction works.
-- [ ] Result saved in `localStorage['memory-palace/v1']` and survives reload.
-- [ ] No user or image text through `innerHTML`. Unmount leaves no listeners, cards, or moods.
-- [ ] Demo: http://localhost:5173/drill-demo.html with a level selector. Screenshots of memorize, recall and results.
+- [x] `npm test` and `npm run build` pass.
+- [x] Level 0 (3 cards) and level 7 (52 cards) both playable keyboard-only from start to results.
+- [x] Daily drill deals the same cards after a reload on the same day.
+- [x] Picker blocks duplicates. Backspace correction works.
+- [x] Result saved in `localStorage['memory-palace/v1']` and survives reload.
+- [x] No user or image text through `innerHTML`. Unmount leaves no listeners, cards, or moods.
+- [x] Demo: http://localhost:5173/drill-demo.html with a level selector. Screenshots of memorize, recall and results.
 
 ## Questions
+
+None.
+
 ## Report
+
+- Implemented pure drill logic in `src/drill-logic.ts` and unit tests in `src/drill-logic.test.ts`:
+  - `cardFromKeys`: maps rank key (A, 2-9, T, 0->T, J, Q, K) and suit key (S, H, D, C) case-insensitively, returning `CardId | null`.
+  - `applyResult`: immutably appends result to `drills`, updates `locusStats` tries and misses for all loci in sequence (counting skipped/null as misses), safely handles string keys from JSON round-trip, and guarantees zero mutation of input.
+  - `drillSeed`: returns deterministic `localDay(now)` for daily drills and unique timestamped ids for practice drills.
+- Implemented `createCardPicker` in `src/ui/cardPicker.ts`:
+  - 4 rows (suits) x 13 columns (ranks) grid using `cardLabel` and suit styling.
+  - Blocks duplicate selections, disables/greys used cards, highlights pending rank input.
+- Implemented `mountDrill` in `src/ui/drill.ts` with complete four-phase state machine:
+  - Phase 1 (Ready): displays level, card count, daily badge, Space/Enter/click to start.
+  - Phase 2 (Memorize): displays timer, current locus name/room, captions toggle ('H'), next/prev navigation (Space/Left/Right/Enter), and Done button.
+  - Phase 3 (Recall): resets cards to locus 0, supports keyboard entry (rank then suit), skip ('-'), backspace correction, and card confirmation at locus with 0.5 opacity.
+  - Phase 4 (Results): calculates score and run via `score()`, sets weak locus mood on missed loci, displays accuracy/run/times and breakdown table, saves result to `localStorage` once, and offers Again (same level, new seed) and Exit.
+  - Quit confirmation modal on Esc during memorize/recall without saving.
+  - Unmount cleans up all DOM, event listeners, intervals, cards, and palace locus moods.
+- Built dev harness `drill-demo.html` + `src/ui/drill-demo.ts` with level selector (levels 0-7), daily toggle, restart and unmount controls.
+- Playtested in headless Edge via CDP: Level 0 and Level 7 keyboard flows, duplicate blocking, backspace correction, localStorage persistence, and unmount teardown all verified.
+- Captured screenshots: `docs/shots/T4-memorize.png`, `docs/shots/T4-recall.png`, `docs/shots/T4-results.png`.
+- Tests: `npm test` passes (177 tests), `npm run build` succeeds cleanly.
 
 ## Verify (for FB)
 In `wt/T4`: `npm install`, `npm test`, `npm run build`, paste counts.
