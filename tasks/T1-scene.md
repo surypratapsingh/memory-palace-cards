@@ -216,3 +216,11 @@ Findings:
 1. [S2] `src/scene/palaceView.ts` free-walk lifecycle remains unverified here: embedded browser rejects native pointer-lock with WrongDocumentError, so required movement and collision tests cannot be confirmed. Do not treat simulated-lock code or builder reports as proof of WASD, wall, doorway, or Escape behavior; reproduce in an ordinary Edge/Chrome browser session with trusted user input.
 
 Attacks tried that failed (implementation held): move one locus 1 m toward a neighbor; change easing coefficient 4→3; pairwise distance under 2 m; non-walkable ordered path; viewpoint outside room bounds; wall-line and door edges; equal, opposite, large-angle, and endpoint lerpAngle inputs; self/forward/reverse glides; pointer-lock failure path; card replacement/clear; mood changes; interrupted glide resolution; canvas teardown.
+
+## Verification (round 4, Lead decision)
+Verdict: PASS
+Evidence: Lead browser check at `http://localhost:5178/scene-demo.html` (merged with main, `npm test` 152 pass before T1). F turns on free walk ("Camera Mode: Free Walk (WASD)"). S for 1.2 s moves the camera back from the armchair. A for 8 s (24 m at 3 m/s) stops at the Library wall and slides along it, no clipping into the void. Escape is handled. `window.__view.dispose()` leaves 0 canvases. No console errors.
+Ruling on round 3 finding 1 [S2]: rejected as a code finding. It reports a limit of the verifier's browser (no pointer lock), not a defect; free walk no longer needs pointer lock since fix round 2. Door passage uses the same `isWalkable` that FB's red-team checked on all 2,704 ordered paths.
+Findings for Q1 (S3):
+1. `src/scene/palaceView.ts:127` - keys are stored by `e.key`, so with Shift or Caps Lock, "W" does not move. Use `e.code` (`KeyW`) or `e.key.toLowerCase()`.
+2. Free walk has no collision with furniture; the camera can walk into a locus object.
