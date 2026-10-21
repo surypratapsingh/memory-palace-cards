@@ -89,3 +89,28 @@ In `wt/T4`: `npm install`, `npm test`, `npm run build`, paste counts.
 3. Code review of `src/ui/drill.ts`: every `addEventListener` removed on unmount; no `innerHTML` with dynamic text; timers cleared; the result is saved exactly once; Esc path saves nothing; `glideTo` promises do not act after unmount (check a flag); Again does not leak the first round's listeners.
 4. Check the screenshots against "Phases".
 Write "Verification" as TASKS.md says. The Lead plays it at merge.
+
+
+## Verification (round 1)
+
+Verdict: CHANGES
+
+Evidence: npm install -> up to date, 0 vulnerabilities; npm test -> pass 183, fail 0; npm run build -> ok. Browser: Vite demo at http://127.0.0.1:5178/drill-demo.html loaded; inspected Level 0 memorize/recall/results, Level 7 selection, picker disabled used cards, backspace correction, daily ready badge, quit confirmation, and unmount. Browser screenshot capture failed (preview webview produced no composited frames), so no screenshot artifacts were available.
+
+Acceptance:
+- ✔ npm test and npm run build pass (183 tests; TypeScript and Vite build succeed).
+- ✔ Level 0 and Level 7 flows are reachable in the browser; Level 0 keyboard start, next, recall and results were exercised; Level 7 ready screen has 52 cards.
+- ✘ Daily drill is not deterministic across reloads. In `src/ui/drill.ts:259`, the daily seed includes the current instant via `drillSeed(daily, startDate)`, while `drillSeed(true, now)` is specified to use `localDay(now)`. Daily ready therefore starts with a varying deck.
+- ✔ Picker marks chosen cards disabled; browser snapshot showed a used card disabled. Backspace moved back for correction, then a replacement card advanced.
+- ✘ Successful result persistence was not exercised end-to-end on a daily run because of the deterministic-seed finding; an ordinary Level 0 run was exercised and persisted in localStorage. Reload itself was not verified against a completed daily session.
+- ✘ Closing the Esc confirmation dialog leaves its keydown listener active until phase cleanup. `showQuitConfirm` installs `onKey`; clicking Continue Drill or dismissing with Escape only closes the modal and leaves `onKey` registered. Since `onKey` confirms on Enter even without a visible modal, pressing Enter afterward immediately exits without a new confirmation. Phase round cleanup does invoke its saved `quitCleanup` on unmount, but the listener remains stale while that round continues. Additionally, active camera glide promises are not cancelled/guarded after unmount; calls at `drill.ts:324, 416, 512` do not use the promise or check phase lifecycle after resolve.
+- ✔ No `innerHTML` found in `drill.ts`; dynamic captions and locus/card strings use `textContent`. Timer is cleared on completion/unmount.
+- ✘ Screenshot requirement unmet due to preview capture failure (no frames composited).
+
+Findings:
+1. [S2] `src/ui/drill.ts:259` - daily seed is generated from the full timestamp, violating stable local-day Daily Deck (also Again forces `daily=false` at line 813). Pass a stable `localDay` seed for daily drills and preserve the daily setting when replaying.
+2. [S2] `src/ui/drill.ts:97-117` - confirm-dialog keyboard listener is not removed on dialog close/unmount. Store and invoke dialog cleanup, and remove it on every close path.
+3. [S2] `src/ui/drill.ts:324-325, 416-417, 512-515` - asynchronous `glideTo` completions are ignored, so phase advancement/unmount can leave camera motion active and its promise callback unmanaged. Track/cancel or guard pending glides as part of lifecycle teardown.
+4. [S3] `src/ui/drill.ts:804-815` - Again always starts a practice round even when the completed round was daily.
+
+Attacks tried that failed: all 52 rank/suit pairs including 0->T and whitespace; malformed key inputs; full-deck stats with skip/mismatch; JSON string-key stats and input immutability; short answer array; daily seed equality; browser keyboard recall and Backspace correction; duplicate picker blocking; unmount and cancel quit; source scan for dynamic `innerHTML`.
