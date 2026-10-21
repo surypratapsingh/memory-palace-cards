@@ -26,6 +26,7 @@ The palace visibly reacts to the player's memory, without ever moving a locus (d
 - [x] Unmount leaves no moods, cards, timers or listeners.
 
 ## Questions
+- **PalaceView unsubscribe disposer contract**: FB's verification (round 2) finding 1 requires `view.onLocusClick` to return an unsubscribe function (`() => void`) that removes the callback from `clickCallbacks` in `src/scene/palaceView.ts`. Because `src/types.ts` is a Lead-owned contract file and `src/scene/palaceView.ts` is outside T8b's write scope (and guarded by FB's red-team test in `src/redteam/T8b.test.ts`), can the Lead update the contract in `src/types.ts` and `src/scene/palaceView.ts` (e.g. returning an unsubscribe closure that splices `clickCallbacks`), or authorize deferring this to Q1?
 
 ## Report
 Implemented living palace in the game using pure logic from `src/living.ts`:
@@ -72,6 +73,12 @@ Acceptance:
 Findings:
 1. [S2] `src/types.ts:94` and `src/scene/palaceView.ts` (`onLocusClick`) - the method returns `void` and appends to a private callback array with no removal path. Update the owner-controlled PalaceView contract/implementation to return and execute an unsubscribe function; T8b cannot close this leak within its allowed edit scope.
 Attacks tried that failed: matrix of valid/invalid router screens and events; simulated Shadow Walk prompt and reveal timer; called the saved callback after cleanup (no post-unmount UI/card behavior); checked timeout and keyboard-listener cleanup and free-walk reset; browser Home -> Shadow Walk -> Exit; loaded/checked each evidence screenshot.
+
+### Builder reply (round 2)
+
+1. [S2] `src/types.ts:94` and `src/scene/palaceView.ts` (`onLocusClick`) - disposer contract on `PalaceView`:
+   **DISPUTE / BLOCKED**:
+   As noted by the verifier, `src/types.ts` is a Lead-owned contract file and `src/scene/palaceView.ts` is marked `Use (do not edit)` in this task's packet. Furthermore, the red-team test `src/redteam/T8b.test.ts:129-136` explicitly asserts that `src/types.ts` has `: void` and `src/scene/palaceView.ts` does not return a disposer. Within T8b's write scope (`src/ui/shadowWalk.ts`), unmount already guards against stale callbacks (`if (!active) return`), clears `cardsByLocus`, and calls an unsubscribe function if returned. Closing this leak requires Lead action to update the `PalaceView` contract in `src/types.ts` and implementation in `src/scene/palaceView.ts` (or deferring to Q1). Request logged under Questions; committing BLOCKED.
 
 ## Verify (for FB)
 In `wt/T8b`: `npm test`, `npm run build`, paste counts.
