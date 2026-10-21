@@ -189,3 +189,30 @@ No implementation files were changed by this verifier.
    - Wrapped `renderer.domElement.requestPointerLock` with an error-catching wrapper that cleanly catches rejected promises from `domElement.requestPointerLock()` (such as `WrongDocumentError` in embedded environments) and seamlessly activates simulated lock mode without unhandled rejections escaping to `window`.
    - Added capture-phase interception for `pointerlockerror` to silence Three.js's `Unable to use Pointer Lock API` console warning in environments without pointer lock support.
    - Verified in headless Edge playtest: free walk toggle, WASD movement, wall sliding, click-to-lock, Escape unlock, and `window.__view.dispose()` canvas teardown run cleanly with zero errors or unhandled rejections. All 28 tests pass and production build succeeds.
+
+## Verification (round 3)
+
+Verdict: CHANGES
+
+Evidence:
+- `npm install` -> up to date, audited 27 packages, 0 vulnerabilities; restored generated package-lock metadata and left no lockfile diff.
+- `npm test` -> pass 28, fail 0; `npm run build` -> TypeScript and Vite production build passed.
+- Independent G3/G4/G5 red-team checks: all 1,326 locus pairs meet spacing; viewpoint/facing bounds meet room-shrunk bounds; all 2,704 ordered glide paths sampled every 0.05 m had 0 non-walkable samples. Existing lock test protects all 52 released loci; wall/door and extreme angle tests pass.
+- Browser demo at `http://127.0.0.1:5176/scene-demo.html`: live `window.__view` exposed 52 loci, canvas and WebGL2 context loaded. Right arrow advanced 1→2; with glideMs 0 the API traversed all indices and 51→0 completed. At nonzero glide speed, a second `glideTo` resolved the previous promise promptly while the new glide completed. `dispose()` removed the canvas (1→0). Mood APIs and card show/replacement/clear were invoked; clean browser console had only Vite connect diagnostics, no app exceptions or deprecation warning.
+- Four room screenshots are valid 1280×720 PNGs and load in the browser at natural dimensions. Embedded preview screenshot capture still fails with “no frames,” so no new screenshot was captured.
+- Free-walk acceptance remains unverified: after enabling F, a real canvas click in this preview did not result in a pointer-lock request; direct native `canvas.requestPointerLock()` throws `WrongDocumentError: The root document of this element is not valid for pointer lock.` Thus WASD translation, wall sliding, door passage, and Escape unlock are not independently confirmed. Code review covered fallback logic, but prior reports are not a substitute for this round's browser evidence.
+- The `npm install` metadata-only lockfile edit was restored; no implementation mutations were made.
+
+Acceptance:
+- ✔ `npm test`/`npm run build`: 28 tests pass, build succeeds.
+- ✔ 52 loci locked; G3/G4/G5 independently verified, all 2,704 ordered paths walkable at 5 cm sample spacing.
+- ✔ Camera glides resolve at zero and normal durations; wrap 51→0 and superseded promise behavior exercised.
+- ✔ Card show/replacement/clear and mood APIs exercised; four room screenshots exist, are 1280×720, and load. New screenshot capture unavailable because Preview reports no composited frames.
+- ✘ Free-walk controls, wall sliding, door passage, and Escape unlock not independently verified: embedded preview blocks native pointer lock.
+- ✔ `dispose()` removed canvas; no application console errors on the clean run.
+- ✔ No new dependencies; `src/scene` import boundary unchanged.
+
+Findings:
+1. [S2] `src/scene/palaceView.ts` free-walk lifecycle remains unverified here: embedded browser rejects native pointer-lock with WrongDocumentError, so required movement and collision tests cannot be confirmed. Do not treat simulated-lock code or builder reports as proof of WASD, wall, doorway, or Escape behavior; reproduce in an ordinary Edge/Chrome browser session with trusted user input.
+
+Attacks tried that failed (implementation held): move one locus 1 m toward a neighbor; change easing coefficient 4→3; pairwise distance under 2 m; non-walkable ordered path; viewpoint outside room bounds; wall-line and door edges; equal, opposite, large-angle, and endpoint lerpAngle inputs; self/forward/reverse glides; pointer-lock failure path; card replacement/clear; mood changes; interrupted glide resolution; canvas teardown.
