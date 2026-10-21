@@ -44,6 +44,19 @@ Verification & Evidence:
   - `docs/shots/T8b-weak-loci.png`: Drill Ready phase with failing locus coaching line and weak locus mood.
   - `docs/shots/T8b-shadow-walk.png`: Shadow Walk free walk interface with navigation HUD and "What stood here?" prompt.
 
+## Verification (round 1)
+Verdict: CHANGES
+Evidence: `npm install` -> up to date, 0 vulnerabilities; `npm test` -> pass 290, fail 0; `npm run build` -> ok (Vite reports one 639 kB bundle-size warning). Browser playtest on the live dev app completed a 3-card drill, displayed Results, entered Shadow Walk, and exposed the "What stood here?" prompt; all four supplied screenshots were opened and their 1280x800 PNG content confirmed. Browser logs showed no app console errors and module requests returned 200.
+Acceptance:
+- ✔ Weak-locus coaching and weak mood, Home ghosts and leech count, the ghost warning, and Shadow Walk prompt are evidenced in the four supplied screenshots; browser interaction confirmed Results -> Shadow Walk and the prompt.
+- ✔ Home cleanup clears ghost cards and its 60-second timer; drill reset restores changed moods; Shadow Walk cleanup cancels the reveal timer, removes its keyboard listener, hides cards and disables free walk.
+- ✔ Router adversarial coverage added for the `shadowWalk` transition from every screen, Back transitions, unknown/prototype-shaped inputs, invalid screens, and malformed event values.
+Findings:
+1. [S2] `src/ui/shadowWalk.ts:144` and `src/scene/palaceView.ts` (`onLocusClick`) - `onLocusClick` permanently pushes the screen's callback into `clickCallbacks`; Shadow Walk cleanup cannot unregister it. Every later Shadow Walk adds another retained closure, leaking screen state and causing stale handlers to run on future locus clicks. Add a disposer/unsubscribe contract and invoke it on cleanup.
+Attacks tried that failed: adversarial screen/event matrix including invalid values; malformed living-rule inputs and timestamps covered by existing tests; completed a live 3-card drill through results; navigated results -> Shadow Walk; exercised click prompt, reveal and cleanup timer/listener/walk-mode paths in a focused test; inspected each supplied screenshot and confirmed HTTP 200 image/png responses.
+
+Builder reply: pending.
+
 ## Verify (for FB)
 In `wt/T8b`: `npm test`, `npm run build`, paste counts.
 1. Code review: every call of `living.ts` uses `now = new Date()` at call time (not a stale date from mount); the once-a-minute timer is cleared on unmount; moods set by T8b are reset; Shadow Walk turns free walk off on exit; no locus position or order changes anywhere.
