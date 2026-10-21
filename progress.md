@@ -1,6 +1,11 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-21 13:35 - Lead: Gemini big task written, mesh check
+- Done: `tasks/gemini-argon.md`, three self-contained Gemini prompts (about 8-10 h), shaped by the Emil Kowalski skill: A UI motion kit (`src/ui/motion.css/.ts`, WAAPI, interruptible, transform/opacity only, reduced motion), B procedural room textures (`src/scene/textures.ts`, seamless, low contrast, mean colour kept), C room decor (`src/scene/decor.ts`, zone rules so decor never blocks a locus, its sight line, the glide route or a door; <= 12 meshes). Each prompt has its own test file and demo page.
+- State: T4 in review since 12:34 (FB's next job is VERIFY T4, no commit yet). AG waits: T8b needs T7, T7 needs T4.
+- Next: when the user says "Argon A/B/C done", review the files in `wt/` against the prompt, run tests, build, open the demo page, commit to main, then add the wiring lines to T7/T11 (motion) or T9 (textures, decor). Lead turn when T4 is verified.
+
 ## 2026-10-21 12:35 - Lead turn: merged T6 and T1, Gemini props in main
 - Done: merged T6 (FB PASS round 2) and T1 (Lead PASS round 4 after 3 CHANGES rounds; FB's last S2 was a limit of its preview, no pointer lock). Lead browser check: free walk moves with WASD, stops at walls, `dispose()` leaves 0 canvases, no console errors; home demo renders all panels, no console errors. Tests 171 pass, build ok. Added `src/scene/props.ts` + test from Gemini (22 low-poly procedural locus models, <= 3 meshes each, cached geometry; 6/6 own tests pass, typecheck ok; viewed all 22 in the browser, each kind recognisable). T9 packet now says: wire `buildProp` into `objectKit.ts` with the primitives as fallback. Moved a stray save export `memory-palace-2026-10-21.json` from the main folder to `wt/`. Score AG 16, FB 21.
 - Found (S3, for Q1): `src/scene/palaceView.ts:127` keys stored by `e.key` (Shift/Caps Lock "W" does not move); free walk has no furniture collision; home demo "Practice: Level 0 · 3 cards" while accuracy is 100% and levels 0-3 are beaten - check the T5 staircase input.
