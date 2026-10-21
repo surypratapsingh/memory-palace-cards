@@ -131,3 +131,9 @@ Format per entry:
 - Context: Gemini cannot see the repo, run tests or use git. AG and FB are busy with the board.
 - Alternatives rejected: give Gemini a board task (needs repo access, tests and git); put Gemini in the mesh queue (it cannot run `mesh next`).
 - Consequences: Gemini tasks must have an exact API, the numbers they need, and their own test file. T9 shrinks to wiring and art.
+
+## 2026-10-21 - Design skills in the project (.claude/skills)
+- Decision: Installed third-party design skills into `.claude/skills/`, committed with the repo: `impeccable` (pbakaus/impeccable @ dad8dbb, Apache-2.0), `taste-skill` (Leonxlnx/taste-skill @ 6010f91, MIT, skill name `design-taste-frontend`), and 11 web skills from emilkowalski/skills @ 2d22863 (MIT): emil-design-eng, animate, improve-animations, review-animations, animation-performance, animation-vocabulary, find-animation-opportunities, break-ui, apple-design, prototype, pick-ui-library. Each folder keeps its upstream LICENSE.
+- Context: User wants better visual taste, interaction and motion for buttons and screens. The user chose project scope.
+- Alternatives rejected: global install in `~/.claude/skills` (user chose project scope); Emil's Expo, Swift, mobile-native and Sonner skills (not used by a web game); a combined third-party "frontend skills" marketplace (unofficial repackaging).
+- Consequences: About 5 MB in the repo. The taste skill's scripts start Chrome and download public-domain images; impeccable's scripts run in the browser. Read a script before running it. Update by copying a newer upstream folder.
