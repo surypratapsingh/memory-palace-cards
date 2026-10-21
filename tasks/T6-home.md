@@ -75,8 +75,7 @@ None.
   - `docs/shots/T6-empty.png`: First-run view with 3-card challenge card and learn link.
   - `docs/shots/T6-drills.png`: 30-drill populated view with Today daily share, Practice 70% zone, 52-tile grid, Ladder, Sparkline, and Save actions.
 - Tests & Build:
-  - `npm test`: 60 tests passing, 0 failing.
-  - `npm run build`: cleanly passes TypeScript typecheck and Vite build.
+  - Initial builder report: `npm test`: 60 tests passing, 0 failing; `npm run build` passed.
 
 ## Verify (for FB)
 In `wt/T6`: `npm test`, `npm run build`, paste counts.
@@ -95,7 +94,7 @@ Evidence:
 - Added `src/redteam/T6.test.ts` with adversarial checks for NaN/infinities, extreme values outside [0,1], one-point endpoints, zero dimensions, negative/non-finite dimensions, 1,000 values, non-number runtime inputs, and sparse array holes.
 - Final `npm test` with red-team tests -> pass 67, fail 1 (the deliberate sparse-hole finding). The sparse-array attack fails: `sparklinePath([, 0.5, ], 60, 40)` returns `M  L 60 20` rather than three valid points, so the output is not a valid SVG path. All other red-team tests pass. Builder source was not changed.
 - Browser screenshots `docs/shots/T6-empty.png` and `docs/shots/T6-drills.png` were inspected: first-run hero, dashboard sections, card grid, progress chart, ladder, and save controls are visible. No live demo browser verification was possible in this environment during this round.
-- Code review: all eight sections are present and call the expected actions/helpers; first-run hides normal dashboard sections; progress calculations delegate to `progress.ts`; import parses before confirming and calls `replaceSave` only when confirmed; error path only sets the banner and clears file input; export uses `localDay()` in the filename; dynamic strings are assigned with `textContent`, no `innerHTML`; unmount removes registered home listeners and revokes active object URLs.
+- Code review: all eight sections are present and call the expected actions/helpers; first-run hides normal dashboard sections; progress calculations delegate to `progress.ts`; import parses before confirming and calls `replaceSave` only when confirmed; error path only sets the banner and clears file input; export uses `localDay()` in the filename; dynamic strings are assigned with `textContent`, no `innerHTML`; unmount removes registered home listeners and revokes URLs.
 
 Acceptance:
 - ✔ Baseline `npm test` and `npm run build` pass (60/60 before red-team).
@@ -118,3 +117,26 @@ Attacks tried that failed (implementation held): NaN and ±Infinity inputs; valu
 
 2. [S3] Live demo behavior:
    **VERIFIED**: Exercised live demo harness in Edge (`http://127.0.0.1:5176/home-demo.html`), verifying toggle between empty and 30-drill saves, header badges, practice/daily buttons, ladder items, 52-tile grid, and SVG sparkline rendering.
+
+## Verification (round 2)
+
+Verdict: PASS
+
+Evidence:
+- `npm install` -> up to date, audited 27 packages, 0 vulnerabilities; package-lock root metadata changed by npm, restored and excluded from commit.
+- Final source check: the verifier did not retain any change to builder source. `npm test` -> pass 69, fail 0; `npm run build` -> TypeScript and Vite production build passed; `git diff --check` -> passed.
+- Red-team `src/redteam/T6.test.ts` passed all eight adversarial cases, including NaN and infinities, extremes, one datum, zero dimensions, malformed values, sparse holes, and 1,000-point finiteness and monotone x.
+- Exercised `http://127.0.0.1:5177/home-demo.html` in browser: 30-drill state contains Today/Practice/Card Images/Progress/Ladder/Save, all 52 tiles and eight levels; the current daily result and accurate sparkline render; action log confirms daily action -> `drill(level=4, daily=true)`, practice -> `drill(level=0, daily=false)`, train -> `train()`. Toggling to empty save hides dashboard sections and Start First Drill calls `drill(0, false)`. Keyboard Tab reaches app buttons; the browser's native focus outline is visible. Invalid JSON shows an error and leaves action log unchanged; invalid save schema also rejected; valid import declined does not call replaceSave. Export creates a Blob and revokes its object URL; intercepted download filename is `memory-palace-2026-10-21.json`. On unmount during the 1 s cleanup delay, the URL is revoked immediately and the queued timer calls revoke again; browser showed no error or UI impact. `innerHTML` absent in home UI, dynamic labels use textContent, listener removal is implemented. Browser console/network has no errors; dev/demo asset requests returned 200.
+- Visual screenshot recapture was attempted, but the embedded preview reports “no frames” from webview compositing, so retained screenshots were checked only for existence/dimensions (1280×800) and loaded by the browser (`naturalWidth` 1280).
+
+Acceptance:
+- ✔ npm test and npm run build: 69/69 tests pass, build succeeds.
+- ✔ Empty and populated saves rendered; existing screenshots present and load (1280×800). The live demo independently confirmed the required content; visual screenshot recapture was blocked by embedded preview compositing.
+- ✔ Buttons are tabbable; native keyboard outline shown; no innerHTML, based on live inspection and source search.
+- ✔ Bad import displayed an error and did not invoke replaceSave; input was cleared. Valid import decline did not replace save.
+- ✔ Red-team sparkline cases pass.
+
+Findings:
+1. [S3] `src/ui/home.ts` export: when unmounted during the one-second revocation delay, the URL is revoked immediately by cleanup and `revokeObjectURL` is called once more by the queued timeout. This duplicate call is harmless in the tested browser and causes no user-visible failure; optionally clear pending timeout handles on unmount to avoid stale post-unmount work.
+
+Attacks tried that failed (implementation held): unusual SVG values incl NaN/±Infinity and -1e300/1e300; zero/negative/nonfinite SVG dimensions; empty/one/two/20/1,000 datum behavior; malformed and sparse values; empty-save first-run visibility and event action; dashboard action routes; valid-but-declined and invalid import lifecycle; download name; card/ladder counts; keyboard reachability and listener cleanup review; export/unmount timer ordering (URL cleanup happens immediately, then duplicate revoke after the timeout).
