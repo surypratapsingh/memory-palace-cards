@@ -1,6 +1,12 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-21 15:10 - Lead: Gemini round 1 merged, round 2 written
+- Done: reviewed and merged Gemini A/B/C from `wt/`: `src/ui/motion.{ts,css}` (WAAPI motion kit), `src/scene/textures.ts` (8 seamless procedural textures with bump maps), `src/scene/decor.ts` (per-room decor with zone rules), each with tests and a demo page. Fixed one wrong index in a motion test (code was right); wrote the missing `src/scene/textures-demo.ts`. `applySettings` now also toggles `reduce-motion` when glide is instant. T7 packet: use motion.css/swap/feedback/countUp. T9 packet: use roomMaterials/scaleUVs/buildDecor, do not rewrite. Composite browser check of textures + decor + props in all 4 rooms: good, weak spots listed in `tasks/gemini-argon.md` "Round 1 review".
+- Done: round 2 prompts D (SVG card art + card textures), E (furniture collision + `KeyboardEvent.code` walk controller; fixes the Shift/Caps "W" bug), F (lighting/fog/shadows/contact shadows/halos + decor v2 fixes). Plan: Wave 6 UI design competition AG vs FB after the v1 build (not started).
+- State: T4 in review (FB verify, no commit yet). AG waits for T7.
+- Next: when the user says round 2 (D/E/F) is done, review like round 1. E replaces the walk code in `palaceView.ts` (wire `stepWalk` + `solidBoxes`); F wires into palaceWorld via T9. Lead turn when T4 is verified.
+
 ## 2026-10-21 13:35 - Lead: Gemini big task written, mesh check
 - Done: `tasks/gemini-argon.md`, three self-contained Gemini prompts (about 8-10 h), shaped by the Emil Kowalski skill: A UI motion kit (`src/ui/motion.css/.ts`, WAAPI, interruptible, transform/opacity only, reduced motion), B procedural room textures (`src/scene/textures.ts`, seamless, low contrast, mean colour kept), C room decor (`src/scene/decor.ts`, zone rules so decor never blocks a locus, its sight line, the glide route or a door; <= 12 meshes). Each prompt has its own test file and demo page.
 - State: T4 in review since 12:34 (FB's next job is VERIFY T4, no commit yet). AG waits: T8b needs T7, T7 needs T4.

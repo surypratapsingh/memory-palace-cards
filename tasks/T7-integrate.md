@@ -19,6 +19,7 @@ Wire all screens into one app at `index.html`.
 - Home: palace in guided mode at locus 0, slightly dimmed (CSS overlay is fine).
 - After a drill with a result: `data.streak = updateStreak(data.streak, localDay())`, `save(data)`, show home.
 - `replaceSave`: `save(next)`, reload data, re-apply settings, remount home.
+- Motion (Lead, 2026-10-21): import `src/ui/motion.css` once at boot. Change screens with `swap(current, next, mount)` from `src/ui/motion.ts`; show recall results with `feedback(el, 'correct' | 'wrong')`; count the drill score with `countUp`. `applySettings` already sets `<html class="reduce-motion">` when `glideMs` is 0, and the kit reads it. Open `motion-demo.html` to see each helper.
 - Storage write errors: `save()` never throws. Register `setSaveErrorHandler` from `src/store.ts` at boot to show a small banner "Progress could not be saved. Export a backup."
 
 ## Acceptance

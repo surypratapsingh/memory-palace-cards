@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Palace — Procedural Textures Demo</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #0b0f19;
+        color: #e2e8f0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+      h1 {
+        margin: 0 0 20px;
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+      #grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+        gap: 20px;
+      }
+      .card {
+        background: #131b2e;
+        border: 1px solid #26324d;
+        border-radius: 8px;
+        padding: 14px;
+      }
+      .meta {
+        margin-bottom: 10px;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+      .canvases {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      canvas {
+        width: 256px;
+        height: 256px;
+        border: 1px solid #2d3b59;
+        image-rendering: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Memory Palace — Seamless Room Textures (2x2 Colour &amp; Bump)</h1>
+    <div id="grid"></div>
+    <script type="module" src="/src/scene/textures-demo.ts"></script>
+  </body>
+</html>

@@ -27,10 +27,11 @@ export function sanitizeSettings(value: unknown): Settings {
   };
 }
 
-/** Apply the colour-safe palette by toggling its root CSS class. */
+/** Toggle root CSS classes: colour-safe palette, and reduce-motion when glides are instant (read by src/ui/motion.ts). */
 export function applySettings(
   settings: Settings,
   root: { classList: { toggle(name: string, on: boolean): unknown } },
 ): void {
   root.classList.toggle('color-safe', settings.colorSafe);
+  root.classList.toggle('reduce-motion', settings.glideMs === 0);
 }
