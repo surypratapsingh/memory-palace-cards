@@ -21,12 +21,28 @@ The palace visibly reacts to the player's memory, without ever moving a locus (d
 5. **Leeches** on home: "3 images keep slipping" with the Train button when `leeches(data.srs).length > 0`.
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass.
-- [ ] Weak loci, ghosts, ghost warning and Shadow Walk all visible in the app. Screenshots of each.
-- [ ] Unmount leaves no moods, cards, timers or listeners.
+- [x] `npm test` and `npm run build` pass.
+- [x] Weak loci, ghosts, ghost warning and Shadow Walk all visible in the app. Screenshots of each.
+- [x] Unmount leaves no moods, cards, timers or listeners.
 
 ## Questions
+
 ## Report
+Implemented living palace in the game using pure logic from `src/living.ts`:
+1. **Weak loci**: In drill Ready phase, `weakLoci(data.locusStats)` sets mood 'weak' on each failing locus via `view.setLocusMood(i, 'weak')`. Displayed up to 3 coaching lines: `"Locus ${i + 1} (${locus.name}) keeps failing: picture your image bigger, louder, stranger."`. All moods are tracked in `modifiedLoci` and reset to 'normal' on exit / unmount.
+2. **Ghosts**: On Home screen, `ghosts(data.drills, new Date())` are drawn via `showCard(i, card, { opacity })`. Refreshed every 60s via `setInterval` using `new Date()` at call time. Both interval timer and cards are cleared on unmount.
+3. **Ghost warning**: Before a drill starts (including Daily Deck), if `ghostWarning(data.drills, new Date())` is active, displays modal panel: "Fresh ghosts can mix you up. Rest a little or play anyway." with "Play anyway" and "Back" buttons.
+4. **Shadow Walk**: Added `shadowWalk` screen (`src/ui/shadowWalk.ts`), wired into `router.ts`, `router.test.ts`, and `main.ts`. Free walk mode is turned on (`view.setFreeWalk(true)`) with cards hidden. Clicking a locus from the latest drill prompts "What stood here?", and Space or a second click reveals the card and caption for 3 seconds before hiding. Esc leaves, resetting cards, free walk mode (`view.setFreeWalk(false)`), and timeouts. Accessible from results screen and from Home.
+5. **Leeches**: In Card Images section on Home, displays `"${count} images keep slipping"` notice when `leeches(data.srs).length > 0` directly above the Train button.
+
+Verification & Evidence:
+- `npm test`: 283 passed, 0 failed.
+- `npm run build`: pass (0 errors).
+- Screenshots:
+  - `docs/shots/T8b-ghosts.png`: Home dashboard showing ghost billboards drawn at loci and "3 images keep slipping" leeches badge.
+  - `docs/shots/T8b-ghost-warning.png`: Ghost warning panel with "Play anyway" and "Back" buttons.
+  - `docs/shots/T8b-weak-loci.png`: Drill Ready phase with failing locus coaching line and weak locus mood.
+  - `docs/shots/T8b-shadow-walk.png`: Shadow Walk free walk interface with navigation HUD and "What stood here?" prompt.
 
 ## Verify (for FB)
 In `wt/T8b`: `npm test`, `npm run build`, paste counts.
