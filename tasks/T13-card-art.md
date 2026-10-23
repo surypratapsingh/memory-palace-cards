@@ -29,7 +29,13 @@ Every card the player sees, in the DOM and floating at a locus, uses the real ca
 - [ ] No canvas-text card code left in `cardBillboard.ts`.
 
 ## Questions
+None.
+
 ## Report
+- `cardFace` now embeds the authored `cardSvg` at a compact width, retains `.card-face` / `.red`, selects the root's classic or four-colour theme, and has a card-name accessible label. The recall picker shows authored rank/suit miniatures, preserves visible label text and all `data-*` attributes, and keeps used cards disabled and greyed.
+- Floating billboards now use `cardTexture(id, theme)`, stay hidden until the image is ready, and reject stale async completions when replaced/cleared; caption remains in the drill HUD. Shared cached textures use release references and `disposeCardTextures()` is called on manager disposal. Removed all canvas text card rendering from `cardBillboard.ts`.
+- Guided view aims at height 1.3 m and the 0.8 × 0.65 m billboard is centred at 1.9 m; placement test projects all corners and top centres for 52 loci at 16:9 and 4:3 with at least 5% viewport margin.
+- Verification: `npm install` (0 vulnerabilities); targeted card-face and placement tests pass (3/3); `npm test` passes (299/299); `npm run build` succeeds (Vite large-chunk warning remains); `git diff --check` clean. Vite responded HTTP 200 for the app and transformed card-face, picker, and billboard modules. Browser playthrough and required screenshot set were not captured in this FB session; AG verification remains required.
 
 ## Verify (for AG)
 In `wt/T13`: `npm test`, `npm run build`, paste counts. Then `npm run dev` and play a 5-card drill.
