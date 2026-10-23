@@ -108,11 +108,15 @@ test('redteam T8b: Shadow Walk cleanup cancels reveal and makes any retained cal
     retainedHandler(0);
     assert.equal(calls.at(-1), 'card:AS');
     assert.equal(timers.size, 1);
+    const staleRevealTimeout = [...timers.values()][0];
+    assert.ok(staleRevealTimeout, 'a reveal timeout is scheduled');
 
     cleanup();
     const callsAfterCleanup = calls.length;
     retainedHandler(0);
-    assert.equal(calls.length, callsAfterCleanup, 'late locus events must be inert after unmount');
+    staleRevealTimeout();
+    assert.equal(calls.length, callsAfterCleanup, 'late locus and timer events must be inert after unmount');
+    assert.equal(callbacks.length, 0, 'cleanup invokes the view-provided disposer');
     assert.equal(calls.at(-2), 'walk:false');
     assert.equal(calls.at(-1), 'clear');
     assert.equal(clearedTimers.length, 1);

@@ -86,6 +86,20 @@ Attacks tried that failed: matrix of valid/invalid router screens and events; si
 
 ## Verify (for FB)
 In `wt/T8b`: `npm test`, `npm run build`, paste counts.
+
+## Verification (round 3)
+Verdict: PASS
+Evidence: `npm install` -> up to date, 0 vulnerabilities; `node --test "src/redteam/T8b.test.ts"` -> pass 6, fail 0; `npm test` -> pass 289, fail 0; `npm run build` -> ok, 0 TypeScript/build errors (Vite reports a 639.18 kB chunk-size warning). Screenshots `docs/shots/T8b-ghosts.png`, `T8b-ghost-warning.png`, `T8b-weak-loci.png`, and `T8b-shadow-walk.png` are valid PNGs; inspected visuals show home ghosts/leeches, warning prompt, weak-locus Ready coaching, and Shadow Walk HUD/prompt.
+Acceptance:
+- ✔ Weak loci are set at Ready from `weakLoci(currentData.locusStats)`, with at most 3 coaching lines; changed moods are reset by `resetPalaceVisuals()` on round transitions and unmount (`src/ui/drill.ts`).
+- ✔ Home calls `ghosts(data.drills, new Date())` at render time and in the 60-second interval callback; cleanup clears the interval and cards (`src/ui/home.ts`).
+- ✔ Drill start evaluates `ghostWarning(currentData.drills, new Date())` at call time; Daily Deck follows the same `startRound` entry (`src/ui/drill.ts`).
+- ✔ Shadow Walk is wired from Home and Results; free walk enabled on mount and disabled on leave/unmount; locus callback disposer, keydown listener, reveal timeout and card map are cleaned (`src/main.ts`, `src/ui/home.ts`, `src/ui/drill.ts`, `src/ui/shadowWalk.ts`; round-3 red-team lifecycle test passes).
+- ✔ Palace loci identities/coordinates remain unchanged: T1 lock test passes; reviewed task changes include no palace data or route changes (`src/redteam/T1-lock.test.ts`).
+- ✔ Red-team routing covers Shadow Walk transitions for every screen and hostile/malformed input; lifecycle coverage exercises prompt, reveal, cleanup, callback unsubscription, stale callback, and stale timeout; all 6 T8b red-team tests pass.
+- ✔ Screenshots evidence each requested visible feature: ghosts/leech count (`docs/shots/T8b-ghosts.png`), ghost warning (`T8b-ghost-warning.png`), weak-locus coaching (`T8b-weak-loci.png`), Shadow Walk (`T8b-shadow-walk.png`).
+Findings: none.
+Attacks tried that failed: malformed and prototype-shaped routes; invalid screens and malformed events (including Symbol); simulate locus click prompt then double-click reveal; invoke stale callback after cleanup; invoke canceled timeout callback after cleanup; assert disposer removed the callback; inspect timeout cancellation, key listener removal, cards cleared, and free walk disabled; reviewed use-time dates, ghost interval disposal, mood resets and released locus/route invariants.
 1. Code review: every call of `living.ts` uses `now = new Date()` at call time (not a stale date from mount); the once-a-minute timer is cleared on unmount; moods set by T8b are reset; Shadow Walk turns free walk off on exit; no locus position or order changes anywhere.
 2. Red-team `src/redteam/T8b.test.ts` on the new router moves (shadow walk from every screen, unknown events).
 3. Check the screenshots against requirements 1-5.
