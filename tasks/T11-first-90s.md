@@ -55,6 +55,22 @@ Implemented first 90 seconds onboarding experience for new players:
 
 ## Verify (for FB)
 In `wt/T11`: `npm test`, `npm run build`, paste counts.
+
+## Verification (round 1)
+Verdict: CHANGES
+Evidence: `npm install` -> up to date, 0 vulnerabilities; `node --test src/redteam/T11.test.ts` -> pass 7, fail 0; `npm test` -> pass 304, fail 0; `npm run build` -> ok (0 TypeScript/build errors; Vite reports 647.77 kB JS chunk warning). Live dev app at `http://127.0.0.1:5183/` returned HTTP 200; onboarding welcome -> memorize -> recall -> result flow exercised with clean console/no app errors and all source modules HTTP 200. The local app produced a result after 38.2 s elapsed for a 3-card run; with a second measured fast run, after 4 primary controls plus selecting 3 cards, completion at 38 s (well under 90s). Outcome scored 1/3 due to verifier-selected wrong cards; result shows actual counts and saved one practice drill/streak. Supplied screenshots inspected: all four PNGs show the specified stages; the welcome screen has a primary action and secondary skip link, memorize has one primary action, recall shows the normal card grid, and results has one Continue action.
+Acceptance:
+- ✔ Fresh save routes to onboarding; imported saves with drills or SRS go to home (`src/router.ts`, `src/router.test.ts`, T11 red-team).
+- ✔ Tested skip link and Escape on welcome; Escape in memorize; all route to Home without completing/saving, remove onboarding keyboard handlers (`src/ui/onboarding.ts`, live browser and red-team lifecycle test).
+- ✘ Onboarding completion does not demonstrate the method: selecting three different cards always advances to success copy, even when none (or only one) match the dealt sequence. In live run sequence was `AH, AD, 6S`; answers `AH, AS, AC`; result correctly displayed “You remembered 1 of 3…” but this still marks the First Win / “Proved!” acceptance path as completed in the task's feature (see Finding 1).
+- ✔ The onboarding UI constructs dynamic copy with `textContent`, and result has a single Continue button. Source audit and red-team assertion passed.
+- ✔ Live observation: 38.2 seconds from starting the app timer through the recall screen after 4 actions (start, next, next, test recall) plus 3 card selections. This is below 90 seconds; the result was 1/3, not a verified perfect win (Finding 1).
+- ✔ Continue saves the result/streak exactly once and routes to Home: browser localStorage contains one drill and streak count 1; after navigating home reload routes home; result button is singular.
+- ✔ Four supplied screenshots reviewed: `docs/shots/T11-step1-welcome.png`, `T11-step2-memorize.png`, `T11-step3-recall.png`, `T11-step4-results.png`.
+Findings:
+1. [S2] `src/ui/onboarding.ts:showStep3/selectCard` and `showStep4` - first-win goal is not met by a normal new player's first exposure. The onboarding picks a random 3-card sequence (`deal(3, seed)`), shows it briefly, then exposes the standard 52-card picker with no selected sequence or usable recall feedback. Any distinct three guesses immediately reach Results; a wrong score still advances and after Continue saves a completed drill, causing `isFresh` to route future launches to Home. Verified live with sequence `AH, AD, 6S` and guesses `AH, AS, AC`: results report only 1/3; the alleged proof message is nevertheless shown. Make the first-win path reliably teach/reinforce the actual three cards or otherwise ensure the normal first run can reach the stated 3/3 result; preserve real scoring and test wrong answers as a separate path.
+Attacks tried that failed: fresh vs drills-only vs SRS-only route matrix; imported images/locusStats vs strict freshness rule; skip click; Escape on welcome and memorize; malformed/prototype route inputs; repeat/wrong/duplicate card picker inputs; completed the live flow with wrong guesses and confirmed it still saves a drill/streak; source search for dynamic `innerHTML`; inspected result Continue count and all supplied screenshots.
+
 1. Code review: onboarding only for a truly fresh save (an imported save with drills never sees it); result saved exactly once; skip path leaves no listeners; hints disappear at 3 drills; no `innerHTML` with dynamic text.
 2. Red-team `src/redteam/T11.test.ts` on the router: fresh vs non-fresh boot, skip, Esc during onboarding.
 3. Check the screenshots: is every step one obvious action? Report any step with more than one main button as S2.
