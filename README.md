@@ -1,5 +1,9 @@
 # Memory Palace: Cards
 
+## Play
+
+[Play Memory Palace: Cards](https://surypratapsingh.github.io/memory-palace-cards/)
+
 A desktop web game that teaches the method of loci (the "memory palace") by memorizing the order of a shuffled deck of playing cards.
 You walk a 3D palace, place one vivid card image on each locus, then walk it again and recall the order.
 Spaced repetition (FSRS) keeps the card images in long-term memory, and the palace shows what you are forgetting.
