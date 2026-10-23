@@ -140,3 +140,29 @@ Estimated bugs still hidden = `N − (n1 + n2 − m)`.
 Rule: if hidden ≥ 25% of found, run another bug-bash round after the fixes.
 Example: n1 = 12, n2 = 8, m = 4: N = 13·9/5 − 1 = 22.4, found 16, hidden ≈ 6.4 = 40% of found, so run another round.
 Caveat: AG and FB use different methods, so they find different kinds of bugs; m is then small and N overestimates. Treat N as an upper guide, not a fact.
+
+## 14. Journey practice (`src/journey.ts`, task T21)
+
+### Questions
+A scheduled locus `i` generates one prompt using seeded `rng(seed)`. Before it has 3 FSRS reviews, use **next** (route-order practice), except locus 51 where "next" is impossible and it becomes **number**. After 3 reviews choose uniformly from `next`, `number`, `where` (at locus 51, replace `next` with `number`).
+
+- `next`: “What comes after <name of i>?”; answer is `i + 1`; never select this at locus 51.
+- `number`: “Which stop is <name of i>?”; answer is `i`.
+- `where`: “What is at stop <i>?”; answer is `i`.
+
+The route is zero-indexed internally; the stop number in the prompt uses the same `i` as the answer contract.
+
+### Queue
+For valid FSRS journey states, due loci are sorted by due timestamp ascending, then locus index ascending. Return up to `size` due loci first. Fill remaining capacity with up to `min(5, size − dueCount)` new loci, in ascending route order, chosen only from the first room in `ROOMS` that still has any unintroduced loci. Never duplicate an index. The next room becomes eligible only when every locus in the prior room has a valid saved journey state (including a state that is not currently due). Invalid keys/states are ignored and therefore do not count as introduced. A due-only queue may use more than five existing reviewed loci; the 5-new cap applies to newly introduced loci.
+
+### Choices
+The correct answer locus and three distinct distractor loci form the options. Prefer candidates in the answer's room at absolute route-index distance ≤ 3, excluding the answer; if there are fewer than 3, draw from all other loci. A seeded Fisher-Yates shuffle chooses distractors and shuffles the four final options. Choice labels use the locus names; `correct` marks the one answer.
+
+### FSRS grading and strength
+`grade(save, i, correct, ms, now)` returns a shallow-copied save with only a valid `journey[i]` state reviewed; other valid journey records are preserved and corrupt journey keys are discarded. Map a wrong response to `Rating.Again`. A correct response under **4,000 ms** maps to `Rating.Good`; a correct response taking 4,000 ms or longer maps to `Rating.Hard`. Four seconds is a short recall window that rewards fluent route retrieval while allowing deliberate but correct recall to receive a lower grade. Invalid locus or `now` returns the original save unchanged.
+
+`journeyStrength` counts all 52 loci exactly once by `strength(state, now)`; absent or invalid states count as `new`. Invalid `now` returns all 52 as new.
+
+**Worked example:** With an empty save and `size = 10`, the queue is `[0,1,2,3,4]`: the first five route loci are introduced and the session introduces no more than five new items. If loci 0 and 1 are due at 09:00 and 10:00 and all later loci are new, at noon the queue is `[0,1,2,3,4,5,6]` (two due items first, then the five-new cap). For a correct answer at locus 0 after 3,999 ms, FSRS receives `Good`; at exactly 4,000 ms it receives `Hard`; a wrong answer receives `Again` regardless of time.
+
+**Tests:** `src/journey.test.ts` covers queue order, first-room gating, at-most-five new items, due order, size and invalid input, invalid keys/states, prompt kinds, seeding, choice locality/uniqueness, all grading categories, immutability, 52-locus strength totals, and export/import persistence.

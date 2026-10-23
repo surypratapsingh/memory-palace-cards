@@ -25,11 +25,14 @@ The second thing the player must learn (plan.md, "Three things the player learns
 5. `journeyStrength(save, now)`: count of loci per `Strength` (for the progress screen).
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass; at least 12 tests.
-- [ ] A saved journey survives `exportJson` / `importJson` (one test).
+- [x] `npm test` and `npm run build` pass; at least 12 tests (17 journey tests).
+- [x] A saved journey survives `exportJson` / `importJson` (tested with a reviewed locus).
 
 ## Questions
+- A new route-ordered queue cannot use its full default size of 10 when introducing at most five new loci. Implementation returns all eligible due loci up to size, then appends at most five new loci; with an empty save and size 10 the queue is five items. The math section documents this interpretation.
+
 ## Report
+Implemented pure journey queueing, seeded question selection and choices, FSRS grading, and 52-locus strength counts in `src/journey.ts`, with 17 focused tests. A saved FSRS state survives JSON export/import. Added section 14 to `MATHS.md`; the 4,000 ms cut-off gives quick correct answers `Good`, slower correct answers `Hard`, and incorrect answers `Again`. Verification: `npm test` -> 313 pass, 0 fail; `npm run build` -> passed (existing Vite >500 kB chunk warning); `git diff --check` -> passed.
 
 ## Verify (for AG)
 In `wt/T21`: `npm test`, `npm run build`, paste counts.
