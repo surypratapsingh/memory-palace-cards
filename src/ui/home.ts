@@ -1,4 +1,4 @@
-import type { SaveData } from '../types.ts';
+import type { PalaceView, SaveData } from '../types.ts';
 import {
   unlockedLevel,
   recommendedLevel,
@@ -6,6 +6,7 @@ import {
   rankTitle,
   shareText,
 } from '../progress.ts';
+import { ghosts, leeches } from '../living.ts';
 import { isDue, strength } from '../srs.ts';
 import { DECK, LADDER, cardLabel, localDay, score } from '../deck.ts';
 import { exportJson, importJson } from '../store.ts';
@@ -16,6 +17,7 @@ export interface HomeActions {
   train(): void;
   drill(level: number, daily: boolean): void;
   settings(): void;
+  shadowWalk?(): void;
   replaceSave(next: SaveData): void;
 }
 
@@ -33,6 +35,7 @@ export function mountHome(
   root: HTMLElement,
   data: SaveData,
   actions: HomeActions,
+  view?: PalaceView,
 ): () => void {
   const activeUrls: string[] = [];
   const listeners: Array<{ target: EventTarget; type: string; handler: EventListenerOrEventListenerObject }> = [];
@@ -40,6 +43,20 @@ export function mountHome(
   function addEvent<T extends EventTarget>(target: T, type: string, handler: EventListenerOrEventListenerObject): void {
     target.addEventListener(type, handler);
     listeners.push({ target, type, handler });
+  }
+
+  // Render ghosts and refresh once a minute
+  let ghostInterval: ReturnType<typeof setInterval> | null = null;
+  if (view) {
+    const renderGhosts = () => {
+      view.clearCards();
+      const ghostList = ghosts(data.drills, new Date());
+      for (const g of ghostList) {
+        view.showCard(g.index, g.card, { opacity: g.opacity });
+      }
+    };
+    renderGhosts();
+    ghostInterval = setInterval(renderGhosts, 60000);
   }
 
   // Clear root safely
@@ -214,6 +231,15 @@ export function mountHome(
     practiceSubtitle.textContent = `Level ${recLevel} · ${cardCount} cards · your 70% zone`;
     practiceCard.appendChild(practiceSubtitle);
 
+    if (data.drills.length > 0 && actions.shadowWalk) {
+      const shadowBtn = document.createElement('button');
+      shadowBtn.type = 'button';
+      shadowBtn.className = 'home-btn-secondary home-shadow-btn';
+      shadowBtn.textContent = 'Shadow Walk';
+      addEvent(shadowBtn, 'click', () => actions.shadowWalk?.());
+      practiceCard.appendChild(shadowBtn);
+    }
+
     grid.appendChild(practiceCard);
 
     // 5. Card images: due count, new count, mini grid, train button
@@ -261,6 +287,15 @@ export function mountHome(
     }
     miniGridContainer.appendChild(miniGrid);
     cardImagesCard.appendChild(miniGridContainer);
+
+    const slipping = leeches(data.srs);
+    if (slipping.length > 0) {
+      const leechesNotice = document.createElement('div');
+      leechesNotice.className = 'home-leeches-notice';
+      const count = slipping.length;
+      leechesNotice.textContent = `${count} ${count === 1 ? 'image keeps' : 'images keep'} slipping`;
+      cardImagesCard.appendChild(leechesNotice);
+    }
 
     const trainBtn = document.createElement('button');
     trainBtn.type = 'button';
@@ -486,6 +521,15 @@ export function mountHome(
 
   // Return unmount cleanup function
   return () => {
+    if (ghostInterval !== null) {
+      clearInterval(ghostInterval);
+      ghostInterval = null;
+    }
+
+    if (view) {
+      view.clearCards();
+    }
+
     for (const { target, type, handler } of listeners) {
       target.removeEventListener(type, handler);
     }

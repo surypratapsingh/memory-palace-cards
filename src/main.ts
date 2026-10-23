@@ -13,6 +13,7 @@ import type { PalaceView, SaveData } from './types.ts';
 import { mountDrill } from './ui/drill.ts';
 import { mountHome } from './ui/home.ts';
 import { mountSettings } from './ui/settings.ts';
+import { mountShadowWalk } from './ui/shadowWalk.ts';
 import { mountTrainer } from './ui/trainer.ts';
 import { countUp, feedback, swap } from './ui/motion.ts';
 import { next, type Screen } from './router.ts';
@@ -67,8 +68,9 @@ function mountScreen(screen: Screen, root: HTMLElement): () => void {
         navigate('drill');
       },
       settings: () => navigate('settings'),
+      shadowWalk: () => navigate('shadowWalk'),
       replaceSave,
-    });
+    }, view);
   }
   if (screen === 'train') {
     view.setFreeWalk(false);
@@ -86,6 +88,11 @@ function mountScreen(screen: Screen, root: HTMLElement): () => void {
       navigate('back');
     });
   }
+  if (screen === 'shadowWalk') {
+    return mountShadowWalk(root, view, data, () => {
+      navigate('back');
+    });
+  }
   view.setFreeWalk(false);
   return mountDrill(root, view, data, drillOptions, (updated, result) => {
     data = updated;
@@ -93,6 +100,12 @@ function mountScreen(screen: Screen, root: HTMLElement): () => void {
     save(data);
     syncSettings();
     navigate(result ? 'result' : 'cancel');
+  }, (updated, result) => {
+    data = updated;
+    if (result) data.streak = updateStreak(data.streak, localDay());
+    save(data);
+    syncSettings();
+    navigate('shadowWalk');
   });
 }
 

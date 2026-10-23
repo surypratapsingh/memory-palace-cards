@@ -345,3 +345,123 @@
   text-align: center;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8);
 }
+
+/* Weak loci coaching */
+.drill-weak-container {
+  margin: 12px 0;
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 6px;
+  text-align: left;
+}
+
+.drill-weak-line {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: var(--gold, #fbbf24);
+  line-height: 1.4;
+}
+
+/* Ghost warning */
+.drill-ghost-warning-panel {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+}
+
+.drill-ghost-warning-text {
+  font-size: 1.05rem;
+  color: var(--text, #f8fafc);
+  line-height: 1.5;
+}
+
+/* Shadow Walk */
+.shadow-walk-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text, #f8fafc);
+  z-index: 50;
+}
+
+.shadow-walk-top-hud {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(17, 24, 39, 0.88);
+  border: 1px solid var(--border, #334155);
+  border-radius: 8px;
+  padding: 10px 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.shadow-walk-title-pill {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent, #38bdf8);
+  background: rgba(56, 189, 248, 0.15);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.shadow-walk-instructions {
+  color: var(--muted, #94a3b8);
+  font-size: 0.9rem;
+  flex: 1;
+  text-align: center;
+}
+
+.shadow-walk-exit-btn {
+  font: inherit;
+  font-weight: 600;
+  color: var(--text, #f8fafc);
+  background: var(--panel, #111827);
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shadow-walk-exit-btn:hover {
+  border-color: var(--accent, #38bdf8);
+  background: #1e293b;
+}
+
+.shadow-walk-prompt-panel {
+  pointer-events: auto;
+  align-self: center;
+  margin-top: auto;
+  margin-bottom: 32px;
+  background: rgba(17, 24, 39, 0.94);
+  border: 1px solid var(--accent, #38bdf8);
+  border-radius: 8px;
+  padding: 16px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  text-align: center;
+}
+
+.shadow-walk-prompt-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text, #f8fafc);
+}
+
+.shadow-walk-prompt-subtitle {
+  font-size: 0.95rem;
+  color: var(--muted, #94a3b8);
+}

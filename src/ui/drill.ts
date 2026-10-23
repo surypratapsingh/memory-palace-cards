@@ -1,5 +1,6 @@
 import { cardLabel, deal, isRed, LADDER, localDay, score } from '../deck.ts';
 import { applyResult, cardFromKeys, drillSeed } from '../drill-logic.ts';
+import { ghostWarning, weakLoci } from '../living.ts';
 import { imageFor, save } from '../store.ts';
 import type { CardId, DrillResult, PalaceView, SaveData } from '../types.ts';
 import { createCardPicker, type CardPickerInstance } from './cardPicker.ts';
@@ -10,6 +11,7 @@ export function mountDrill(
   initialData: SaveData,
   opts: { level: number; daily: boolean },
   onExit: (data: SaveData, result: DrillResult | null) => void,
+  onShadowWalk?: (data: SaveData, result: DrillResult) => void,
 ): () => void {
   let unmounted = false;
   let currentData = initialData;
@@ -159,6 +161,12 @@ export function mountDrill(
     function showReady(): void {
       clearOverlay();
 
+      const weak = weakLoci(currentData.locusStats);
+      for (const idx of weak) {
+        view.setLocusMood(idx, 'weak');
+        modifiedLoci.add(idx);
+      }
+
       const panel = document.createElement('div');
       panel.className = 'drill-panel drill-modal-center drill-interactive';
 
@@ -178,6 +186,19 @@ export function mountDrill(
       subtitle.className = 'drill-subtitle';
       subtitle.textContent = 'Press Space or click Start to begin memorizing.';
       panel.appendChild(subtitle);
+
+      if (weak.length > 0) {
+        const weakBox = document.createElement('div');
+        weakBox.className = 'drill-weak-container';
+        for (const idx of weak.slice(0, 3)) {
+          const line = document.createElement('p');
+          line.className = 'drill-weak-line';
+          const locusName = view.loci[idx]?.name ?? `Locus ${idx + 1}`;
+          line.textContent = `Locus ${idx + 1} (${locusName}) keeps failing: picture your image bigger, louder, stranger.`;
+          weakBox.appendChild(line);
+        }
+        panel.appendChild(weakBox);
+      }
 
       const btnRow = document.createElement('div');
       btnRow.className = 'drill-btn-row';
@@ -827,12 +848,18 @@ export function mountDrill(
       exitBtn.className = 'drill-btn';
       exitBtn.textContent = 'Back to Palace [Esc]';
 
+      const shadowBtn = document.createElement('button');
+      shadowBtn.type = 'button';
+      shadowBtn.className = 'drill-btn';
+      shadowBtn.textContent = 'Shadow Walk';
+
       const againBtn = document.createElement('button');
       againBtn.type = 'button';
       againBtn.className = 'drill-btn primary';
       againBtn.textContent = 'Play Again [Space]';
 
       btnRow.appendChild(exitBtn);
+      btnRow.appendChild(shadowBtn);
       btnRow.appendChild(againBtn);
       panel.appendChild(btnRow);
       overlay.appendChild(panel);
@@ -841,6 +868,16 @@ export function mountDrill(
         window.removeEventListener('keydown', onKeyDown);
         // Start again with same level, preserving daily setting
         startRound(currentLevel, isDaily);
+      };
+
+      const doShadowWalk = () => {
+        window.removeEventListener('keydown', onKeyDown);
+        resetPalaceVisuals();
+        if (onShadowWalk) {
+          onShadowWalk(currentData, result);
+        } else {
+          onExit(currentData, result);
+        }
       };
 
       const doExit = () => {
@@ -861,6 +898,7 @@ export function mountDrill(
 
       window.addEventListener('keydown', onKeyDown);
       againBtn.addEventListener('click', doAgain);
+      shadowBtn.addEventListener('click', doShadowWalk);
       exitBtn.addEventListener('click', doExit);
 
       roundCleanup = () => {
@@ -873,8 +911,76 @@ export function mountDrill(
       };
     }
 
-    // Start with Ready phase
-    showReady();
+    function showGhostWarning(onProceed: () => void): void {
+      clearOverlay();
+
+      const panel = document.createElement('div');
+      panel.className = 'drill-panel drill-modal-center drill-interactive drill-ghost-warning-panel';
+
+      const title = document.createElement('h2');
+      title.className = 'drill-title';
+      title.textContent = 'Ghost Warning';
+      panel.appendChild(title);
+
+      const subtitle = document.createElement('p');
+      subtitle.className = 'drill-subtitle drill-ghost-warning-text';
+      subtitle.textContent = 'Fresh ghosts can mix you up. Rest a little or play anyway.';
+      panel.appendChild(subtitle);
+
+      const btnRow = document.createElement('div');
+      btnRow.className = 'drill-btn-row';
+
+      const backBtn = document.createElement('button');
+      backBtn.type = 'button';
+      backBtn.className = 'drill-btn';
+      backBtn.textContent = 'Back';
+
+      const playBtn = document.createElement('button');
+      playBtn.type = 'button';
+      playBtn.className = 'drill-btn primary';
+      playBtn.textContent = 'Play anyway';
+
+      btnRow.appendChild(backBtn);
+      btnRow.appendChild(playBtn);
+      panel.appendChild(btnRow);
+      overlay.appendChild(panel);
+
+      const doProceed = () => {
+        window.removeEventListener('keydown', onKeyDown);
+        onProceed();
+      };
+
+      const doBack = () => {
+        window.removeEventListener('keydown', onKeyDown);
+        onExit(currentData, null);
+      };
+
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          doProceed();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          doBack();
+        }
+      };
+
+      window.addEventListener('keydown', onKeyDown);
+      playBtn.addEventListener('click', doProceed);
+      backBtn.addEventListener('click', doBack);
+
+      roundCleanup = () => {
+        window.removeEventListener('keydown', onKeyDown);
+        clearOverlay();
+      };
+    }
+
+    // Check for fresh ghosts before ready phase
+    if (ghostWarning(currentData.drills, new Date())) {
+      showGhostWarning(() => showReady());
+    } else {
+      showReady();
+    }
   }
 
   // Launch initial round

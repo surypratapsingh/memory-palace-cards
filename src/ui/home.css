@@ -367,3 +367,23 @@
   margin-top: 8px;
   display: none;
 }
+
+/* Leeches notice */
+.home-leeches-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: var(--danger, #f87171);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Practice Shadow Walk button */
+.home-shadow-btn {
+  margin-top: 8px;
+}
