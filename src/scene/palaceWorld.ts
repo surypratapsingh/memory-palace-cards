@@ -2,17 +2,33 @@
 // Spec: tasks/T1-scene.md.
 import * as THREE from 'three';
 import { ROOMS, DOORS, LOCI, glidePath } from '../data/palace.ts';
+import {
+  roomMaterials,
+  scaleUVs,
+  TILE_METERS,
+  disposeTextures,
+  type TextureKind,
+} from './textures.ts';
+import { buildDecor } from './decor.ts';
 
 const CEILING_HEIGHT = 4.0;
 
+const ROOM_TEXTURE_PREFIXES = ['library', 'kitchen', 'greenhouse', 'observatory'] as const;
+
 export interface PalaceWorld {
   root: THREE.Group;
+  receivers: readonly THREE.Mesh[];
   dispose(): void;
 }
 
 export function buildPalaceWorld(): PalaceWorld {
   const root = new THREE.Group();
   const disposables: { dispose(): void }[] = [];
+  const receivers: THREE.Mesh[] = [];
+
+  // Decor
+  const decor = buildDecor();
+  root.add(decor.root);
 
   // Base ambient lighting for scene visibility
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
@@ -34,6 +50,10 @@ export function buildPalaceWorld(): PalaceWorld {
     const cx = (room.rect.x0 + room.rect.x1) / 2;
     const cz = (room.rect.z0 + room.rect.z1) / 2;
 
+    const floorKind: TextureKind = `${ROOM_TEXTURE_PREFIXES[r]}-floor`;
+    const wallKind: TextureKind = `${ROOM_TEXTURE_PREFIXES[r]}-wall`;
+    const roomMats = roomMaterials(r as 0 | 1 | 2 | 3);
+
     // Room point light
     const pointLight = new THREE.PointLight(theme.light, 1.2, 25);
     pointLight.position.set(cx, CEILING_HEIGHT - 0.5, cz);
@@ -41,16 +61,13 @@ export function buildPalaceWorld(): PalaceWorld {
 
     // Floor
     const floorGeom = new THREE.PlaneGeometry(width, depth);
-    const floorMat = new THREE.MeshStandardMaterial({
-      color: theme.floor,
-      roughness: 0.6,
-      metalness: 0.1,
-    });
-    disposables.push(floorGeom, floorMat);
-    const floorMesh = new THREE.Mesh(floorGeom, floorMat);
+    scaleUVs(floorGeom, width, depth, TILE_METERS[floorKind]);
+    disposables.push(floorGeom);
+    const floorMesh = new THREE.Mesh(floorGeom, roomMats.floor);
     floorMesh.rotation.x = -Math.PI / 2;
     floorMesh.position.set(cx, 0, cz);
     root.add(floorMesh);
+    receivers.push(floorMesh);
 
     // Ceiling
     const ceilGeom = new THREE.PlaneGeometry(width, depth);
@@ -60,97 +77,116 @@ export function buildPalaceWorld(): PalaceWorld {
     });
     disposables.push(ceilGeom, ceilMat);
     const ceilMesh = new THREE.Mesh(ceilGeom, ceilMat);
+    ceilMesh.name = `ceiling_room_${r}`;
     ceilMesh.rotation.x = Math.PI / 2;
     ceilMesh.position.set(cx, CEILING_HEIGHT, cz);
     root.add(ceilMesh);
 
+    const wallMat = roomMats.wall;
+
     // North wall (z = z1)
     const nWallGeom = new THREE.PlaneGeometry(width, CEILING_HEIGHT);
-    const wallMat = new THREE.MeshStandardMaterial({
-      color: theme.wall,
-      roughness: 0.7,
-    });
-    disposables.push(nWallGeom, wallMat);
+    scaleUVs(nWallGeom, width, CEILING_HEIGHT, TILE_METERS[wallKind]);
+    disposables.push(nWallGeom);
     const nWallMesh = new THREE.Mesh(nWallGeom, wallMat);
     nWallMesh.position.set(cx, CEILING_HEIGHT / 2, room.rect.z1);
     nWallMesh.rotation.y = Math.PI;
     root.add(nWallMesh);
+    receivers.push(nWallMesh);
 
     // South wall (z = z0)
     const sWallGeom = new THREE.PlaneGeometry(width, CEILING_HEIGHT);
+    scaleUVs(sWallGeom, width, CEILING_HEIGHT, TILE_METERS[wallKind]);
     disposables.push(sWallGeom);
     const sWallMesh = new THREE.Mesh(sWallGeom, wallMat);
     sWallMesh.position.set(cx, CEILING_HEIGHT / 2, room.rect.z0);
     root.add(sWallMesh);
+    receivers.push(sWallMesh);
 
     // West wall: solid for room 0, door opening for rooms 1, 2, 3
     if (r === 0) {
       const wWallGeom = new THREE.PlaneGeometry(depth, CEILING_HEIGHT);
+      scaleUVs(wWallGeom, depth, CEILING_HEIGHT, TILE_METERS[wallKind]);
       disposables.push(wWallGeom);
       const wWallMesh = new THREE.Mesh(wWallGeom, wallMat);
       wWallMesh.position.set(room.rect.x0, CEILING_HEIGHT / 2, cz);
       wWallMesh.rotation.y = Math.PI / 2;
       root.add(wWallMesh);
+      receivers.push(wWallMesh);
     } else {
       // Flanking wall sections below and above door (z in [5.5, 8.5])
       const doorZ0 = 5.5;
       const doorZ1 = 8.5;
       // Bottom section: z in [0, 5.5] -> length 5.5
       const lowerGeom = new THREE.PlaneGeometry(doorZ0, CEILING_HEIGHT);
+      scaleUVs(lowerGeom, doorZ0, CEILING_HEIGHT, TILE_METERS[wallKind]);
       disposables.push(lowerGeom);
       const lowerMesh = new THREE.Mesh(lowerGeom, wallMat);
       lowerMesh.position.set(room.rect.x0, CEILING_HEIGHT / 2, doorZ0 / 2);
       lowerMesh.rotation.y = Math.PI / 2;
       root.add(lowerMesh);
+      receivers.push(lowerMesh);
 
       // Upper section: z in [8.5, 14] -> length 5.5
       const upperGeom = new THREE.PlaneGeometry(depth - doorZ1, CEILING_HEIGHT);
+      scaleUVs(upperGeom, depth - doorZ1, CEILING_HEIGHT, TILE_METERS[wallKind]);
       disposables.push(upperGeom);
       const upperMesh = new THREE.Mesh(upperGeom, wallMat);
       upperMesh.position.set(room.rect.x0, CEILING_HEIGHT / 2, doorZ1 + (depth - doorZ1) / 2);
       upperMesh.rotation.y = Math.PI / 2;
       root.add(upperMesh);
+      receivers.push(upperMesh);
 
       // Header above door opening
       const headerGeom = new THREE.PlaneGeometry(doorZ1 - doorZ0, CEILING_HEIGHT - 2.8);
+      scaleUVs(headerGeom, doorZ1 - doorZ0, CEILING_HEIGHT - 2.8, TILE_METERS[wallKind]);
       disposables.push(headerGeom);
       const headerMesh = new THREE.Mesh(headerGeom, wallMat);
       headerMesh.position.set(room.rect.x0, 2.8 + (CEILING_HEIGHT - 2.8) / 2, (doorZ0 + doorZ1) / 2);
       headerMesh.rotation.y = Math.PI / 2;
       root.add(headerMesh);
+      receivers.push(headerMesh);
     }
 
     // East wall: solid for room 3, door opening for rooms 0, 1, 2
     if (r === ROOMS.length - 1) {
       const eWallGeom = new THREE.PlaneGeometry(depth, CEILING_HEIGHT);
+      scaleUVs(eWallGeom, depth, CEILING_HEIGHT, TILE_METERS[wallKind]);
       disposables.push(eWallGeom);
       const eWallMesh = new THREE.Mesh(eWallGeom, wallMat);
       eWallMesh.position.set(room.rect.x1, CEILING_HEIGHT / 2, cz);
       eWallMesh.rotation.y = -Math.PI / 2;
       root.add(eWallMesh);
+      receivers.push(eWallMesh);
     } else {
       const doorZ0 = 5.5;
       const doorZ1 = 8.5;
       const lowerGeom = new THREE.PlaneGeometry(doorZ0, CEILING_HEIGHT);
+      scaleUVs(lowerGeom, doorZ0, CEILING_HEIGHT, TILE_METERS[wallKind]);
       disposables.push(lowerGeom);
       const lowerMesh = new THREE.Mesh(lowerGeom, wallMat);
       lowerMesh.position.set(room.rect.x1, CEILING_HEIGHT / 2, doorZ0 / 2);
       lowerMesh.rotation.y = -Math.PI / 2;
       root.add(lowerMesh);
+      receivers.push(lowerMesh);
 
       const upperGeom = new THREE.PlaneGeometry(depth - doorZ1, CEILING_HEIGHT);
+      scaleUVs(upperGeom, depth - doorZ1, CEILING_HEIGHT, TILE_METERS[wallKind]);
       disposables.push(upperGeom);
       const upperMesh = new THREE.Mesh(upperGeom, wallMat);
       upperMesh.position.set(room.rect.x1, CEILING_HEIGHT / 2, doorZ1 + (depth - doorZ1) / 2);
       upperMesh.rotation.y = -Math.PI / 2;
       root.add(upperMesh);
+      receivers.push(upperMesh);
 
       const headerGeom = new THREE.PlaneGeometry(doorZ1 - doorZ0, CEILING_HEIGHT - 2.8);
+      scaleUVs(headerGeom, doorZ1 - doorZ0, CEILING_HEIGHT - 2.8, TILE_METERS[wallKind]);
       disposables.push(headerGeom);
       const headerMesh = new THREE.Mesh(headerGeom, wallMat);
       headerMesh.position.set(room.rect.x1, 2.8 + (CEILING_HEIGHT - 2.8) / 2, (doorZ0 + doorZ1) / 2);
       headerMesh.rotation.y = -Math.PI / 2;
       root.add(headerMesh);
+      receivers.push(headerMesh);
     }
 
     // Star ceiling points for Observatory (Room 3)
@@ -276,10 +312,14 @@ export function buildPalaceWorld(): PalaceWorld {
 
   return {
     root,
+    receivers,
     dispose() {
+      decor.dispose();
+      disposeTextures();
       for (const d of disposables) {
         d.dispose();
       }
+      disposables.length = 0;
     },
   };
 }

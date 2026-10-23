@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import type { Locus } from '../data/palace.ts';
 import type { LocusMood } from '../types.ts';
+import { buildProp, disposeProps } from './props.ts';
 
 // Shared unit geometries
 const boxGeom = new THREE.BoxGeometry(1, 1, 1);
@@ -99,8 +100,12 @@ export function buildLocusObject(locus: Locus): LocusNode {
   materials.push(goldMat);
   baseColors.push(0xd4af37);
 
-  // Construct each kind from 2 to 5 primitives
-  switch (locus.kind) {
+  const propGroup = buildProp(locus.kind, { main: mainMat, accent: accentMat, gold: goldMat });
+  if (propGroup) {
+    group.add(propGroup);
+  } else {
+    // Construct each kind from 2 to 5 primitives
+    switch (locus.kind) {
     case 'armchair':
       // Seat, backrest, arm L, arm R
       group.add(makePrimitive(boxGeom, mainMat, [0, 0.35, 0], [0.8, 0.3, 0.8]));
@@ -269,6 +274,7 @@ export function buildLocusObject(locus: Locus): LocusNode {
       group.add(makePrimitive(torusGeom, goldMat, [0, 1.0, 0], [0.68, 0.68, 0.68]));
       group.add(makePrimitive(boxGeom, goldMat, [0, 1.0, 0.04], [0.04, 0.7, 0.02], [0, 0, 0.6]));
       break;
+    }
   }
 
   // Tag all meshes with locus index for raycasting
@@ -333,4 +339,5 @@ export function disposeSharedGeometries(): void {
   sphereGeom.dispose();
   coneGeom.dispose();
   torusGeom.dispose();
+  disposeProps();
 }

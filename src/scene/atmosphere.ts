@@ -449,6 +449,7 @@ export function buildAtmosphere(
       }
 
       hemiLight.dispose();
+      dirLight.shadow.map?.texture.dispose();
       dirLight.shadow.map?.dispose();
       dirLight.dispose();
 

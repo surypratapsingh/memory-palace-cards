@@ -173,3 +173,27 @@ view.onLocusClick((idx) => {
   view.glideTo(idx);
   updateHud();
 });
+
+// Log renderer.info.render.calls in scene demo
+const demoRenderer = (view as unknown as { renderer?: { info: { render: { calls: number; triangles: number } } } }).renderer;
+if (demoRenderer) {
+  const hudEl = document.getElementById('hud');
+  let callsValEl: HTMLElement | null = null;
+  if (hudEl) {
+    const statsDiv = document.createElement('div');
+    statsDiv.className = 'status-line';
+    statsDiv.innerHTML = 'Draw Calls: <span id="calls-val" class="status-val">0</span>';
+    hudEl.appendChild(statsDiv);
+    callsValEl = document.getElementById('calls-val');
+  }
+
+  setInterval(() => {
+    const calls = demoRenderer.info.render.calls;
+    const triangles = demoRenderer.info.render.triangles;
+    if (callsValEl) {
+      callsValEl.textContent = `${calls} (${triangles} tris)`;
+    }
+    console.log(`[scene-demo] draw calls: ${calls}, triangles: ${triangles}`);
+  }, 1000);
+}
+

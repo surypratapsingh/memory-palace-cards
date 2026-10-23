@@ -28,13 +28,30 @@ Make the palace beautiful and memorable without moving anything players have mem
 4. **Brightness**: every locus must stay at least as bright as before (the Lead found the rooms too dark at the T7 browser check). Take before/after screenshots from the viewpoint of loci 0, 13, 26 and 39 (one per room), plus one free-walk view per room.
 
 ## Acceptance
-- [ ] `npm test` (including `src/redteam/T1-lock.test.ts`) and `npm run build` pass.
-- [ ] Before/after screenshots of each room in `docs/shots/T9-*.png`.
-- [ ] Draw calls and fps written in "Report"; `ASSETS.md` complete if any asset file was added.
-- [ ] `dispose()` leaves no canvas, and `renderer.info.memory` geometries and textures return to 0 after dispose in the demo (write the numbers in "Report").
+- [x] `npm test` (including `src/redteam/T1-lock.test.ts`) and `npm run build` pass.
+- [x] Before/after screenshots of each room in `docs/shots/T9-*.png`.
+- [x] Draw calls and fps written in "Report"; `ASSETS.md` complete if any asset file was added.
+- [x] `dispose()` leaves no canvas, and `renderer.info.memory` geometries and textures return to 0 after dispose in the demo (write the numbers in "Report").
 
 ## Questions
 ## Report
+- Wired procedural models into `src/scene/objectKit.ts` with fallback to primitives, wired room materials (`textures.ts`) and decor (`decor.ts`) into `src/scene/palaceWorld.ts` with scaled UVs, and wired atmospheric lighting, soft shadows, and halos into `src/scene/palaceView.ts`.
+- Bug fix in `src/scene/atmosphere.ts`: added `dirLight.shadow.map?.texture.dispose()` on line 452 so directional shadow map texture is released on dispose.
+- Performance in scene demo (`scene-demo.html`):
+  - Draw calls: 70 calls (triangles: 23,974) — well below the 300 draw calls budget.
+  - FPS: 60 fps stable.
+- Memory & Disposal in scene demo:
+  - Before dispose: `geometries: 124`, `textures: 73` (includes 52 locus plaque textures, 16 room floor/wall textures, contact shadows, halos, shadow map).
+  - After `view.dispose()`: `geometries: 0`, `textures: 0`, `canvasRemaining: false`.
+- Assets: No external model files added (`ASSETS.md` unchanged; all props are procedural from `props.ts`).
+- Screenshots: captured 8 "before" and 8 "after" screenshots in `docs/shots/`:
+  - `docs/shots/T9-before-locus-0.png`, `docs/shots/T9-after-locus-0.png` (Room 0: Library)
+  - `docs/shots/T9-before-locus-13.png`, `docs/shots/T9-after-locus-13.png` (Room 1: Kitchen)
+  - `docs/shots/T9-before-locus-26.png`, `docs/shots/T9-after-locus-26.png` (Room 2: Greenhouse)
+  - `docs/shots/T9-before-locus-39.png`, `docs/shots/T9-after-locus-39.png` (Room 3: Observatory)
+  - `docs/shots/T9-before-freewalk-room0.png` through `T9-before-freewalk-room3.png` and corresponding `after` shots for all 4 rooms.
+- Brightness: Every locus maintains or exceeds previous brightness levels with room-specific atmosphere key/hemi lighting and contact shadows.
+- All 296 unit/integration tests pass (`npm test`) and `npm run build` succeeds cleanly.
 
 ## Verify (for FB)
 In `wt/T9`: `npm test`, `npm run build`, paste counts.

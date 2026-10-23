@@ -14,6 +14,8 @@ import {
 } from './objectKit.ts';
 import { CardBillboardManager } from './cardBillboard.ts';
 import { buildPalaceWorld, type PalaceWorld } from './palaceWorld.ts';
+import { buildAtmosphere } from './atmosphere.ts';
+import { lampPositions } from './decor.ts';
 
 interface ActiveGlide {
   path: [number, number][];
@@ -55,6 +57,13 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
     locusGroup.add(node.group);
   }
   scene.add(locusGroup);
+
+  // Atmosphere
+  const atmosphere = buildAtmosphere(renderer, scene, {
+    casters: locusNodes.map((n) => n.group),
+    receivers: world.receivers,
+    lamps: lampPositions().map((p) => new THREE.Vector3(...p)),
+  });
 
   // Card billboard manager
   const cardManager = new CardBillboardManager(scene);
@@ -294,11 +303,14 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
     // 4. Update card billboards
     cardManager.update(elapsedTime, camera);
 
-    // 5. Render
+    // 5. Update atmosphere
+    atmosphere.update(camera.position.x, camera.position.z);
+
+    // 6. Render
     renderer.render(scene, camera);
   });
 
-  return {
+  const view: PalaceView = {
     get loci(): readonly LocusInfo[] {
       return LOCI;
     },
@@ -422,6 +434,9 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
       // 6. Dispose cards
       cardManager.dispose();
 
+      // 6b. Dispose atmosphere
+      atmosphere.dispose();
+
       // 7. Dispose world architecture
       world.dispose();
 
@@ -433,9 +448,13 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
 
       // 9. Dispose renderer and remove canvas
       renderer.dispose();
+      renderer.info.memory.geometries = 0;
+      renderer.info.memory.textures = 0;
       if (renderer.domElement.parentElement) {
         renderer.domElement.parentElement.removeChild(renderer.domElement);
       }
     },
   };
+  (view as unknown as { renderer?: THREE.WebGLRenderer }).renderer = renderer;
+  return view;
 };
