@@ -3,10 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b0f19" />
     <title>Memory Palace: Cards</title>
   </head>
   <body>
-    <div id="app"></div>
+    <main id="app">
+      <div id="scene" aria-hidden="true"></div>
+      <div id="ui" aria-live="polite"></div>
+      <div id="save-error" role="status" hidden>Progress could not be saved. Export a backup.</div>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
