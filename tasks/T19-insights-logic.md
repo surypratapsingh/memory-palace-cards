@@ -22,12 +22,14 @@ Turn the saved drills into a few honest, useful facts for the progress screen (T
 5. Every function is total: empty drills, drills with mismatched `answers` length, unknown card ids and NaN times give an empty or neutral result, never a throw.
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass.
-- [ ] At least 12 tests including a worked example that matches the one in MATHS.md section 12 exactly.
-- [ ] MATHS.md section 12 written.
+- [x] `npm test` and `npm run build` pass.
+- [x] At least 12 tests including a worked example that matches the one in MATHS.md section 12 exactly (20 insight tests; 316 total tests).
+- [x] MATHS.md section 12 written.
 
 ## Questions
 ## Report
+
+Implemented pure `confusions`, `weakCards`, and `speedTrend` functions in `src/insights.ts` and added 20 focused tests in `src/insights.test.ts`. Appended the formulas, exact three-drill worked example, and test names to section 12 of `MATHS.md`. Hand-checked the example: 6 order-free swaps, 1 substitution, 7/15 global misses, two weak cards at 2/3 posterior rate, and a three-point speed slope of −0.4 seconds/card/drill. Verification: `npm test` -> 316 pass, 0 fail; `npm run build` -> passed (existing Vite >500 kB chunk warning); `git diff --check` -> passed.
 
 ## Verify (for AG)
 In `wt/T19`: `npm test`, `npm run build`, paste counts.

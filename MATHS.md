@@ -140,3 +140,28 @@ Estimated bugs still hidden = `N − (n1 + n2 − m)`.
 Rule: if hidden ≥ 25% of found, run another bug-bash round after the fixes.
 Example: n1 = 12, n2 = 8, m = 4: N = 13·9/5 − 1 = 22.4, found 16, hidden ≈ 6.4 = 40% of found, so run another round.
 Caveat: AG and FB use different methods, so they find different kinds of bugs; m is then small and N overestimates. Treat N as an upper guide, not a fact.
+
+## 12. Insights (`src/insights.ts`, task T19)
+
+### Confusions
+For every valid, non-null wrong answer at index `i`, record `(expected = sequence[i], given = answers[i])`. A given card is a **swap** if it occurs at any other sequence index `j` with `|j − i| ≤ 2`; otherwise it is a **substitution**. Null, missing, malformed and correct answers add no confusion. For a swap, sort the two card IDs into deck order before grouping, so the same pair in either direction has one count. Substitutions keep their direction. Sort by count descending, then most recent occurrence timestamp descending; for equal timestamps, later drill/answer order wins. Apply the non-negative integer `limit` after sorting (default 5).
+
+### Weak cards
+Count valid tries for each valid card in all drills; a missing or null answer is a miss, and an invalid non-null answer is ignored. The player's mean is `m = total misses / total tries`. With `PRIOR_K = 5`, the posterior miss rate for card `c` is `r_c = (misses_c + PRIOR_K·m) / (tries_c + PRIOR_K)`. Include cards only when `tries_c ≥ WEAK_MIN_TRIES = 3` and `r_c − m ≥ WEAK_MARGIN = 0.15` (with the same `1e-9` boundary tolerance as weak loci). Sort by posterior rate descending, then deck order; apply the non-negative integer `limit` (default 8). No valid tries means no weak cards. The `now` argument is validated; drill history is otherwise counted without a time window.
+
+### Speed trend
+For each non-Speed-Cards drill at the requested ladder level, calculate `y = memorizeMs / 1000 / sequence.length` seconds per card. Ignore invalid timestamps, invalid card sequences, non-finite or negative times, and other levels. Sort chronologically (input order breaks equal-time ties), then retain the latest 20 values as points `y_i`, oldest first. The least-squares slope per drill is `Σ(i − x̄)(y_i − ȳ) / Σ(i − x̄)²`, for `i = 0..n−1`; with fewer than two points the slope is 0. `improving` is true only when `n ≥ 5` and slope < 0. Empty or invalid-level input returns `{ points: [], slope: 0, improving: false }`.
+
+### Worked example (also in `src/insights.test.ts`)
+All drills use sequence `[AS, 2S, 3S, 4S, 5S]`:
+
+| Drill | Memorize time | Answers |
+|---|---:|---|
+| 1 | 10,000 ms | `[2S, AS, 9S, 4S, 5S]` |
+| 2 | 8,000 ms | `[2S, AS, 3S, 4S, 5S]` |
+| 3 | 6,000 ms | `[2S, AS, 3S, 4S, 5S]` |
+
+There are six swapped errors for the order-free pair `(AS, 2S)` and one substitution `(3S, 9S)`, so `confusions` returns those pairs with counts 6 and 1, in that order. Seven of 15 card tries are misses, so `m = 7/15`; AS and 2S each have 3 tries and 3 misses, and their posterior rates are `(3 + 5·(7/15)) / (3 + 5) = 2/3`. Both exceed the mean by 0.2 and are weak; the other cards are not. At level 1 (five cards), the speed points are `[2, 1.6, 1.2]` seconds/card; the slope is `−0.4` seconds/card/drill and `improving` is false because there are only three points.
+
+### Tests
+`worked example: swap pairs are order-free and blanks are not confusions`; `worked example: weak cards use the global mean and Beta prior strength five`; `worked example: speed points are seconds per card and slope is per drill`; `confusions classifies a card within two loci as swap, but a more distant card as substitution`; `confusions preserve substitution direction and group repeated pairs`; `confusions on a reversed 52-card deck only classifies nearby placements as swaps`; `Speed Cards remain in confusion and weak-card aggregates`; `confusions breaks equal-frequency ties by most recent timestamp`; `confusions handles short and long answers without indexing beyond the sequence`; `all-null answers create no confusion pairs and count as weak-card misses`; `confusions ignores unknown ids, correct answers, nulls, empty drills, and invalid records`; `confusions limit is floored, clamped, and safe for non-finite values`; `weakCards needs three tries and an inclusive relative margin; blanks count as misses`; `weakCards ignores invalid card ids and invalid answers instead of throwing`; `weakCards ranks worst first, breaks ties in deck order, and applies its limit`; `weakCards returns an empty result for an invalid now date`; `speedTrend excludes speed drills and invalid times, and requires five samples to say improving`; `speedTrend retains only the last 20 chronologically sorted drills at the level`; `speedTrend excludes mismatched levels, malformed sequences, NaN times and negative durations`; `speedTrend is neutral for empty histories and invalid levels`.
