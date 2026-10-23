@@ -19,11 +19,14 @@ Speed Cards, the classic memory-sports event: memorize one full shuffled deck as
 6. `progress.ts`: `levelOf`, `unlockedLevel`, `recommendedLevel` and `personalBests` ignore speed drills; existing tests stay green; add tests that a speed drill does not change the recommended level.
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass.
-- [ ] MATHS.md section 13 with sources; at least 10 tests in `speed.test.ts`.
+- [x] `npm test` and `npm run build` pass.
+- [x] MATHS.md section 13 with sources; at least 10 tests in `speed.test.ts` (13 Speed Cards tests).
 
 ## Questions
+- The IAM rulebook says a partial deck records cards "up to the first mistake" without spelling out whether the error card is included. WMSC's 2020 example explicitly gives 9 when card 10 is wrong (and 42 when card 10 is wrong from the opposite end), confirming the app counts only cards before the error. IAM also leaves personal-best tie-breaks unspecified; implementation preserves the earlier tied entry.
+
 ## Report
+Implemented pure `speedScore`, `compareSpeed`, and `speedBest` with IAM-style partial-deck card counts, speed time-limit constants, and guards for malformed or out-of-range drills. Updated ladder progress so Speed Cards do not affect levels or level bests, and labelled Speed Cards shares separately. Research checked against the IAM November 2019 rulebook (official Downloads listing; PDF contents via accessible transcription) and WMSC May 2020 Speed Cards explainer / 2021 standards (archived official pages; live pages returned 403). IAM and WMSC both specify five-minute memorize and recall windows; IAM formula uses 8030 for full-deck points and `(cards/52)×111.4` for partials, while WMSC's 2021 full-deck standard uses 8007.5 and the 2020 explainer assigns a five-minute result for partial decks. Both permit checking from either end; no individual tie-break found. Verification: `npm test` -> 311 pass, 0 fail; `npm run build` -> passed (existing Vite >500 kB chunk warning); focused speed/progress tests -> 52 pass, 0 fail; `git diff --check` -> passed.
 
 ## Verify (for AG)
 In `wt/T20`: `npm test`, `npm run build`, paste counts.
