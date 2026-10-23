@@ -1,0 +1,347 @@
+.drill-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text, #f8fafc);
+  z-index: 50;
+}
+
+.drill-interactive {
+  pointer-events: auto;
+}
+
+/* Common cards & panels */
+.drill-panel {
+  background: rgba(17, 24, 39, 0.92);
+  border: 1px solid var(--border, #334155);
+  border-radius: 8px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.drill-modal-center {
+  margin: auto;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+}
+
+.drill-title {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  color: var(--accent, #38bdf8);
+}
+
+.drill-subtitle {
+  margin: 0 0 16px 0;
+  color: var(--muted, #94a3b8);
+  font-size: 1rem;
+}
+
+.drill-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.2);
+  color: var(--accent, #38bdf8);
+  margin-bottom: 12px;
+}
+
+.drill-badge.gold {
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--gold, #fbbf24);
+}
+
+/* Button styles */
+.drill-btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.drill-btn {
+  font: inherit;
+  font-weight: 600;
+  color: var(--text, #f8fafc);
+  background: var(--panel, #111827);
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.drill-btn:hover, .drill-btn:focus-visible {
+  border-color: var(--accent, #38bdf8);
+  background: #1e293b;
+}
+
+.drill-btn.primary {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #fff;
+}
+
+.drill-btn.primary:hover {
+  background: #0369a1;
+}
+
+.drill-btn.danger {
+  border-color: var(--danger, #f43f5e);
+  color: var(--danger, #f43f5e);
+}
+
+.drill-btn.danger:hover {
+  background: rgba(244, 63, 94, 0.15);
+}
+
+/* HUD elements */
+.drill-top-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+}
+
+.drill-bottom-hud {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.drill-hud-card {
+  background: rgba(17, 24, 39, 0.9);
+  border: 1px solid var(--border, #334155);
+  border-radius: 8px;
+  padding: 10px 14px;
+  backdrop-filter: blur(8px);
+}
+
+.drill-locus-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.drill-timer {
+  font-family: monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gold, #fbbf24);
+}
+
+.drill-caption-box {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--accent, #38bdf8);
+  background: rgba(15, 23, 42, 0.6);
+  font-size: 0.9rem;
+  color: var(--text, #f8fafc);
+  font-style: italic;
+}
+
+/* Card Picker */
+.card-picker-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 820px;
+  margin: 0 auto 8px auto;
+  width: 100%;
+}
+
+.picker-prompt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--muted, #94a3b8);
+}
+
+.pending-rank-pill {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--gold, #fbbf24);
+  color: #111;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.card-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.picker-row {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.picker-card {
+  flex: 1;
+  max-width: 58px;
+  height: 40px;
+  padding: 0;
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid var(--border, #334155);
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s ease;
+}
+
+.picker-card.red {
+  color: #f87171;
+}
+
+.picker-card:hover:not(:disabled) {
+  border-color: var(--accent, #38bdf8);
+  background: #334155;
+  transform: translateY(-2px);
+}
+
+.picker-card.pending-highlight {
+  border-color: var(--gold, #fbbf24);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+  background: #2e384d;
+}
+
+.picker-card.used {
+  opacity: 0.25;
+  cursor: not-allowed;
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+/* Results table */
+.results-container {
+  max-width: 680px;
+  max-height: 80vh;
+  overflow-y: auto;
+  margin: auto;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.stat-box {
+  background: #1e293b;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border, #334155);
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent, #38bdf8);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--muted, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.results-table th, .results-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #334155);
+}
+
+.results-table th {
+  color: var(--muted, #94a3b8);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.results-table tr.correct {
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.results-table tr.miss {
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.status-check {
+  color: var(--ok, #10b981);
+  font-weight: 700;
+}
+
+.status-cross {
+  color: var(--danger, #f43f5e);
+  font-weight: 700;
+}
+
+.card-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #0f172a;
+  font-weight: 700;
+  border: 1px solid var(--border, #334155);
+}
+
+.card-tag.red {
+  color: #f87171;
+}
+
+/* Confirm modal */
+.drill-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.drill-confirm-box {
+  background: var(--panel, #111827);
+  border: 1px solid var(--border, #334155);
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8);
+}
