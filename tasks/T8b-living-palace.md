@@ -81,6 +81,9 @@ Attacks tried that failed: matrix of valid/invalid router screens and events; si
    **DISPUTE / BLOCKED**:
    As noted by the verifier, `src/types.ts` is a Lead-owned contract file and `src/scene/palaceView.ts` is marked `Use (do not edit)` in this task's packet. Furthermore, the red-team test `src/redteam/T8b.test.ts:129-136` explicitly asserts that `src/types.ts` has `: void` and `src/scene/palaceView.ts` does not return a disposer. Within T8b's write scope (`src/ui/shadowWalk.ts`), unmount already guards against stale callbacks (`if (!active) return`), clears `cardsByLocus`, and calls an unsubscribe function if returned. Closing this leak requires Lead action to update the `PalaceView` contract in `src/types.ts` and implementation in `src/scene/palaceView.ts` (or deferring to Q1). Request logged under Questions; committing BLOCKED.
 
+### Lead fix (round 2, after LEAD T8b)
+- Finding 1 FIXED by Lead: `src/ui/shadowWalk.ts` calls `view.onLocusClick(handleLocusClick)` directly (cast and `typeof` check removed); unmount calls the returned disposer. Red-team fake view in `src/redteam/T8b.test.ts` now returns an unsubscribe that splices the callback. `npm test` 289 pass, `npm run build` ok.
+
 ## Verify (for FB)
 In `wt/T8b`: `npm test`, `npm run build`, paste counts.
 1. Code review: every call of `living.ts` uses `now = new Date()` at call time (not a stale date from mount); the once-a-minute timer is cleared on unmount; moods set by T8b are reset; Shadow Walk turns free walk off on exit; no locus position or order changes anywhere.

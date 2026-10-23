@@ -141,7 +141,7 @@ export function mountShadowWalk(
     }
   }
 
-  const unsubscribeLocusClick = (view.onLocusClick as unknown as (cb: (index: number) => void) => (() => void) | void)(handleLocusClick);
+  const unsubscribeLocusClick = view.onLocusClick(handleLocusClick);
 
   function leave(): void {
     if (!active) return;
@@ -170,9 +170,7 @@ export function mountShadowWalk(
 
   return () => {
     active = false;
-    if (typeof unsubscribeLocusClick === 'function') {
-      unsubscribeLocusClick();
-    }
+    unsubscribeLocusClick();
     window.removeEventListener('keydown', onKeyDown);
     exitBtn.removeEventListener('click', leave);
     clearPendingReveal();

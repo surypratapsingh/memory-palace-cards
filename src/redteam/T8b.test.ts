@@ -90,7 +90,10 @@ test('redteam T8b: Shadow Walk cleanup cancels reveal and makes any retained cal
       setFreeWalk(on: boolean): void { calls.push(`walk:${on}`); },
       clearCards(): void { calls.push('clear'); },
       showCard(_index: number, card: string | null): void { calls.push(`card:${card ?? 'hidden'}`); },
-      onLocusClick(callback: (index: number) => void): void { callbacks.push(callback); },
+      onLocusClick(callback: (index: number) => void): () => void {
+        callbacks.push(callback);
+        return () => { const i = callbacks.indexOf(callback); if (i >= 0) callbacks.splice(i, 1); };
+      },
     } as unknown as PalaceView;
     const root = new FakeElement();
     const data = emptySave();
