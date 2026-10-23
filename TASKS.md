@@ -21,18 +21,61 @@ Project: 3D memory palace game for memorizing card order. Read `plan.md` for the
 | T3 | Card-image trainer screen | FB | AG | 2.5h | 1 | - | task/T3-trainer | done |
 | T8a | Living-palace rules (weak loci, ghosts) | FB | AG | 1.5h | 2 | - | task/T8a-living-rules | done |
 | T12 | Settings screen + accessibility | FB | AG | 1.5h | 2 | T3 | task/T12-settings | done |
-| T4 | Drill: memorize and recall in 3D | AG | FB | 3h | 2 | T1 | task/T4-drill | | done |
+| T4 | Drill: memorize and recall in 3D | AG | FB | 3h | 2 | T1 | task/T4-drill | done |
 | T6 | Home screen | AG | FB | 2.5h | 2 | T5 | task/T6-home | done |
-| T7 | Integration: playable v1 | FB | AG + Lead | 2.5h | 3 | T2, T3, T4, T5, T6, T12 | task/T7-integrate | | done |
-| T10 | Deploy (CI + GitHub Pages) | FB | AG | 1h | 3 | T7 | task/T10-deploy | | done |
-| T8b | Living palace in the game | AG | FB | 2h | 4 | T7, T8a | task/T8b-living | - |
+| T7 | Integration: playable v1 | FB | AG + Lead | 2.5h | 3 | T2, T3, T4, T5, T6, T12 | task/T7-integrate | done |
+| T10 | Deploy (CI + GitHub Pages) | FB | AG | 1h | 3 | T7 | task/T10-deploy | done |
+| T8b | Living palace in the game | AG | FB | 2h | 4 | T7, T8a | task/T8b-living | done |
 | T11 | First 90 seconds (onboarding) | AG | FB | 1.5h | 4 | T8b | task/T11-first-90s | - |
-| T9 | Art and sound pass | AG | FB | 3h | 4 | T11 | task/T9-art | - |
-| Q1-AG | Bug bash: playtest search | AG | - | 1h | 5 | T9, T10 | qa/Q1-AG | - |
-| Q1-FB | Bug bash: code-audit search | FB | - | 1h | 5 | T9, T10 | qa/Q1-FB | - |
+| T9 | Scene art: props, room materials, decor, atmosphere | AG | FB | 3h | 4 | - | task/T9-art | - |
+| T13 | Card art in the UI and in 3D, card placement | FB | AG | 2.5h | 4 | - | task/T13-card-art | - |
+| T14 | Free walk: collision, physical keys, focus safety | FB | AG | 1.5h | 4 | - | task/T14-free-walk | - |
+| T15 | Sound wiring | AG | FB | 1.5h | 4 | T11 | task/T15-sound | - |
+| T16 | Browser end-to-end tests (Playwright) | FB | AG | 3h | 4 | T11 | task/T16-e2e | - |
+| T17 | Performance: code split, budgets, leak test | FB | AG | 2h | 4 | T9, T11, T13, T14, T16 | task/T17-perf | - |
+| Q1-AG | Bug bash: playtest search | AG | - | 1h | 5 | T9, T11, T13, T14, T15, T16, T17 | qa/Q1-AG | - |
+| Q1-FB | Bug bash: code-audit search | FB | - | 1h | 5 | T9, T11, T13, T14, T15, T16, T17 | qa/Q1-FB | - |
+| R1 | Release v1.0: Q1 triage and fix rows, tag v1.0 | Lead | - | - | 5 | Q1-AG, Q1-FB | main | - |
+| U1-AG | UI round 1: visual language (AG entry) | AG | FB | 3h | 6 | R1 | ui/U1-AG | - |
+| U1-FB | UI round 1: visual language (FB entry) | FB | AG | 3h | 6 | R1 | ui/U1-FB | - |
+| U1-PICK | Lead picks and merges the U1 winner | Lead | - | - | 6 | U1-AG, U1-FB | main | - |
+| U2-AG | UI round 2: home (AG entry) | AG | FB | 3h | 6 | U1-PICK | ui/U2-AG | - |
+| U2-FB | UI round 2: home (FB entry) | FB | AG | 3h | 6 | U1-PICK | ui/U2-FB | - |
+| U2-PICK | Lead picks and merges the U2 winner | Lead | - | - | 6 | U2-AG, U2-FB | main | - |
+| U3-AG | UI round 3: drill (AG entry) | AG | FB | 3.5h | 6 | U2-PICK | ui/U3-AG | - |
+| U3-FB | UI round 3: drill (FB entry) | FB | AG | 3.5h | 6 | U2-PICK | ui/U3-FB | - |
+| U3-PICK | Lead picks and merges the U3 winner | Lead | - | - | 6 | U3-AG, U3-FB | main | - |
+| U4-AG | UI round 4: trainer and settings (AG entry) | AG | FB | 3h | 6 | U3-PICK | ui/U4-AG | - |
+| U4-FB | UI round 4: trainer and settings (FB entry) | FB | AG | 3h | 6 | U3-PICK | ui/U4-FB | - |
+| U4-PICK | Lead picks and merges the U4 winner | Lead | - | - | 6 | U4-AG, U4-FB | main | - |
+| U5-AG | UI round 5: onboarding, Shadow Walk HUD, states (AG entry) | AG | FB | 3h | 6 | U4-PICK | ui/U5-AG | - |
+| U5-FB | UI round 5: onboarding, Shadow Walk HUD, states (FB entry) | FB | AG | 3h | 6 | U4-PICK | ui/U5-FB | - |
+| U5-PICK | Lead picks and merges the U5 winner | Lead | - | - | 6 | U5-AG, U5-FB | main | - |
+| T18 | Palace map component | AG | FB | 1.5h | 7 | - | task/T18-map | - |
+| T19 | Insights logic: confusions, weak cards, speed trend | FB | AG | 2h | 7 | - | task/T19-insights | - |
+| T20 | Speed Cards rules and scoring | FB | AG | 2h | 7 | - | task/T20-speed | - |
+| T21 | Journey trainer logic | FB | AG | 2h | 7 | - | task/T21-journey | - |
+| T22 | Achievements logic | FB | AG | 1.5h | 7 | T20, T21 | task/T22-achievements | - |
+| T23 | Installable and offline (PWA) | FB | AG | 2h | 7 | R1 | task/T23-pwa | - |
+| T24 | Progress screen: map, insights, achievements | AG | FB | 2.5h | 7 | T18, T19, T22, U2-PICK | task/T24-progress-screen | - |
+| T25 | Speed Cards mode | AG | FB | 2.5h | 7 | T20, U3-PICK | task/T25-speed-mode | - |
+| T26 | Journey trainer screen | AG | FB | 2.5h | 7 | T18, T21, U2-PICK | task/T26-journey-screen | - |
+| Q2-AG | Bug bash v1.1: playtest search | AG | - | 1h | 7 | T23, T24, T25, T26, U5-PICK | qa/Q2-AG | - |
+| Q2-FB | Bug bash v1.1: code-audit search | FB | - | 1h | 7 | T23, T24, T25, T26, U5-PICK | qa/Q2-FB | - |
+| R2 | Release v1.1: Q2 triage and fix rows, tag v1.1 | Lead | - | - | 7 | Q2-AG, Q2-FB | main | - |
+| C2 | PAO contract (types, store, MATHS ladder) | Lead | - | - | 8 | R2 | main | - |
+| T27 | PAO system: data and logic | FB | AG | 2.5h | 8 | C2 | task/T27-pao | - |
+| T28 | PAO trainer | FB | AG | 2h | 8 | T27 | task/T28-pao-trainer | - |
+| T29 | PAO drill in the palace | AG | FB | 3h | 8 | T27 | task/T29-pao-drill | - |
+| Q3-AG | Bug bash v1.2: playtest search | AG | - | 1h | 8 | T28, T29 | qa/Q3-AG | - |
+| Q3-FB | Bug bash v1.2: code-audit search | FB | - | 1h | 8 | T28, T29 | qa/Q3-FB | - |
+| R3 | Release v1.2: Q3 triage and fix rows, tag v1.2 | Lead | - | - | 8 | Q3-AG, Q3-FB | main | - |
 
-Estimated build 30h + verification 11h + bug bash and fixes 4h = about 45 agent-hours (AG ≈ 24h, FB ≈ 21h).
-Q1 fix tasks are added here by the Lead after the bug-bash search (`tasks/Q1-bug-bash.md`).
+Waves 0-3 (done): about 45 agent-hours. Waves 4-8 (planned 2026-10-23): build about 82h (AG ≈ 36h, FB ≈ 46h) plus verification and bug bashes, about 115 agent-hours. Roadmap and dependency graph: `plan.md` "Roadmap".
+
+**Board order is priority order.** `mesh next` gives each agent the first row it builds whose Needs are met, so v1 rows come first and the v1.1 logic rows (T18-T22) are filler for idle time. Wave 6 rows build one screen per round: both agents design the same screen, rate each other with `docs/design-rubric.md`, and the Lead picks the winner (`tasks/U1-visual-language.md`, "How a Wave 6 round works").
+
+**Lead gates** (Build = Lead, Verify `-`): `R1`-`R3`, `U1-PICK`-`U5-PICK`, `C2`. A gate is done when main has a commit whose subject starts with `<ID>: ` (for example `U1-PICK: AG entry wins`). At a PICK the Lead merges the winner, sets both entry rows' Status to `done`, removes both worktrees, and adds +5 to the winner's score. At an R gate the Lead triages the bug lists, adds fix rows above the gate (and to its Needs), and tags the release when they are done. Contract C1 (`DrillResult.mode`, `SaveData.journey`) is already in main.
 
 **Live state comes from git, not from the Status column.** Run `node scripts/mesh.mjs status`. States: `todo`, `in-progress`, `review` (verifier's turn), `fix` (builder's turn), `verified`, `blocked` / `lead` (the Lead must act), `done` (merged into main).
 A task may start when every task in "Needs" is `verified` or `done`. `mesh next` prints the commands that merge verified dependency branches into the new task branch.
@@ -93,8 +136,8 @@ The verifier's job is to **break** the builder's work, not to approve it. A PASS
 
 | Agent | Score | Notes |
 |---|---|---|
-| AG | 17 | M1 verify: 1 S1 + 6 S2 confirmed (+15). T6 PASS in round 2 (+1). T1 passed by the Lead in round 4 (+0). T4 PASS in round 2 (+1). T7, T10 verify: no findings (+0); the T10 red-team test broke clean CI (fixed by the Lead). |
-| FB | 34 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). T6 verify: S2 + S3 confirmed, 1 S3 rejected (+2). T1 verify: 2 S2 + 1 S3 confirmed, round-3 S2 rejected (+4). T4 verify: 3 S2 + 1 S3 confirmed (+7). Round-1 PASS on T7, T10 (+6). |
+| AG | 17 | M1 verify: 1 S1 + 6 S2 confirmed (+15). T6 PASS in round 2 (+1). T1 passed by the Lead in round 4 (+0). T4 PASS in round 2 (+1). T7, T10 verify: no findings (+0); the T10 red-team test broke clean CI (fixed by the Lead). T8b PASS in round 3 after a Lead fix (+0). |
+| FB | 36 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). T6 verify: S2 + S3 confirmed, 1 S3 rejected (+2). T1 verify: 2 S2 + 1 S3 confirmed, round-3 S2 rejected (+4). T4 verify: 3 S2 + 1 S3 confirmed (+7). Round-1 PASS on T7, T10 (+6). T8b verify: S2 callback leak confirmed (+2; the round-2 repeat of it counts once). |
 
 ## Queue prompts (the user pastes these; every copy is the same)
 

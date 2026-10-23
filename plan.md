@@ -72,7 +72,46 @@ A desktop web game where you walk a 3D memory palace and use it to memorize the 
 - [x] Wave 1: M1 maths audit, T1 3D palace, T5 progress + staircase, T2 card images, T3 trainer
 - [x] Wave 2: T8a living rules, T12 settings, T4 drill, T6 home
 - [x] Wave 3: T7 integration (playable v1), T10 deploy (Pages skipped while the repo is private)
-- [ ] Wave 4: T8b living palace in game, T11 first 90 seconds, T9 art and sound
-- [ ] Wave 5: Q1 bug bash and cross-fix
-- [ ] Wave 6 (after v1 build): UI design competition, AG vs FB. One agent designs a screen, the other rates it against the design skills and suggests fixes, then they swap. Several rounds; the Lead merges the best per screen.
-- [ ] Later: user-built palaces, other ordered content, PAO (3 cards per locus), mobile
+- [x] Wave 4a: T8b living palace in game
+- [x] Contract C1 for v1.1 (`DrillResult.mode`, `SaveData.journey`), long-range board and packets for waves 4-8 (2026-10-23)
+- [ ] Wave 4: T11 first 90 seconds, T9 scene art, T13 card art + placement, T14 free walk, T15 sound, T16 e2e tests, T17 performance
+- [ ] Wave 5: Q1 bug bash and cross-fix, R1 release v1.0
+- [ ] Wave 6: UI design competition U1-U5 (visual language, home, drill, trainer + settings, onboarding + states), Lead picks per round
+- [ ] Wave 7 (v1.1): T18 palace map, T19 insights, T20 Speed Cards rules, T21 journey logic, T22 achievements, T23 PWA, T24 progress screen, T25 Speed Cards mode, T26 journey trainer; Q2, R2
+- [ ] Wave 8 (v1.2): C2 PAO contract, T27 PAO logic, T28 PAO trainer, T29 PAO drill; Q3, R3
+- [ ] Later: Numbers (Major system) on the same palace, a second palace wing for two-deck drills (new loci after 51, old loci never move), user-built palaces, other ordered content, mobile layout
+
+## Roadmap (planned 2026-10-23)
+Board order in TASKS.md is priority order; `mesh next` hands each agent the first row it can build. Lead gates (R1-R3, U1-PICK to U5-PICK, C2) are rows the Lead closes with a `<ID>: ` commit on main.
+
+### Dependency graph
+```
+v1.0   T11 ─┬─ T15 ───────────────────────┐
+            └─ T16 ─┐                      │
+       T9 ──────────┼─ T17 ────────────────┼─ Q1-AG, Q1-FB ── R1 (tag v1.0)
+       T13 ─────────┤                      │
+       T14 ─────────┘                      │
+UI     R1 ─ U1 ─ U1-PICK ─ U2 ─ U2-PICK ─ U3 ─ U3-PICK ─ U4 ─ U4-PICK ─ U5 ─ U5-PICK
+v1.1   T18 ─────────────┬─ T24 (also T19, T22, U2-PICK)
+       T19 ─────────────┘
+       T20 ─┬─ T22 ─────── T24
+            └─ T25 (also U3-PICK)
+       T21 ─┬─ T22
+            └─ T26 (also T18, U2-PICK)
+       R1 ── T23
+       T23, T24, T25, T26, U5-PICK ── Q2-AG, Q2-FB ── R2 (tag v1.1)
+v1.2   R2 ── C2 ── T27 ─┬─ T28 ─┐
+                        └─ T29 ─┴─ Q3-AG, Q3-FB ── R3 (tag v1.2)
+```
+Critical path to v1.0: T11 -> T16 -> T17 -> Q1 -> fix rows -> R1 (about 8 agent-hours of wall time if the Lead merges promptly). T9, T13 and T14 run in parallel with it.
+
+### Lanes (build hours, waves 4-8)
+- AG (3D, screens, browser): T9 3h, T15 1.5h, T18 1.5h, U1-U5 entries about 15h, T24 2.5h, T25 2.5h, T26 2.5h, T29 3h. About 31h build plus verifying FB's work.
+- FB (logic, tests, CI, integration): T13 2.5h, T14 1.5h, T16 3h, T17 2h, T19 2h, T20 2h, T21 2h, T22 1.5h, T23 2h, U1-U5 entries about 15h, T27 2.5h, T28 2h. About 38h build plus verifying AG's work.
+- Filler: FB's v1.1 logic rows (T18-T22) sit after the Wave 6 rows on the board, so they fill FB's idle time during Lead gates without delaying v1 or the UI rounds. AG's v1.1 screens need a U pick, so they fill AG's waits between later UI rounds.
+
+### Risks and answers
+- Merge conflicts in `palaceView.ts` (T9 atmosphere lines, T13 glideTo target, T14 free-walk code): each packet names its lines; the Lead merges in board order and resolves.
+- UI rounds stall on the Lead: each PICK is a short Lead turn; the agents' fillers keep them busy meanwhile.
+- e2e flakiness (WebGL in headless chromium): T16 retries once in CI; Q1/Q2 FB charters run the suite several times.
+- Speed Cards rules: T20 must cite the WMSC and IAM rule documents; no guessed rules.

@@ -1,6 +1,7 @@
 # Q1 - Bug bash and cross-fix round
 
-- AG and FB, 2h each | Wave 5 (after T9 and T10 are verified) | Branches: `qa/Q1-AG`, `qa/Q1-FB` | Worktrees: `wt/Q1-AG`, `wt/Q1-FB`
+- AG and FB, 2h each | Wave 5 (after T9, T11, T13, T14, T15, T16 and T17 are verified; Lead 2026-10-23) | Branches: `qa/Q1-AG`, `qa/Q1-FB` | Worktrees: `wt/Q1-AG`, `wt/Q1-FB`
+- When the search is done, commit `Q1-AG: search done, <n> bugs` (or `Q1-FB: ...`). FB also runs `npm run e2e` (T16) as part of its charter. After triage the Lead adds the fix rows above `R1` on the board; `R1` (Lead) is the v1.0 release.
 
 ## Goal
 Find the bugs that single-task verification missed, estimate how many are still hidden (`MATHS.md` section 11), and fix them.

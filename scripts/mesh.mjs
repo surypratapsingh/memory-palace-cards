@@ -44,7 +44,10 @@ export function stateFrom(t, branchExists, subjects, main) {
 /** Priority: fix own work, continue own build, verify the other agent, start the next own build. */
 export function pickJob(agent, tasks, st) {
   const missing = (t) => t.needs.filter((id) => !READY.includes(st.get(id)?.state));
-  const find = (state, role) => tasks.find((t) => t[role] === agent && st.get(t.id).state === state && !missing(t).length);
+  // Paired entries (U1-AG vs U1-FB): rate the rival's entry only after building your own, so nobody copies it.
+  const ownEntryOpen = (t) => ['todo', 'in-progress'].includes(st.get(t.id.replace(/-(AG|FB)$/, `-${agent}`))?.state);
+  const find = (state, role) =>
+    tasks.find((t) => t[role] === agent && st.get(t.id).state === state && !missing(t).length && !(role === 'verify' && ownEntryOpen(t)));
   const now = find('fix', 'build') ? ['FIX', find('fix', 'build')]
     : find('in-progress', 'build') ? ['CONTINUE', find('in-progress', 'build')]
     : find('review', 'verify') ? ['VERIFY', find('review', 'verify')]

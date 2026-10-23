@@ -1,6 +1,14 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-23 - Lead: T8b merged; roadmap and 31 new tasks for waves 4-8
+- Done: FB passed T8b in round 3; merged into main and pushed (8e1cbe8). Score: AG 17 (+0, PASS after a Lead fix), FB 36 (+2, S2 callback leak).
+- Done: advanced plan. `plan.md` Roadmap has the dependency graph, lanes and risks for waves 4-8 (v1.0, UI competition, v1.1, v1.2). TASKS.md board has 57 rows in priority order. New packets: T13 card art, T14 free walk, T15 sound, T16 e2e (Playwright), T17 performance, T18-T26 (v1.1), T27-T29 (PAO, v1.2), Q2, Q3, U1-U5 (two entries each plus a Lead PICK). T9 is now scene art only. `docs/design-rubric.md` for the UI rounds. 7 decisions recorded.
+- Done: contract C1 (`DrillResult.mode`, `SaveData.journey`) in `src/types.ts`, kept by `store.ts`, tests added. `mesh.mjs`: an agent rates the rival's UI entry only after building its own (test added).
+- In progress: T11 (first 90 seconds) is built and waits for FB's verify.
+- Next for the Lead: on each Lead turn run `node scripts/mesh.mjs status`, merge verified rows in board order, browser check T9/T11/T13/T14 (the cut-off 3D card and the picker over the locus are T13's job). After T16 merges, run `npm run e2e` at every merge. Close gate rows with a main commit `<ID>: ...`: R1 after Q1 triage (add fix rows above R1 first, tag v1.0), U1-PICK to U5-PICK (merge the winner, set both entry rows to done, remove worktrees, +5), R2 then C2 (write the PAO contract from `tasks/T27-pao-logic.md`), R3.
+- Blockers: none. The user pastes the same queue prompts as before (TASKS.md); more copies are needed because the board now has about 115 agent-hours.
+
 ## 2026-10-23 - Lead: T8b fix round 2 applied, FB verifies
 - Done: AG did not take its T8b fix turn, so the Lead applied finding 1 on `task/T8b-living` as commit `T8b: fix round 2` (9b89f93): `shadowWalk.ts` uses the disposer from `view.onLocusClick` directly; red-team fake view returns an unsubscribe. Tests 289 pass, build ok. Mesh state: T8b `review (round 2)`, FB job VERIFY T8b round 3.
 - In progress: FB verifies T8b.

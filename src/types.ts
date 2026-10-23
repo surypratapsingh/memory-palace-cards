@@ -32,6 +32,8 @@ export interface DrillResult {
   answers: (CardId | null)[];
   memorizeMs: number;
   recallMs: number;
+  /** Absent = normal drill (practice or daily). 'speed' = Speed Cards rules (T20, T25). Contract C1, 2026-10-23. */
+  mode?: 'speed';
 }
 
 export interface Streak {
@@ -64,6 +66,8 @@ export interface SaveData {
   locusStats: Record<number, { tries: number; misses: number }>;
   streak: Streak;
   settings: Settings;
+  /** FSRS state per locus for the journey trainer (T21, T26), key = locus index. Missing = not trained yet. Contract C1, 2026-10-23. */
+  journey?: Partial<Record<number, SrsState>>;
 }
 
 // ---- 3D palace view (implemented by T1, used by T4/T7/T8) ----

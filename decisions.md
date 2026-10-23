@@ -149,3 +149,45 @@ Format per entry:
 - Context: Pages is not enabled for the private repo (API returns 404), and the user wants the repo private. Without the guard every push to main would end in a red deploy run.
 - Alternatives rejected: make the repo public (user said private); enable Pages on a paid plan (publishes the site publicly); `workflow_dispatch` only (breaks the T10 red-team test and needs a manual step later).
 - Consequences: Making the repo public turns deploys on with no other change. Another host needs its own workflow.
+
+## 2026-10-23 - Split T9 into T9 (scene art), T13 (card art), T14 (free walk), T15 (sound)
+- Decision: The 5-hour T9 becomes four tasks with narrow write scopes: T9 scene art and atmosphere (AG), T13 card faces, card textures and on-screen placement (FB), T14 free walk with collision (FB), T15 sound call sites (AG, after T11).
+- Context: T9 was the last big v1 task and only AG could build it, so FB sat idle for most of Wave 4. The parts touch different files; `palaceView.ts` is shared, but each packet names its own region.
+- Alternatives rejected: keep one T9 for AG (FB idle about 5 h); give all of T9 to FB (3D look work suits AG's browser checks).
+- Consequences: Four review cycles instead of one. The Lead merges them in board order and resolves `palaceView.ts` overlaps.
+
+## 2026-10-23 - Contract C1 applied before the v1.1 tasks
+- Decision: Add the optional fields `DrillResult.mode?: 'speed'` and `SaveData.journey?: Partial<Record<number, SrsState>>` now. `store.ts` keeps both through export/import and rejects a `journey` that is not a plain object.
+- Context: T20/T25 (Speed Cards) and T21/T26 (journey trainer) need them. Contracts change only through the Lead, and agents building in parallel need the shape fixed first.
+- Alternatives rejected: let each task add its own field (two agents editing `types.ts` at once); a separate save key per feature (a second store path to validate and export).
+- Consequences: Old saves load unchanged (both fields optional). The v1.2 PAO fields wait for contract C2 after R2.
+
+## 2026-10-23 - Playwright end-to-end tests (T16)
+- Decision: Add `@playwright/test` as a devDependency with `npm run e2e` against `vite preview`, headless chromium with SwiftShader WebGL, run in CI.
+- Context: Every UI task so far has needed a Lead browser check, and regressions between merges went unseen. Waves 6-8 add many screens.
+- Alternatives rejected: Lead-only browser checks (slow, not repeatable, Lead is the bottleneck); puppeteer (no test runner, no auto-wait, more code); no e2e (UI regressions reach main).
+- Consequences: One large devDependency and a browser download in CI. Tests select by role and text only, so the UI competition rounds cannot break them by restyling.
+
+## 2026-10-23 - Wave 6 UI competition format
+- Decision: Each round U1-U5 has two entry rows (`Ux-AG` built by AG and rated by FB, `Ux-FB` built by FB and rated by AG) and a Lead row `Ux-PICK`. The rater's round-1 verdict is CHANGES with the 5 best fixes (the improvement round); the final verdict is PASS. The Lead merges the winner and gives it +5. `mesh.mjs` gives an agent the rival's entry to rate only after its own entry is built.
+- Context: The user asked for a create/rate competition (decision of 2026-10-21). The mesh runs one task per row and verify comes before build in priority, so without the rule an agent could see the rival's design before making its own.
+- Alternatives rejected: one shared entry improved in turns (no competition, one design direction); the Lead rates both (Lead bottleneck, and the user wanted the agents to rate each other); a free-form round outside the mesh (no queue, agents idle).
+- Consequences: Five Lead PICK turns. Rounds run one after another because each uses the previous winner's tokens. Rubric in `docs/design-rubric.md`.
+
+## 2026-10-23 - Lead gate rows on the board
+- Decision: Lead decisions that block agent work are board rows with Build = Lead and Verify `-`: R1-R3 (releases v1.0, v1.1, v1.2), U1-PICK to U5-PICK, C2 (PAO contract). A gate is done when main has a commit `<ID>: ...`.
+- Context: The mesh only knows rows and commit subjects. Without gate rows, v1.1 tasks could start before v1.0 was triaged, and UI rounds could start before the previous pick.
+- Alternatives rejected: Lead edits Status by hand (easy to forget, no history); separate scheduling outside the mesh (agents would not see it).
+- Consequences: `mesh.mjs` needed no change for gates (the Verify `-` rule already existed). Bug-fix rows from a Q round are added above its R gate and to its Needs.
+
+## 2026-10-23 - Scope of v1.1 and v1.2
+- Decision: v1.1 = palace map, insights (confusions, weak cards, speed trend), Speed Cards mode with researched competition rules, journey trainer (FSRS per locus), achievements, PWA/offline, progress screen. v1.2 = PAO (3 cards per locus). Later = Numbers (Major system), a second palace wing for two-deck drills, user-built palaces, mobile.
+- Context: The user asked for a long task list with advanced planning. These features reuse the existing palace, FSRS and drill code and do not move any locus.
+- Alternatives rejected: Numbers before PAO (new image set and new content type, larger change); user-built palaces in v1.1 (breaks the fixed-loci rule and needs an editor); accounts or leaderboards (needs a backend, out of scope).
+- Consequences: About 82 build hours across waves 4-8 (`plan.md` Roadmap). PAO needs contract C2 after R2.
+
+## 2026-10-23 - Bundle budgets (T17)
+- Decision: The 3D palace loads by dynamic import. `scripts/budget.mjs` fails the build when the entry chunk is over 60 kB gzip, the total is over 200 kB gzip, or any asset is over 1 MB.
+- Context: Today one chunk is 639 kB minified (164 kB gzip) and Vite warns on every build. The home screen needs none of three.js.
+- Alternatives rejected: raise Vite's warning limit (hides the problem); manual chunks only (no guard against growth); no budget.
+- Consequences: Home paints before three.js loads; the scene needs a loading and error state (U5 styles them).

@@ -77,6 +77,11 @@ function parse(text: string): SaveData {
     throw new Error('Not a memory palace save file');
   }
 
+  // journey must be an object (not null, not array) when present (contract C1)
+  if (Object.hasOwn(obj, 'journey') && (obj.journey === null || typeof obj.journey !== 'object' || Array.isArray(obj.journey))) {
+    throw new Error('Not a memory palace save file');
+  }
+
   // d is validated; build result object with literal version
   const src = d as Record<string, unknown>;
   const result: SaveData = {
@@ -97,6 +102,7 @@ function parse(text: string): SaveData {
       captions: 'captions' in src.settings ? Boolean(src.settings.captions) : true,
     } : { glideMs: 600, sound: false, colorSafe: false, captions: true },
   };
+  if (src.journey != null) result.journey = src.journey as Partial<Record<number, SrsState>>;
   return result;
 }
 

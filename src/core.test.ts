@@ -4,6 +4,7 @@ import { CARD_IMAGES } from './data/cardImages.ts';
 import { DECK, cardLabel, deal, isCardId, localDay, score } from './deck.ts';
 import { Rating, isDue, newSrs, recall, review, strength } from './srs.ts';
 import { emptySave, importJson, load, save, setSaveErrorHandler } from './store.ts';
+import type { SaveData } from './types.ts';
 
 const fakeStorage = () => {
   const m = new Map<string, string>();
@@ -60,6 +61,15 @@ test('store: round trip, corrupt save kept, bad import rejected', () => {
   const old = importJson('{"version":1,"srs":{},"drills":[],"settings":{"sound":true}}');
   assert.equal(old.settings.sound, true);
   assert.equal(old.settings.glideMs, 600, 'missing settings get defaults');
+  assert.equal(Object.hasOwn(old, 'journey'), false, 'old saves get no journey key');
+
+  // Contract C1: journey and drill mode survive a round trip; a bad journey is rejected.
+  const c1 = { ...emptySave(), journey: { 3: { due: '2026-10-23T00:00:00.000Z' } } } as unknown as SaveData;
+  c1.drills.push({ at: '', seed: 's', daily: false, sequence: [], answers: [], memorizeMs: 0, recallMs: 0, mode: 'speed' });
+  const back = importJson(JSON.stringify(c1));
+  assert.deepEqual(back.journey, c1.journey);
+  assert.equal(back.drills[0].mode, 'speed');
+  assert.throws(() => importJson('{"version":1,"srs":{},"drills":[],"journey":[]}'), /save file/);
 
   let err: unknown = null;
   setSaveErrorHandler((e) => (err = e));

@@ -53,3 +53,18 @@ test('jobs: fix, continue, verify, build, wait, done', () => {
   set('T4', 'done');
   assert.equal(pickJob('AG', tasks, st).kind, 'ALL DONE');
 });
+
+test('paired UI entries: build your own before rating the rival', () => {
+  const st = new Map(tasks.map((t) => [t.id, { state: 'done', round: 0 }]));
+  const set = (id, state) => st.set(id, { state, round: 0 });
+  for (const id of ['U1-AG', 'U1-FB', 'U1-PICK']) set(id, 'todo');
+  set('U1-FB', 'review');
+  assert.deepEqual([pickJob('AG', tasks, st).kind, pickJob('AG', tasks, st).t.id], ['BUILD', 'U1-AG'], 'no peeking at U1-FB first');
+  set('U1-AG', 'in-progress');
+  assert.equal(pickJob('AG', tasks, st).kind, 'CONTINUE');
+  set('U1-AG', 'review');
+  assert.deepEqual([pickJob('AG', tasks, st).kind, pickJob('AG', tasks, st).t.id], ['VERIFY', 'U1-FB']);
+  set('U1-FB', 'todo');
+  set('T1', 'review');
+  assert.deepEqual([pickJob('FB', tasks, st).kind, pickJob('FB', tasks, st).t.id], ['VERIFY', 'T1'], 'unpaired tasks unaffected');
+});
