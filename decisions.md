@@ -143,3 +143,9 @@ Format per entry:
 - Context: The user wants a better UI and asked for a create/rate competition, later, after the build.
 - Alternatives rejected: Lead designs every screen alone (one point of view, slower); start now (would collide with T7/T9/T11 still in the queue).
 - Consequences: Needs a scoring rubric and per-screen task packets when Wave 5 is done. Gemini's motion kit is the shared base.
+
+## 2026-10-23 - Pages workflow skips while the repo is private
+- Decision: `pages.yml` keeps its push-to-main trigger, but its build job has `if: ${{ !github.event.repository.private }}`, so build and deploy are skipped while the repo is private. `ci.yml` still tests every push.
+- Context: Pages is not enabled for the private repo (API returns 404), and the user wants the repo private. Without the guard every push to main would end in a red deploy run.
+- Alternatives rejected: make the repo public (user said private); enable Pages on a paid plan (publishes the site publicly); `workflow_dispatch` only (breaks the T10 red-team test and needs a manual step later).
+- Consequences: Making the repo public turns deploys on with no other change. Another host needs its own workflow.
