@@ -187,6 +187,15 @@ export function mountDrill(
       subtitle.textContent = 'Press Space or click Start to begin memorizing.';
       panel.appendChild(subtitle);
 
+      if (currentData.drills.length < 3) {
+        const hint = document.createElement('p');
+        hint.className = 'drill-subtitle drill-hint';
+        hint.style.fontStyle = 'italic';
+        hint.style.color = 'var(--accent, #38bdf8)';
+        hint.textContent = 'Hint: Take a breath. You will travel from locus to locus along the route.';
+        panel.appendChild(hint);
+      }
+
       if (weak.length > 0) {
         const weakBox = document.createElement('div');
         weakBox.className = 'drill-weak-container';
@@ -281,6 +290,18 @@ export function mountDrill(
       locusCard.appendChild(locusBadge);
       locusCard.appendChild(locusTitle);
       locusCard.appendChild(captionBox);
+
+      if (currentData.drills.length < 3) {
+        const hint = document.createElement('div');
+        hint.className = 'drill-caption-box drill-hint';
+        hint.style.display = 'block';
+        hint.style.marginTop = '6px';
+        hint.style.fontStyle = 'italic';
+        hint.style.color = 'var(--accent, #38bdf8)';
+        hint.textContent = 'Hint: See the image AT the object. Make it big and strange.';
+        locusCard.appendChild(hint);
+      }
+
       topHud.appendChild(locusCard);
 
       const rightHud = document.createElement('div');
@@ -530,6 +551,18 @@ export function mountDrill(
 
       promptDiv.appendChild(promptText);
       promptDiv.appendChild(pendingPill);
+
+      if (currentData.drills.length < 3) {
+        const hint = document.createElement('div');
+        hint.className = 'drill-subtitle drill-hint';
+        hint.style.margin = '4px 0 0 0';
+        hint.style.fontSize = '0.9rem';
+        hint.style.fontStyle = 'italic';
+        hint.style.color = 'var(--accent, #38bdf8)';
+        hint.textContent = 'Recall: walk the route in your mind, the cards are still there.';
+        promptDiv.appendChild(hint);
+      }
+
       pickerPanel.appendChild(promptDiv);
 
       const picker = createCardPicker({
@@ -746,6 +779,15 @@ export function mountDrill(
       subtitle.className = 'drill-subtitle';
       subtitle.textContent = `Level ${level} · ${total} cards${daily ? ' · Daily Deck' : ''}`;
       panel.appendChild(subtitle);
+
+      if (currentData.drills.length < 3) {
+        const hint = document.createElement('p');
+        hint.className = 'drill-subtitle drill-hint';
+        hint.style.fontStyle = 'italic';
+        hint.style.color = 'var(--accent, #38bdf8)';
+        hint.textContent = 'Hint: Two perfect drills advance you to the next level on the ladder.';
+        panel.appendChild(hint);
+      }
 
       // Summary stats grid
       const statsGrid = document.createElement('div');
