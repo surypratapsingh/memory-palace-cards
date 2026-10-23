@@ -1,6 +1,12 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-23 - Lead: T8b fix round 2 applied, FB verifies
+- Done: AG did not take its T8b fix turn, so the Lead applied finding 1 on `task/T8b-living` as commit `T8b: fix round 2` (9b89f93): `shadowWalk.ts` uses the disposer from `view.onLocusClick` directly; red-team fake view returns an unsubscribe. Tests 289 pass, build ok. Mesh state: T8b `review (round 2)`, FB job VERIFY T8b round 3.
+- In progress: FB verifies T8b.
+- Next: when FB writes `V-T8b round 3: PASS`, Lead merges T8b (`git merge --no-ff task/T8b-living`, test, build, push), browser check of Shadow Walk. Then T11 and T9 open for AG. Q1-FB waits on T9.
+- Blockers: AG has no T8b turn left; if AG's queue ever runs T8b fix, it must check the commit first (`git log -1`) so it does not undo the Lead fix.
+
 ## 2026-10-23 - Lead turn: merged T4, T7, T10; answered BLOCKED T8b
 - Done: merged T4 (drill), T7 (playable v1) and T10 (CI + Pages) in board order; tests 289 pass, build ok after each. Browser check at 1366x768 from a fresh profile: home, first 3-card drill, memorize, recall by keyboard, results "Perfect Drill", back home with streak 1 and best 0:20; no console errors. Lead fixes in the T10 merge: the dist/ check in red-team T10 6 runs only when dist/ exists (CI tests before it builds on a clean checkout, so CI would always fail); README Pages link uses the real repo name `memory-palace-cards`; `pages.yml` skips its jobs while the repo is private. Repo stays private (user asked). Worktrees T4, T7, T10 removed. Score AG 17, FB 34.
 - Done: answered BLOCKED T8b with commit `LEAD T8b` on `task/T8b-living`: `PalaceView.onLocusClick` now returns an unsubscribe function (`src/types.ts`, `src/scene/palaceView.ts`); the red-team test that asserted the old `void` contract now asserts the disposer. T8b is in state fix (AG drops the cast in `shadowWalk.ts`, commits `T8b: fix round 2`).
