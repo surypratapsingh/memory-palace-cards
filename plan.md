@@ -69,9 +69,9 @@ A desktop web game where you walk a 3D memory palace and use it to memorize the 
 - [x] Queue coordinator `scripts/mesh.mjs` and identical queue prompts
 - [x] Gemini round 1: motion kit, room textures, room decor (in main)
 - [x] Gemini round 2: card art (D), walk collision (E), atmosphere and decor v2 (F) (in main; wired by T9); prompts in tasks/gemini-argon.md
-- [ ] Wave 1: M1 maths audit, T1 3D palace, T5 progress + staircase, T2 card images, T3 trainer
-- [ ] Wave 2: T8a living rules, T12 settings, T4 drill, T6 home
-- [ ] Wave 3: T7 integration (playable v1), T10 deploy
+- [x] Wave 1: M1 maths audit, T1 3D palace, T5 progress + staircase, T2 card images, T3 trainer
+- [x] Wave 2: T8a living rules, T12 settings, T4 drill, T6 home
+- [x] Wave 3: T7 integration (playable v1), T10 deploy (Pages skipped while the repo is private)
 - [ ] Wave 4: T8b living palace in game, T11 first 90 seconds, T9 art and sound
 - [ ] Wave 5: Q1 bug bash and cross-fix
 - [ ] Wave 6 (after v1 build): UI design competition, AG vs FB. One agent designs a screen, the other rates it against the design skills and suggests fixes, then they swap. Several rounds; the Lead merges the best per screen.

@@ -21,10 +21,10 @@ Project: 3D memory palace game for memorizing card order. Read `plan.md` for the
 | T3 | Card-image trainer screen | FB | AG | 2.5h | 1 | - | task/T3-trainer | done |
 | T8a | Living-palace rules (weak loci, ghosts) | FB | AG | 1.5h | 2 | - | task/T8a-living-rules | done |
 | T12 | Settings screen + accessibility | FB | AG | 1.5h | 2 | T3 | task/T12-settings | done |
-| T4 | Drill: memorize and recall in 3D | AG | FB | 3h | 2 | T1 | task/T4-drill | - |
+| T4 | Drill: memorize and recall in 3D | AG | FB | 3h | 2 | T1 | task/T4-drill | | done |
 | T6 | Home screen | AG | FB | 2.5h | 2 | T5 | task/T6-home | done |
-| T7 | Integration: playable v1 | FB | AG + Lead | 2.5h | 3 | T2, T3, T4, T5, T6, T12 | task/T7-integrate | - |
-| T10 | Deploy (CI + GitHub Pages) | FB | AG | 1h | 3 | T7 | task/T10-deploy | - |
+| T7 | Integration: playable v1 | FB | AG + Lead | 2.5h | 3 | T2, T3, T4, T5, T6, T12 | task/T7-integrate | | done |
+| T10 | Deploy (CI + GitHub Pages) | FB | AG | 1h | 3 | T7 | task/T10-deploy | | done |
 | T8b | Living palace in the game | AG | FB | 2h | 4 | T7, T8a | task/T8b-living | - |
 | T11 | First 90 seconds (onboarding) | AG | FB | 1.5h | 4 | T8b | task/T11-first-90s | - |
 | T9 | Art and sound pass | AG | FB | 3h | 4 | T11 | task/T9-art | - |
@@ -93,8 +93,8 @@ The verifier's job is to **break** the builder's work, not to approve it. A PASS
 
 | Agent | Score | Notes |
 |---|---|---|
-| AG | 16 | M1 verify: 1 S1 + 6 S2 confirmed (+15). T6 PASS in round 2 (+1). T1 passed by the Lead in round 4 (+0). |
-| FB | 21 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). T6 verify: S2 + S3 confirmed, 1 S3 rejected (+2). T1 verify: 2 S2 + 1 S3 confirmed, round-3 S2 rejected (+4). |
+| AG | 17 | M1 verify: 1 S1 + 6 S2 confirmed (+15). T6 PASS in round 2 (+1). T1 passed by the Lead in round 4 (+0). T4 PASS in round 2 (+1). T7, T10 verify: no findings (+0); the T10 red-team test broke clean CI (fixed by the Lead). |
+| FB | 34 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). T6 verify: S2 + S3 confirmed, 1 S3 rejected (+2). T1 verify: 2 S2 + 1 S3 confirmed, round-3 S2 rejected (+4). T4 verify: 3 S2 + 1 S3 confirmed (+7). Round-1 PASS on T7, T10 (+6). |
 
 ## Queue prompts (the user pastes these; every copy is the same)
 

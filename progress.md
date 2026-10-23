@@ -1,6 +1,13 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-23 - Lead turn: merged T4, T7, T10; answered BLOCKED T8b
+- Done: merged T4 (drill), T7 (playable v1) and T10 (CI + Pages) in board order; tests 289 pass, build ok after each. Browser check at 1366x768 from a fresh profile: home, first 3-card drill, memorize, recall by keyboard, results "Perfect Drill", back home with streak 1 and best 0:20; no console errors. Lead fixes in the T10 merge: the dist/ check in red-team T10 6 runs only when dist/ exists (CI tests before it builds on a clean checkout, so CI would always fail); README Pages link uses the real repo name `memory-palace-cards`; `pages.yml` skips its jobs while the repo is private. Repo stays private (user asked). Worktrees T4, T7, T10 removed. Score AG 17, FB 34.
+- Done: answered BLOCKED T8b with commit `LEAD T8b` on `task/T8b-living`: `PalaceView.onLocusClick` now returns an unsubscribe function (`src/types.ts`, `src/scene/palaceView.ts`); the red-team test that asserted the old `void` contract now asserts the disposer. T8b is in state fix (AG drops the cast in `shadowWalk.ts`, commits `T8b: fix round 2`).
+- Found (for T9, written into its packet): the floating 3D card is cut off at the top of the screen and its caption is cut after two lines; the card picker hides the lower part of the locus during recall; rooms are dark until the atmosphere is wired.
+- State: T8b fix (AG), then FB verifies. T11 and T9 wait for T8b. Then Q1.
+- Next: Lead turn when T8b is verified: merge it (it carries the contract change), browser check Shadow Walk. GitHub Pages: if the user wants a public play link, they must make the repo public or pick another host; ask before changing visibility.
+
 ## 2026-10-21 16:10 - Lead: Gemini round 2 (D/E/F) merged
 - Done: `src/ui/cardArt.ts` + `src/scene/cardTexture.ts` (original SVG deck, two themes), `src/scene/collide.ts` + `src/scene/walkInput.ts` (furniture collision, sliding, no tunnelling, `KeyboardEvent.code` keys), `src/scene/atmosphere.ts` + decor v2 (tone mapping, fog, room-fitted shadows, contact shadows, lamp halos, per-room moods blended at doors), each with tests and a demo page. Took the second of two F replies. Fixed: one walk test, shadow frustum fit, decor emissive cap, darker Observatory/Library loci (measured at all 52 loci), three decor items too contrasty. Details in `tasks/gemini-argon.md` "Round 2 review". Tests 258 pass, build ok.
 - T9 packet: wire atmosphere, free walk (collide + walkInput), card faces (`cardFace` renders `cardSvg`, four-colour when colour-safe) and card textures. Est. now 5 h.
