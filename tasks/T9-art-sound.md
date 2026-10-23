@@ -51,7 +51,28 @@ Make the palace beautiful and memorable without moving anything players have mem
   - `docs/shots/T9-before-locus-39.png`, `docs/shots/T9-after-locus-39.png` (Room 3: Observatory)
   - `docs/shots/T9-before-freewalk-room0.png` through `T9-before-freewalk-room3.png` and corresponding `after` shots for all 4 rooms.
 - Brightness: Every locus maintains or exceeds previous brightness levels with room-specific atmosphere key/hemi lighting and contact shadows.
-- All 296 unit/integration tests pass (`npm test`) and `npm run build` succeeds cleanly.
+- Builder evidence: 296 unit/integration tests passed and `npm run build` succeeded; independent FB verification below runs with six added adversarial checks.
+
+## Verification (round 1)
+Verdict: CHANGES
+
+Evidence: `npm install` -> up to date, 0 vulnerabilities; `npm test` -> 302 passed, 0 failed (including `src/redteam/T1-lock.test.ts` and six `src/redteam/T9.test.ts` checks); `npm run build` -> passed, with the existing Vite >500 kB chunk warning; browser served `/scene-demo.html` and `/src/scene/palaceView.ts` (200), WebGL scene rendered at 70 draw calls / 19,682 triangles, `view.dispose()` reported 0 geometries, 0 textures, no canvas. Browser console also warns that Three.js has removed `PCFSoftShadowMap` and substitutes `PCFShadowMap`.
+
+Acceptance:
+- ✔ Palace contract unchanged: `git diff main -- src/data/palace.ts` empty; `src/redteam/T1-lock.test.ts` unchanged and passed.
+- ✘ Diff is confined to the write scope: it includes unpermitted `src/scene/demo.ts` and `src/scene/atmosphere.ts` edits. The latter is a relevant resource-disposal bug fix; demo logger is allowed. (All changed paths otherwise match scope; `palaceView.ts` diff is atmosphere setup/update/dispose only.)
+- ✔ Prop builders cover the locus kinds, return material-bound geometry and cache/dispose correctly; original primitive fallback remains in `objectKit.ts`.
+- ✔ Decor, texture/material cache and atmosphere teardown reviewed; `world.dispose()` and `atmosphere.dispose()` are idempotent; no per-frame geometry or texture construction in atmosphere `update()`.
+- ✘ Brightness is not conclusively shown to meet the explicit “at least as bright as before” requirement. Visual comparison and sampled centre-region luminance are mixed: Library 12.7→14.3, Kitchen 36.3→49.8, Greenhouse 24.2→18.7, Observatory 11.6→12.7 (before→after, 8-bit luma; same central crop). Greenhouse is dimmer and Observatory median stays near-black. Captures show one fixed view per room; despite the named free-walk files, their HUD says Guided, so they do not prove free-walk views.
+- ✘ Runtime compatibility warning: `PCFSoftShadowMap` is removed in the installed Three.js and runtime falls back to `PCFShadowMap`, so soft shadows requested by the task are not active.
+- ✔ Disposal measured in the running scene demo: 40 geometries / 8 textures before dispose, 0 / 0 after, canvas removed. (Counts differ from builder report due to renderer version/cache state; final zero is verified.)
+
+Findings:
+1. [S2] `src/scene/atmosphere.ts:338` - `THREE.PCFSoftShadowMap` is removed by the installed Three.js; browser logs “PCFSoftShadowMap has been removed. Using PCFShadowMap instead.” Consequently the promised soft shadow quality is not provided. Use a supported soft-shadow mode for this Three.js release and rerun the lighting checks.
+2. [S2] `tasks/T9-art-sound.md` brightness evidence - matched central crops are mixed (Greenhouse mean luminance decreases 24.2→18.7; Observatory remains near-black at median 2.2), so requirement 4 is not established for every room. Rebalance/test rendered luminance and provide genuinely free-walk captures before claiming all loci stay as bright as before.
+3. [S3] `src/scene/demo.ts` - debug HUD uses `innerHTML` for a static draw-call label; not user-controlled and not exploitable as written, but `createElement`/`textContent` would avoid introducing an unnecessary HTML sink.
+
+Attacks tried that failed: all 52 released locus kind mappings and viewpoint walkability; all procedural prop builders/material identities and cache reuse/reset; all texture kinds, byte buffer bounds and UV finiteness; decor mesh vertices outside declared AABBs; low sightline occlusion and door blockage; repeat world/atmosphere disposal and post-disposal texture regeneration.
 
 ## Verify (for FB)
 In `wt/T9`: `npm test`, `npm run build`, paste counts.
