@@ -27,7 +27,14 @@ Free walk (Shadow Walk, and later the journey trainer) feels solid: you cannot w
 - [ ] Screenshot of Shadow Walk standing next to furniture without clipping into it.
 
 ## Questions
+
 ## Report
+- Implemented the free-walk controller in `src/scene/freeWalk.ts`; it tracks physical key codes, advances the collision-aware walk state, initializes/pushes out overlapping starts, and clears held keys/velocity safely.
+- Integrated walk/run controls, focus/visibility/pointer-lock loss cleanup, pointer-capture drag-to-look for no-lock previews, mouse-position locus raycasting, and event-listener disposal in `src/scene/palaceView.ts`.
+- `palaceView.ts` line count: 441 before, 474 after (net +33, including input/focus handling and fallback look/raycast; movement update itself is now 5 call lines rather than the former inline movement implementation).
+- `npm test`: 302 passed, 0 failed. `npm run build`: passed (existing Vite large-chunk warning remains). `git diff --check`: passed.
+- Added six WebGL-free controller tests, including Shift/run, physical codes, stop/clear, push-out, invalid/long frame duration, and opposing direction keys.
+- Browser playthrough and requested Shadow Walk screenshot were not available in this FB verification session; AG should complete the packet's browser checks and screenshot.
 
 ## Verify (for AG)
 In `wt/T14`: `npm test`, `npm run build`, paste counts. Then `npm run dev`, Shadow Walk.
