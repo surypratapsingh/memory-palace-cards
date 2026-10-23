@@ -27,6 +27,7 @@ The palace visibly reacts to the player's memory, without ever moving a locus (d
 
 ## Questions
 - **PalaceView unsubscribe disposer contract**: FB's verification (round 2) finding 1 requires `view.onLocusClick` to return an unsubscribe function (`() => void`) that removes the callback from `clickCallbacks` in `src/scene/palaceView.ts`. Because `src/types.ts` is a Lead-owned contract file and `src/scene/palaceView.ts` is outside T8b's write scope (and guarded by FB's red-team test in `src/redteam/T8b.test.ts`), can the Lead update the contract in `src/types.ts` and `src/scene/palaceView.ts` (e.g. returning an unsubscribe closure that splices `clickCallbacks`), or authorize deferring this to Q1?
+  - **Lead answer (2026-10-23):** done in this branch. `PalaceView.onLocusClick` now returns `() => void` (`src/types.ts`), and `src/scene/palaceView.ts` returns a closure that splices the callback out of `clickCallbacks`. The red-team test that asserted the old `void` contract now asserts the unsubscribe exists. Builder: in `src/ui/shadowWalk.ts` drop the `as unknown as` cast and the `typeof ... === 'function'` check, keep the returned function and call it on unmount. Then commit `T8b: fix round 2`; FB verifies finding 1 as FIXED.
 
 ## Report
 Implemented living palace in the game using pure logic from `src/living.ts`:

@@ -126,11 +126,10 @@ test('redteam T8b: Shadow Walk cleanup cancels reveal and makes any retained cal
   }
 });
 
-test('redteam T8b: PalaceView registration currently has no unsubscribe contract', async () => {
+// Lead: the contract now returns an unsubscribe function (answer to BLOCKED T8b), so this test checks it exists.
+test('redteam T8b: PalaceView.onLocusClick returns an unsubscribe function', async () => {
   const contract = await readFile(new URL('../types.ts', import.meta.url), 'utf8');
   const implementation = await readFile(new URL('../scene/palaceView.ts', import.meta.url), 'utf8');
-  assert.match(contract, /onLocusClick\(cb: \(index: number\) => void\): void/);
-  assert.match(implementation, /onLocusClick\(cb: \(index: number\) => void\): void \{\s*clickCallbacks\.push\(cb\);/);
-  assert.doesNotMatch(implementation, /onLocusClick\(cb[\s\S]*?return \(\) =>/,
-    'unmount cannot detach this listener until the shared PalaceView contract gains an unsubscribe API');
+  assert.match(contract, /onLocusClick\(cb: \(index: number\) => void\): \(\) => void/);
+  assert.match(implementation, /onLocusClick\(cb[\s\S]*?clickCallbacks\.push\(cb\);\s*return \(\) =>[\s\S]*?clickCallbacks\.splice/);
 });

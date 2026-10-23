@@ -92,8 +92,8 @@ export interface PalaceView {
   setFreeWalk(on: boolean): void;
   /** Duration of later glideTo calls. 0 = jump instantly. */
   setGlideMs(ms: number): void;
-  /** Called when the user clicks a locus object. */
-  onLocusClick(cb: (index: number) => void): void;
+  /** Called when the user clicks a locus object. Returns a function that removes this callback. */
+  onLocusClick(cb: (index: number) => void): () => void;
   dispose(): void;
 }
 

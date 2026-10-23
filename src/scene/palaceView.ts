@@ -386,8 +386,12 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
       glideMs = Math.max(0, ms);
     },
 
-    onLocusClick(cb: (index: number) => void): void {
+    onLocusClick(cb: (index: number) => void): () => void {
       clickCallbacks.push(cb);
+      return () => {
+        const i = clickCallbacks.indexOf(cb);
+        if (i >= 0) clickCallbacks.splice(i, 1);
+      };
     },
 
     dispose(): void {
