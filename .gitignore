@@ -2,3 +2,7 @@ node_modules/
 dist/
 *.log
 .freebuff/
+/freebuff-sites-build/
+
+.vercel
+.env*

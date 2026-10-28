@@ -2,7 +2,7 @@
 
 ## Play
 
-[Play Memory Palace: Cards](https://surypratapsingh.github.io/memory-palace-cards/)
+[Play Memory Palace: Cards](https://memory-palace-cards.vercel.app/) (live on Vercel)
 
 A desktop web game that teaches the method of loci (the "memory palace") by memorizing the order of a shuffled deck of playing cards.
 You walk a 3D palace, place one vivid card image on each locus, then walk it again and recall the order.
