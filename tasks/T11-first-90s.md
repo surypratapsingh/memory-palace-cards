@@ -78,3 +78,27 @@ Write "Verification" as TASKS.md says. The Lead plays it with a stopwatch at mer
 
 ### Lead fix (round 1; AG did not take its fix turn)
 1. [S2] first win not reliable: **FIXED**. The result screen only says "★ Proved!" and "Memory champions use exactly this." for a perfect run. Otherwise it shows "Almost there", the real score and one tip, with "Try again" as the main action (Space/Enter; deals 3 new cards) and "Continue" as a secondary link (Esc). Every attempt is saved like any drill. Memorize HUD now names the card ("Locus 1 of 3: Velvet Armchair — A♣") and the image (AG's unfinished change, kept). Escape during a retry hands the saved attempt to `onComplete` instead of `onSkip`, so main's data matches storage. New test `src/ui/onboarding.test.ts` (perfect run, wrong run then retry, Escape after a saved attempt); the wrong-run test fails on the old code. `npm test` 307 pass, `npm run build` ok. Browser (fresh profile, 800x600): wrong run -> "Almost there" + Try again -> 3/3 -> "★ Proved!" -> Continue -> home with streak 1 and 2 drills saved; no console errors.
+
+## Verification (round 2)
+Verdict: PASS
+Evidence: `npm install` -> up to date, 0 vulnerabilities; `node --test src/redteam/T11-round2.test.ts` -> "tests 5, pass 5, fail 0"; `npm test` -> "tests 312, pass 312, fail 0"; `npm run build` -> tsc clean, vite "built in 460ms" (648.17 kB chunk warning only); mutation check: with only `src/ui/onboarding.ts` reverted to `eea1215`, the Lead's new `src/ui/onboarding.test.ts` wrong-run test and 3 of the 5 round-2 tests fail, and `HEAD` makes them green; live dev app `http://127.0.0.1:5185/` in a fresh incognito profile, console shows only Vite HMR messages.
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: "pass 312, fail 0", build exit 0.
+- ✔ Fresh profile to the first result screen takes 4 key presses plus picking 3 cards (welcome Space, Memorize Next, Next, Test Recall, then 3 picks), well inside the 8-press budget. On-screen timers for the failed attempt read Memorize 0:24 and Recall 0:27 (≈51 s, inflated by agent tool latency between presses); round 1 measured 38.2 s live and the fix adds no mandatory step before the first result.
+- ✔ Not shown again after the first drill: Continue -> `screen-home` with 🔥 1; reload -> `screen-home` with no `.onboarding-overlay`; the skip link reaches home with `drills.length` 0 and nothing saved (so a skipped player still gets onboarding next launch).
+- ✔ Screenshots of each step exist and still match the current UI: `docs/shots/T11-step1-welcome.png` (one primary action + skip link), `T11-step2-memorize.png` (single Next action, caption + instruction), `T11-step3-recall.png` (normal 52-card picker), `T11-step4-results.png` (shows "★ Proved!", the exact 3-of-3 line, the stat row and a single Continue). A fresh PNG of the new "Almost there" branch could not be captured because the app window was not drawn ("a tab opened while the Freebuff window is minimized or covered is not drawn"); that screen is recorded below from DOM evidence instead.
+- ✔ Round-1 [S2] fixed. Wrong run: title "Almost there", line "You remembered 0 of 3 in order. Try three new cards: see each image AT its object, big and strange.", stats 0 / 3, main action "Try again", secondary "Continue" — no "Memory champions" text and no "★ Proved!". Retry then perfect: title "★ Proved!", exact line "You remembered 3 of 3 in order. Memory champions use exactly this.", one primary button "Continue" and no "Try again". Live sequences: `7♥,8♠,8♣` answered `A♠,K♦,2♣` -> "Almost there"; retry `A♥,A♦,9♣` answered correctly -> "★ Proved!".
+- ✔ Every attempt is saved exactly once: after the wrong run + retry, `memory-palace/v1` has `drills.length` 2 with distinct seeds (`p-1793349879819-yq9yoctn`, `p-1793349945969-cnsqtc0z`) and answers, `locusStats` tries 2 / misses 1 per locus, `streak.count` 1.
+- ✔ Beginner hints remain gated on `drills.length < 3` in all four drill phases (`src/ui/drill.ts:190,294,555,783`) and the recall hint text is present on the live recall screen.
+Findings:
+(none — S1: 0, S2: 0, S3: 0)
+Attacks tried that failed:
+1. Imperfect run exits through the secondary Continue instead of retrying: one save, one completion, `skips` stays 0.
+2. Retry then Continue: exactly two drills with distinct seeds and timestamps, one completion, no partial writes.
+3. Double Space on the perfect result: one completion, one drill, streak 1 (the result listener is removed on first activation).
+4. Listener stacking across welcome -> memorize -> recall -> result -> retry -> result: exactly one window `keydown` handler at every phase and zero after leaving.
+5. Escape at the second result after two saved attempts: forwards the second sequence (not the first), keeps both drills and records no skip.
+6. Perfect result always exposes exactly one button and the exact required sentence; the imperfect branch never contains "Memory champions".
+7. Freshness predicate: a save with imported `images`/`locusStats` only still boots onboarding; any drill or SRS entry boots home (round-1 red-team, re-run green).
+8. Skip link and Escape on welcome/memorize save nothing and leave no listeners (round-1 red-team, re-run green).
+9. Mutation check: reverting only `src/ui/onboarding.ts` to `eea1215` turns the Lead's wrong-run test and round-2 attacks 1, 2 and 5 red; restoring `HEAD` turns them green.
