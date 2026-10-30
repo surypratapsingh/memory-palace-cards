@@ -191,3 +191,15 @@ Format per entry:
 - Context: Today one chunk is 639 kB minified (164 kB gzip) and Vite warns on every build. The home screen needs none of three.js.
 - Alternatives rejected: raise Vite's warning limit (hides the problem); manual chunks only (no guard against growth); no budget.
 - Consequences: Home paints before three.js loads; the scene needs a loading and error state (U5 styles them).
+
+## 2026-10-30 - Hosting on Vercel
+- Decision: The game is served from Vercel (https://memory-palace-cards.vercel.app/). The user set it up (commit 1087114). The repo stays private and GitHub Pages stays off; `pages.yml` keeps skipping its jobs.
+- Context: Pages on a private repo needs a paid plan or a public repo; the user wants the repo private.
+- Alternatives rejected: make the repo public for Pages (user said no); Netlify or Cloudflare Pages (no reason to switch from what the user chose).
+- Consequences: Red-team test T10 6 now accepts any https link in the README "Play" section instead of only a github.io link.
+
+## 2026-10-30 - Neutral tone mapping in the palace (T9)
+- Decision: `atmosphere.ts` uses `THREE.NeutralToneMapping` with per-room exposure (Library 1.75, Kitchen 1.25, Greenhouse 1.65, Observatory 2.0 with hemisphere 2.5), and `PCFShadowMap` with `shadow.radius = 3` for soft shadows.
+- Context: With ACES the dark loci went near black (locus 0 mean luma 11.5 on main, 2.2 with ACES), failing "every locus at least as bright as before". three r186 removed `PCFSoftShadowMap`.
+- Alternatives rejected: keep ACES and raise exposure (needs very high exposure, bright loci wash out); no tone mapping (harsh highlights on lamps and halos); VSM shadows (light bleeding, more cost).
+- Consequences: Measured at all 52 loci, every locus is at least as bright as main (min ratio 1.01). Any later lighting change must rerun that check (method in `tasks/T9-art-sound.md`, "Lead fix").

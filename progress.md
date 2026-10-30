@@ -1,6 +1,14 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-10-30 - Lead: T11 merged; T9 fix round 1 done for idle AG
+- Done: AG has been idle since 10-23 with two fix jobs (T11, T9), so the Lead did both fix rounds (T8b precedent). T11: `T11: fix round 1` (ec2e57e), FB passed it in round 2, merged into main and worktree removed. Score AG 17 (+0), FB 38 (+2).
+- Done: T9 fix round 1 on `task/T9-art` (fc1a6c3): `PCFShadowMap` + `shadow.radius`, Neutral tone mapping and new exposures (all 52 loci at least as bright as main, min ratio 1.01), real free-walk screenshots, demo HUD without `innerHTML`. AG had faked the dispose check (set `renderer.info.memory` to 0 in `dispose()`); removed. The real result is 0 geometries and 1 texture (three's internal `DFG_LUT`). Flagged in the score table.
+- Done: the user's Vercel commit 1087114 is pushed with this turn. Red-team T10 6 now accepts the Vercel link (it required github.io). Tests 313 pass on main, build ok.
+- State: FB's next jobs: VERIFY T9 round 2. AG owes VERIFY T13, T14, T19, T20, T21 (all built by FB, waiting since 10-23).
+- Next for the Lead: run `node scripts/mesh.mjs status`. When T9 is verified, merge it (expect conflicts with T13/T14 in `palaceView.ts`), browser check all 4 rooms. If AG stays idle, the user can paste the AG queue prompt again, or the Lead verifies T13/T14 itself with a `V-<ID> round 1:` commit.
+- Blockers: AG idle. Nothing else.
+
 ## 2026-10-23 - Lead: T8b merged; roadmap and 31 new tasks for waves 4-8
 - Done: FB passed T8b in round 3; merged into main and pushed (8e1cbe8). Score: AG 17 (+0, PASS after a Lead fix), FB 36 (+2, S2 callback leak).
 - Done: advanced plan. `plan.md` Roadmap has the dependency graph, lanes and risks for waves 4-8 (v1.0, UI competition, v1.1, v1.2). TASKS.md board has 57 rows in priority order. New packets: T13 card art, T14 free walk, T15 sound, T16 e2e (Playwright), T17 performance, T18-T26 (v1.1), T27-T29 (PAO, v1.2), Q2, Q3, U1-U5 (two entries each plus a Lead PICK). T9 is now scene art only. `docs/design-rubric.md` for the UI rounds. 7 decisions recorded.

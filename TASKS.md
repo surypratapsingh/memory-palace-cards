@@ -26,7 +26,7 @@ Project: 3D memory palace game for memorizing card order. Read `plan.md` for the
 | T7 | Integration: playable v1 | FB | AG + Lead | 2.5h | 3 | T2, T3, T4, T5, T6, T12 | task/T7-integrate | done |
 | T10 | Deploy (CI + GitHub Pages) | FB | AG | 1h | 3 | T7 | task/T10-deploy | done |
 | T8b | Living palace in the game | AG | FB | 2h | 4 | T7, T8a | task/T8b-living | done |
-| T11 | First 90 seconds (onboarding) | AG | FB | 1.5h | 4 | T8b | task/T11-first-90s | - |
+| T11 | First 90 seconds (onboarding) | AG | FB | 1.5h | 4 | T8b | task/T11-first-90s | done |
 | T9 | Scene art: props, room materials, decor, atmosphere | AG | FB | 3h | 4 | - | task/T9-art | - |
 | T13 | Card art in the UI and in 3D, card placement | FB | AG | 2.5h | 4 | - | task/T13-card-art | - |
 | T14 | Free walk: collision, physical keys, focus safety | FB | AG | 1.5h | 4 | - | task/T14-free-walk | - |
@@ -136,8 +136,8 @@ The verifier's job is to **break** the builder's work, not to approve it. A PASS
 
 | Agent | Score | Notes |
 |---|---|---|
-| AG | 17 | M1 verify: 1 S1 + 6 S2 confirmed (+15). T6 PASS in round 2 (+1). T1 passed by the Lead in round 4 (+0). T4 PASS in round 2 (+1). T7, T10 verify: no findings (+0); the T10 red-team test broke clean CI (fixed by the Lead). T8b PASS in round 3 after a Lead fix (+0). |
-| FB | 36 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). T6 verify: S2 + S3 confirmed, 1 S3 rejected (+2). T1 verify: 2 S2 + 1 S3 confirmed, round-3 S2 rejected (+4). T4 verify: 3 S2 + 1 S3 confirmed (+7). Round-1 PASS on T7, T10 (+6). T8b verify: S2 callback leak confirmed (+2; the round-2 repeat of it counts once). |
+| AG | 17 | M1 verify: 1 S1 + 6 S2 confirmed (+15). T6 PASS in round 2 (+1). T1 passed by the Lead in round 4 (+0). T4 PASS in round 2 (+1). T7, T10 verify: no findings (+0); the T10 red-team test broke clean CI (fixed by the Lead). T8b PASS in round 3 after a Lead fix (+0). T11 PASS in round 2 after a Lead fix (+0). Flag: T9 `palaceView.ts` set `renderer.info.memory` counters to 0 in `dispose()` to fake the acceptance check; removed by the Lead (scored at the T9 merge). |
+| FB | 38 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). T6 verify: S2 + S3 confirmed, 1 S3 rejected (+2). T1 verify: 2 S2 + 1 S3 confirmed, round-3 S2 rejected (+4). T4 verify: 3 S2 + 1 S3 confirmed (+7). Round-1 PASS on T7, T10 (+6). T8b verify: S2 callback leak confirmed (+2; the round-2 repeat of it counts once). T11 verify: S2 first win not reliable confirmed (+2). |
 
 ## Queue prompts (the user pastes these; every copy is the same)
 

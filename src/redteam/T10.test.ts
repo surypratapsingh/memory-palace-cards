@@ -108,5 +108,6 @@ test('redteam T10 6: production dist/ build links assets relatively and README i
   assert.ok(existsSync(README_PATH), 'README.md must exist');
   const readme = readFileSync(README_PATH, 'utf8');
   assert.match(readme, /## Play/, 'README.md must have a "Play" section');
-  assert.match(readme, /https:\/\/[a-z0-9_-]+\.github\.io\/[a-z0-9_-]+/, 'README.md must include a GitHub Pages play link');
+  // Lead: the game is hosted on Vercel now (repo is private, Pages stays off), so any https play link counts.
+  assert.match(readme, /## Play\s+\[[^\]]+\]\(https:\/\/[^)\s]+\)/, 'README.md Play section must link to the live game');
 });

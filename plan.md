@@ -74,7 +74,8 @@ A desktop web game where you walk a 3D memory palace and use it to memorize the 
 - [x] Wave 3: T7 integration (playable v1), T10 deploy (Pages skipped while the repo is private)
 - [x] Wave 4a: T8b living palace in game
 - [x] Contract C1 for v1.1 (`DrillResult.mode`, `SaveData.journey`), long-range board and packets for waves 4-8 (2026-10-23)
-- [ ] Wave 4: T11 first 90 seconds, T9 scene art, T13 card art + placement, T14 free walk, T15 sound, T16 e2e tests, T17 performance
+- [x] Hosting: live on Vercel, https://memory-palace-cards.vercel.app/ (user, 2026-10-28; repo stays private, Pages stays off)
+- [ ] Wave 4: T11 first 90 seconds (done 2026-10-30), T9 scene art, T13 card art + placement, T14 free walk, T15 sound, T16 e2e tests, T17 performance
 - [ ] Wave 5: Q1 bug bash and cross-fix, R1 release v1.0
 - [ ] Wave 6: UI design competition U1-U5 (visual language, home, drill, trainer + settings, onboarding + states), Lead picks per round
 - [ ] Wave 7 (v1.1): T18 palace map, T19 insights, T20 Speed Cards rules, T21 journey logic, T22 achievements, T23 PWA, T24 progress screen, T25 Speed Cards mode, T26 journey trainer; Q2, R2
