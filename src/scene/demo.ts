@@ -182,9 +182,11 @@ if (demoRenderer) {
   if (hudEl) {
     const statsDiv = document.createElement('div');
     statsDiv.className = 'status-line';
-    statsDiv.innerHTML = 'Draw Calls: <span id="calls-val" class="status-val">0</span>';
+    statsDiv.textContent = 'Draw Calls: ';
+    callsValEl = statsDiv.appendChild(document.createElement('span'));
+    callsValEl.className = 'status-val';
+    callsValEl.textContent = '0';
     hudEl.appendChild(statsDiv);
-    callsValEl = document.getElementById('calls-val');
   }
 
   setInterval(() => {

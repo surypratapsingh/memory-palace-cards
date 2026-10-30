@@ -448,8 +448,6 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
 
       // 9. Dispose renderer and remove canvas
       renderer.dispose();
-      renderer.info.memory.geometries = 0;
-      renderer.info.memory.textures = 0;
       if (renderer.domElement.parentElement) {
         renderer.domElement.parentElement.removeChild(renderer.domElement);
       }

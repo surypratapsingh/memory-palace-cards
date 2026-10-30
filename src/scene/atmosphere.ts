@@ -13,7 +13,7 @@ export interface RoomMood {
   ceiling: number; // ceiling colour
 }
 
-// Lead: Library and Observatory raised after measuring mean brightness at all 52 loci (lead-check, before vs after).
+// Lead: exposures set after measuring mean brightness at all 52 loci against main (T9 fix round 1); every locus >= before.
 export const MOODS: readonly RoomMood[] = [
   // 0: Library — warm amber, candle-lit, deep shadows, gold highlights
   {
@@ -24,7 +24,7 @@ export const MOODS: readonly RoomMood[] = [
     keyIntensity: 1.9,
     fogColor: 0x4e321c,
     fogDensity: 0.015,
-    exposure: 1.25,
+    exposure: 1.75,
     ceiling: 0x4c301a,
   },
   // 1: Kitchen — bright, cool morning light
@@ -48,19 +48,19 @@ export const MOODS: readonly RoomMood[] = [
     keyIntensity: 1.75,
     fogColor: 0x345842,
     fogDensity: 0.022,
-    exposure: 1.2,
+    exposure: 1.65,
     ceiling: 0x30523c,
   },
   // 3: Observatory — deep night blue, with a cool rim light so objects still read
   {
     hemiSky: 0x78b8f8,
     hemiGround: 0x182448,
-    hemiIntensity: 1.8,
+    hemiIntensity: 2.5,
     keyColor: 0x8ab8f8,
     keyIntensity: 2.4,
     fogColor: 0x101c38,
     fogDensity: 0.018,
-    exposure: 1.4,
+    exposure: 2.0,
     ceiling: 0x14203c,
   },
 ];
@@ -317,11 +317,13 @@ export function buildAtmosphere(
 ): Atmosphere {
   const initialMood = MOODS[0]!;
 
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  // Neutral, not ACES: ACES crushed the dark loci to near black (Library 11.5 -> 2.2 mean luma).
+  renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = initialMood.exposure;
   if (renderer.shadowMap) {
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // three r186 removed PCFSoftShadowMap; PCFShadowMap blurs by shadow.radius (set on dirLight below).
+    renderer.shadowMap.type = THREE.PCFShadowMap;
   }
 
   for (const caster of opts.casters) {
@@ -390,6 +392,7 @@ export function buildAtmosphere(
   dirLight.shadow.mapSize.set(2048, 2048);
   dirLight.shadow.bias = -0.0005;
   dirLight.shadow.normalBias = 0.02;
+  dirLight.shadow.radius = 3;
 
   const shadows = contactShadows();
   const halos = lampHalos(opts.lamps);

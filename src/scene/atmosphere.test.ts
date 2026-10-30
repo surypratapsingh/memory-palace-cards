@@ -84,11 +84,11 @@ function segmentIntersectsAABB2D(
 }
 
 describe('Atmosphere & Lighting', () => {
-  it('1. MOODS has 4 entries with exposure in [0.6, 1.6] and fogDensity <= 0.035 (>= 75% visibility at 14 m)', () => {
+  it('1. MOODS has 4 entries with exposure in [0.6, 2.2] and fogDensity <= 0.035 (>= 75% visibility at 14 m)', () => {
     assert.equal(MOODS.length, 4);
     for (let i = 0; i < MOODS.length; i++) {
       const m = MOODS[i]!;
-      assert.ok(m.exposure >= 0.6 && m.exposure <= 1.6, `Room ${i} exposure ${m.exposure}`);
+      assert.ok(m.exposure >= 0.6 && m.exposure <= 2.2, `Room ${i} exposure ${m.exposure}`);
       assert.ok(m.fogDensity > 0 && m.fogDensity <= 0.035, `Room ${i} fogDensity ${m.fogDensity}`);
       const visibility14m = Math.exp(-Math.pow(14 * m.fogDensity, 2));
       assert.ok(
@@ -152,7 +152,7 @@ describe('Atmosphere & Lighting', () => {
     }
   });
 
-  it('4. buildAtmosphere adds 2 lights, configures ACESFilmic + PCFSoftShadowMap, and sets shadow flags', () => {
+  it('4. buildAtmosphere adds 2 lights, configures Neutral tone mapping + PCFShadowMap, and sets shadow flags', () => {
     const renderer = makeFakeRenderer();
     const scene = new THREE.Scene();
     const casterGroup = new THREE.Group();
@@ -166,9 +166,9 @@ describe('Atmosphere & Lighting', () => {
       lamps: [new THREE.Vector3(7, 3, 7)],
     });
 
-    assert.equal(renderer.toneMapping, THREE.ACESFilmicToneMapping);
+    assert.equal(renderer.toneMapping, THREE.NeutralToneMapping);
     assert.equal(renderer.shadowMap.enabled, true);
-    assert.equal(renderer.shadowMap.type, THREE.PCFSoftShadowMap);
+    assert.equal(renderer.shadowMap.type, THREE.PCFShadowMap);
 
     const lights = scene.children.filter((c): c is THREE.Light => c instanceof THREE.Light);
     assert.equal(lights.length, 2);

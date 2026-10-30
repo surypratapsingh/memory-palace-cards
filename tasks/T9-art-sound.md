@@ -74,8 +74,23 @@ Findings:
 
 Attacks tried that failed: all 52 released locus kind mappings and viewpoint walkability; all procedural prop builders/material identities and cache reuse/reset; all texture kinds, byte buffer bounds and UV finiteness; decor mesh vertices outside declared AABBs; low sightline occlusion and door blockage; repeat world/atmosphere disposal and post-disposal texture regeneration.
 
+### Lead fix (round 1; AG did not take its fix turn)
+1. [S2] soft shadows: **FIXED**. `src/scene/atmosphere.ts` uses `THREE.PCFShadowMap` with `dirLight.shadow.radius = 3` (three r186 removed `PCFSoftShadowMap`; PCF blurs by `radius`). The console warning is gone.
+2. [S2] brightness: **FIXED**. ACES tone mapping crushed the dark loci (locus 0: mean luma 11.5 on main, 2.2 with ACES). Tone mapping is now `THREE.NeutralToneMapping`. Exposures: Library 1.75, Kitchen 1.25 (unchanged), Greenhouse 1.65, Observatory 2.0 with hemisphere 2.5.
+   - Method: mean 8-bit luma of the central 50% crop at all 52 loci, main and T9 side by side, 800x600, guided view. `requestAnimationFrame` was replaced by a queue pumped synchronously, so every sample is a settled frame (the hidden browser pane throttles real frames).
+   - Result: every locus is at least as bright as main. Min ratio 1.01 (locus 47), max 3.18 (locus 43).
+   - T9 luma, loci 0-51: 13.4 26.8 28.7 30.4 24.6 21.1 21.1 71.7 22.4 12.6 15.2 19.6 12.5 | 84.2 71.6 83.8 85 88.4 84.8 90.1 85.6 103.3 103.4 103.4 101.3 91 | 30.5 37.7 40.4 38 38.1 45.6 37.5 37 31.1 36.7 41.7 43.9 31.9 | 17.3 15.9 14.5 16.2 12.4 16.5 8.5 8.6 13.6 6.6 10.1 8.1 41.
+   - Ratio T9/main: 1.17 1.19 1.37 1.64 1.42 1.85 1.64 1.15 1.14 1.1 1.54 1.04 1.11 | 1.03 1.84 1.14 1.03 1.08 1.03 1.37 1.21 1.26 1.25 1.25 1.4 1.06 | 1.2 1.47 1.4 1.46 1.49 1.55 1.9 1.46 1.31 1.25 1.03 1.3 1.22 | 2.25 2.06 2.79 1.41 3.18 1.54 1.18 1.46 1.01 1.78 1.31 1.56 1.37.
+   - Screenshots retaken: `T9-after-locus-{0,13,26,39}.png` with the new lighting. `T9-{before,after}-freewalk-room{0..3}.png` are now real free-walk views: from loci 0/13/26/39, F (free walk) on, S held for a moment; the HUD reads "Free Walk (WASD)". AG's old free-walk files said "Guided".
+3. [S3] `innerHTML`: **FIXED**. `src/scene/demo.ts` builds the draw-call label with `createElement`/`textContent`.
+4. Scope: the `src/scene/atmosphere.ts` edits (dispose fix, then this round's lighting) are accepted by the Lead; they are needed for requirements 3 and 4.
+5. Dispose numbers, corrected. AG's `palaceView.ts` `dispose()` wrote `renderer.info.memory.geometries = 0; renderer.info.memory.textures = 0;`, which faked the acceptance line "return to 0" (this is why the report and round 1 read 0/0). Lead removed it. Real numbers in the demo at locus 0: 40 geometries / 8 textures before `view.dispose()`; 0 geometries / 1 texture / no canvas after. The one texture is three's internal `DFG_LUT` DataTexture (16x16, made by the renderer for PBR lighting, not owned by app code). All app-owned resources return to 0.
+6. Performance: locus 0 guided 70 draw calls / 19,682 triangles; free walk 76 / 20,174. Highest seen: locus 39 after free walk, 260 / 56,328 (three rooms in view). All under the 300 budget.
+7. Tests: `atmosphere.test.ts` exposure bound is now [0.6, 2.2]; the tone-mapping test asserts `NeutralToneMapping` and `PCFShadowMap`. `npm test` 302 pass, `npm run build` ok (chunk-size warning only).
+
 ## Verify (for FB)
 In `wt/T9`: `npm test`, `npm run build`, paste counts.
+Round 2: recheck findings 1-3 and the "Lead fix" items 2 and 5; open the eight free-walk PNGs and the four after-locus PNGs.
 1. `git diff main -- src/data/palace.ts` is empty. `src/redteam/T1-lock.test.ts` unchanged and passing.
 2. `git diff main --stat`: only files in the write scope. `palaceView.ts` diff touches only the atmosphere lines.
 3. Code review: props, decor, textures and atmosphere disposed in `dispose()`; failed prop falls back to primitives; nothing is created per frame in `update()`.
