@@ -1,7 +1,20 @@
-export type Screen = 'home' | 'train' | 'drill' | 'settings' | 'shadowWalk';
-export type Event = 'train' | 'drill' | 'settings' | 'back' | 'result' | 'cancel' | 'shadowWalk';
+import type { SaveData } from './types.ts';
+
+export type Screen = 'home' | 'train' | 'drill' | 'settings' | 'shadowWalk' | 'onboarding';
+export type Event = 'train' | 'drill' | 'settings' | 'back' | 'result' | 'cancel' | 'shadowWalk' | 'onboarding' | 'skip';
 
 type UnknownEvent = string & {};
+
+export function isFresh(data?: Pick<SaveData, 'drills' | 'srs'> | null): boolean {
+  if (!data) return true;
+  const drills = Array.isArray(data.drills) ? data.drills : [];
+  const srs = data.srs && typeof data.srs === 'object' ? data.srs : {};
+  return drills.length === 0 && Object.keys(srs).length === 0;
+}
+
+export function initialScreen(data?: Pick<SaveData, 'drills' | 'srs'> | null): Screen {
+  return isFresh(data) ? 'onboarding' : 'home';
+}
 
 export function next(screen: Screen, event: Event | UnknownEvent): Screen {
   switch (screen) {
@@ -10,6 +23,7 @@ export function next(screen: Screen, event: Event | UnknownEvent): Screen {
       if (event === 'drill') return 'drill';
       if (event === 'settings') return 'settings';
       if (event === 'shadowWalk') return 'shadowWalk';
+      if (event === 'onboarding') return 'onboarding';
       return screen;
     case 'train':
     case 'settings':
@@ -20,6 +34,9 @@ export function next(screen: Screen, event: Event | UnknownEvent): Screen {
       return screen;
     case 'shadowWalk':
       return event === 'back' ? 'home' : screen;
+    case 'onboarding':
+      if (event === 'skip' || event === 'cancel' || event === 'back' || event === 'result') return 'home';
+      return screen;
     default:
       return screen;
   }

@@ -4,6 +4,7 @@ import './ui/home.css';
 import './ui/trainer.css';
 import './ui/settings.css';
 import './ui/drill.css';
+import './ui/onboarding.css';
 import { localDay } from './deck.ts';
 import { updateStreak } from './progress.ts';
 import { applySettings, sanitizeSettings } from './settings.ts';
@@ -12,11 +13,12 @@ import { load, save, setSaveErrorHandler } from './store.ts';
 import type { PalaceView, SaveData } from './types.ts';
 import { mountDrill } from './ui/drill.ts';
 import { mountHome } from './ui/home.ts';
+import { mountOnboarding } from './ui/onboarding.ts';
 import { mountSettings } from './ui/settings.ts';
 import { mountShadowWalk } from './ui/shadowWalk.ts';
 import { mountTrainer } from './ui/trainer.ts';
 import { countUp, feedback, swap } from './ui/motion.ts';
-import { next, type Screen } from './router.ts';
+import { initialScreen, next, type Screen } from './router.ts';
 
 const scene = document.querySelector<HTMLElement>('#scene');
 const ui = document.querySelector<HTMLElement>('#ui');
@@ -35,7 +37,7 @@ if (!hasProgress && globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').
 data.settings = sanitizeSettings(data.settings);
 
 const view: PalaceView = createPalaceView(scene);
-let currentScreen: Screen = 'home';
+let currentScreen: Screen = initialScreen(data);
 let currentElement: HTMLElement | null = null;
 let unmountCurrent: (() => void) | null = null;
 let drillOptions = { level: 0, daily: false };
@@ -91,6 +93,19 @@ function mountScreen(screen: Screen, root: HTMLElement): () => void {
   if (screen === 'shadowWalk') {
     return mountShadowWalk(root, view, data, () => {
       navigate('back');
+    });
+  }
+  if (screen === 'onboarding') {
+    view.setFreeWalk(false);
+    view.setLocusMood(0, 'normal');
+    view.clearCards();
+    void view.glideTo(0);
+    return mountOnboarding(root, view, data, (updated) => {
+      data = updated;
+      syncSettings();
+      navigate('result');
+    }, () => {
+      navigate('skip');
     });
   }
   view.setFreeWalk(false);
@@ -149,7 +164,7 @@ function replaceSave(nextSave: SaveData): void {
   data.settings = sanitizeSettings(data.settings);
   saveErrorBanner.hidden = saved;
   syncSettings();
-  render('home', true);
+  render(initialScreen(data), true);
 }
 
 uiRoot.addEventListener('change', () => {
@@ -176,7 +191,7 @@ const motionObserver = new MutationObserver(() => {
 });
 motionObserver.observe(uiRoot, { childList: true, subtree: true });
 
-render('home', true);
+render(initialScreen(data), true);
 
 window.addEventListener('pagehide', () => {
   if (closed) return;
