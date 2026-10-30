@@ -1,4 +1,4 @@
-import { deal, localDay, score } from '../deck.ts';
+import { cardLabel, deal, localDay, score } from '../deck.ts';
 import { applyResult, cardFromKeys, drillSeed } from '../drill-logic.ts';
 import { updateStreak } from '../progress.ts';
 import { imageFor, save } from '../store.ts';
@@ -14,6 +14,9 @@ export function mountOnboarding(
 ): () => void {
   let unmounted = false;
   let currentData = initialData;
+  // Set once an attempt is saved; leaving mid-retry must hand that save back, not skip it.
+  let lastResult: DrillResult | null = null;
+  const leave = () => (lastResult ? onComplete(currentData, lastResult) : onSkip());
   const modifiedLoci = new Set<number>();
 
   const overlay = document.createElement('div');
@@ -168,11 +171,11 @@ export function mountOnboarding(
 
       const locusTitle = document.createElement('div');
       locusTitle.className = 'onboarding-locus-title';
-      locusTitle.textContent = `Locus ${idx + 1} of 3: ${locus?.name ?? ''}`;
+      locusTitle.textContent = `Locus ${idx + 1} of 3: ${locus?.name ?? ''} — ${cardLabel(card)}`;
 
       const captionText = document.createElement('div');
       captionText.className = 'onboarding-caption-text';
-      captionText.textContent = caption;
+      captionText.textContent = `Image: "${caption}"`;
 
       hudCard.appendChild(badge);
       hudCard.appendChild(locusTitle);
@@ -186,7 +189,7 @@ export function mountOnboarding(
       if (idx === 0) {
         banner.textContent = 'See the image AT the object. Make it big and strange.';
       } else {
-        banner.textContent = `Picture this card's image placed directly at the ${locus?.name ?? 'object'}.`;
+        banner.textContent = `Picture "${caption}" placed directly at the ${locus?.name ?? 'object'}.`;
       }
       overlay.appendChild(banner);
 
@@ -220,7 +223,7 @@ export function mountOnboarding(
         } else if (e.key === 'Escape') {
           e.preventDefault();
           window.removeEventListener('keydown', onKeyDown);
-          onSkip();
+          leave();
         }
       };
 
@@ -344,7 +347,7 @@ export function mountOnboarding(
           currentPhaseCleanup();
           currentPhaseCleanup = null;
         }
-        onSkip();
+        leave();
         return;
       }
 
@@ -414,18 +417,22 @@ export function mountOnboarding(
     currentData = applyResult(currentData, result);
     currentData.streak = updateStreak(currentData.streak, localDay(startDate));
     save(currentData);
+    lastResult = result;
 
     const panel = document.createElement('div');
     panel.className = 'onboarding-panel onboarding-modal-center';
 
+    // Only a perfect run "proves" the method; otherwise the main action is a fresh 3-card try.
+    const perfect = correct === total;
     const title = document.createElement('h2');
     title.className = 'onboarding-title';
-    title.textContent = correct === total ? '★ Proved!' : 'Well Done!';
+    title.textContent = perfect ? '★ Proved!' : 'Almost there';
     panel.appendChild(title);
 
     const resultLine = document.createElement('p');
     resultLine.className = 'onboarding-result-line';
-    resultLine.textContent = `You remembered ${correct} of ${total} in order. Memory champions use exactly this.`;
+    resultLine.textContent = `You remembered ${correct} of ${total} in order. ` +
+      (perfect ? 'Memory champions use exactly this.' : 'Try three new cards: see each image AT its object, big and strange.');
     panel.appendChild(resultLine);
 
     const statsRow = document.createElement('div');
@@ -445,22 +452,42 @@ export function mountOnboarding(
     statsRow.appendChild(recStat);
     panel.appendChild(statsRow);
 
+    const btnRow = document.createElement('div');
+    btnRow.className = 'onboarding-btn-row';
+
+    const retryBtn = document.createElement('button');
+    retryBtn.type = 'button';
+    retryBtn.className = 'onboarding-btn primary';
+    retryBtn.textContent = 'Try again';
+
     const continueBtn = document.createElement('button');
     continueBtn.type = 'button';
-    continueBtn.className = 'onboarding-btn primary';
+    continueBtn.className = perfect ? 'onboarding-btn primary' : 'onboarding-skip-link';
     continueBtn.textContent = 'Continue';
-    panel.appendChild(continueBtn);
+
+    if (!perfect) btnRow.appendChild(retryBtn);
+    btnRow.appendChild(continueBtn);
+    panel.appendChild(btnRow);
 
     overlay.appendChild(panel);
 
     const finishAction = () => {
-      window.removeEventListener('keydown', onKeyDown);
-      continueBtn.removeEventListener('click', finishAction);
+      if (currentPhaseCleanup) {
+        currentPhaseCleanup();
+        currentPhaseCleanup = null;
+      }
       onComplete(currentData, result);
     };
 
+    // This attempt is already saved like any drill; a retry deals three new cards.
+    const retryAction = () => showStep2();
+
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        if (perfect) finishAction();
+        else retryAction();
+      } else if (e.key === 'Escape') {
         e.preventDefault();
         finishAction();
       }
@@ -468,10 +495,12 @@ export function mountOnboarding(
 
     window.addEventListener('keydown', onKeyDown);
     continueBtn.addEventListener('click', finishAction);
+    retryBtn.addEventListener('click', retryAction);
 
     currentPhaseCleanup = () => {
       window.removeEventListener('keydown', onKeyDown);
       continueBtn.removeEventListener('click', finishAction);
+      retryBtn.removeEventListener('click', retryAction);
       clearOverlay();
     };
   }
