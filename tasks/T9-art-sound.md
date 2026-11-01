@@ -97,3 +97,32 @@ Round 2: recheck findings 1-3 and the "Lead fix" items 2 and 5; open the eight f
 4. Red-team `src/redteam/T9.test.ts`: at least 5 checks, for example every locus kind gets a prop or a fallback, `dispose()` twice does not throw, no decor item inside any locus view cone (reuse `decorLayout()`), every `ASSETS.md` row has a URL and "CC0" (if the file exists).
 5. Compare before/after screenshots: can you still tell every neighbouring locus apart? Is any locus darker than before?
 Write "Verification" as TASKS.md says.
+
+## Verification (round 2)
+Verdict: PASS
+
+Evidence: `npm install` -> up to date, 0 vulnerabilities; `npm test` -> tests 307, pass 307, fail 0 (includes `src/redteam/T1-lock.test.ts` and 11 T9 red-team checks); `npm run build` -> tsc clean, vite built in 338 ms (chunk-size warning only).
+Scene demo at `http://127.0.0.1:5199/scene-demo.html`: 70 draw calls / 19,682 triangles at locus 0; `renderer.shadowMap.type` = 1 (`PCFShadowMap`); `toneMapping` = 7 (`NeutralToneMapping`); exposure 1.75; browser console shows only `[scene-demo] draw calls`, no `PCFSoftShadowMap` removal warning. `view.dispose()` -> 40 geometries / 8 textures before, 0 / 1 after (the 1 is three's internal 16x16 `DFG_LUT`), canvas 1 -> 0, second `dispose()` did not throw.
+
+Acceptance:
+- ✔ Tests and build pass, palace contract untouched: the task commits (`5f2f6a5..HEAD`) change no `src/data/palace.ts`, no `src/scene/cardBillboard.ts`/`cardTexture.ts`, no `src/ui`; `T1-lock.test.ts` unchanged and passing.
+- ✔ Before/after screenshots exist for every room in `docs/shots/`; all four after-freewalk PNGs (rooms 0-3) show HUD "Camera Mode: Free Walk (WASD)" at loci 1/14/27/40, and the four after-locus PNGs show the prop close up in Guided mode. Neighbouring loci remain distinct (armchair, stove, terrarium pedestal, telescope; four different room palettes).
+- ✔ Draw calls and memory in "Report": my live numbers agree with the Lead's corrected numbers (70 calls / 19,682 tris guided at locus 0; 76 / 20,174 in free walk; the shot HUDs reach 260 / 56,328 at the observatory free walk). All under the 300-call budget. FPS is the Lead's/AG's 60 claim; I could not measure fps in a throttled headless pane, so this line rests on their browser run.
+- ✔ `dispose()` really returns resources to 0: measured live, no counter reset in app code (`palaceView.ts` no longer writes `renderer.info.memory`).
+
+Findings from round 1, now closed:
+1. [S2] `atmosphere.ts` soft shadows — **FIXED**. Uses `THREE.PCFShadowMap` (type 1 at runtime) with `dirLight.shadow.radius = 3`; no removal warning in the console. Covered by a new regression test.
+2. [S2] brightness of every room — **FIXED**. Independent luma (mean, central 50% crop, 8-bit) of the committed before/after pairs: locus 0 11.5->13.9, 13 82.1->82.0, 26 25.4->30.1, 39 7.1->17.8; free-walk rooms 0-3 11.6->14.2, 75.4->77.9, 25.3->30.7, 6.7->14.7. Every room is at least as bright; ratios 1.00-2.51. Locus shots differ in size (1280x800 before, 800x600 after), so their ratios are indicative; the same-size free-walk pairs are the strict comparison. Tone mapping is now Neutral (ACES measured 11.5->2.2 at locus 0).
+3. [S3] `demo.ts` `innerHTML` — **FIXED**. The draw-call label is built with `createElement` + `textContent`; a source-guard test fails if an HTML sink returns.
+Lead fix 5 (fake dispose counters) — **verified**: the counters were removed, and the live 0/1 result is what the renderer actually holds.
+
+Open findings: none (S1 0, S2 0, S3 0).
+
+Attacks tried that failed:
+1. Reverting `atmosphere.ts`, `demo.ts` and `palaceView.ts` to the round-1 state (`36bc08c`) makes 4 of the 5 new round-2 tests fail (shadow mode/radius, tone mapping plus exposure floor, HTML sink, fake counters); restored afterwards, tree clean.
+2. Injecting a fake shadow map: `dispose()` releases the texture exactly once, and a second `dispose()` releases nothing again. (`shadow.map.dispose()` runs twice, once explicitly and once through three's `Light.dispose()`; disposing a render target twice is harmless.)
+3. Driving `update()` through each room's centre: every room applies its own exposure, so the brightness fix is live, not only in `MOODS`.
+4. Source scan of `src/scene` for HTML sinks: the only remaining one is `atmosphere-demo.ts:43` `container.innerHTML = ''` (constant clear in a dev harness, no user or image data) — not a finding.
+5. Prop distinction at the four sampled loci: chair / stove / pedestal / telescope, all material-bound, each with a floor numeral and a contact shadow; nothing reads as a duplicate.
+6. Full suite re-run after adding the red-team file still passes `T1-lock` and all 52-locus invariants.
+
