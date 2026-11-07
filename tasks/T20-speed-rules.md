@@ -33,3 +33,29 @@ In `wt/T20`: `npm test`, `npm run build`, paste counts.
 1. Open the cited sources and check every rule in section 13 against them (write what you checked).
 2. Red-team `src/redteam/T20.test.ts`: at least 5 tests, for example a perfect deck with time 0, a deck with every answer null, an imperfect deck faster than a perfect one, a non-speed drill passed to `speedScore`, a speed drill mixed into the staircase input.
 Write "Verification" as TASKS.md says.
+
+## Verification (round 1)
+Verdict: PASS
+Evidence:
+- `npm test` -> `tests 318, suites 4, pass 318, fail 0, duration_ms 4753.5724`
+- `npm run build` -> `built in 294ms` (`dist/assets/index-BbIh_4dn.js` 639.39 kB)
+- Sources audit: checked cited sources in section 13 against code:
+  - IAM Rulebook (Nov 2019): confirmed 5-min memorize window (`SPEED_MEMORIZE_LIMIT_MS = 300_000`) and 5-min recall window (`SPEED_RECALL_LIMIT_MS = 300_000`); confirmed dual-ended prefix comparison; confirmed partial-deck score stops at first error excluding the error card; confirmed full-deck scored by memorization time.
+  - WMSC Speed Cards rules (May 2020 / Jan 2021): confirmed identical 5-min limit; confirmed error card is excluded from count; confirmed full deck ranks ahead of partial deck.
+- Mutation check: Inverted `compareSpeed` perfect vs partial ordering (`return a.perfect ? 1 : -1`). Caught immediately by 3 test failures in `speed.test.ts` and `redteam/T20.test.ts`. Reverted cleanly.
+
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: `npm test` passes (318/318), `npm run build` passes in 294ms.
+- ✔ MATHS.md section 13 with sources; at least 10 tests in `speed.test.ts`: 13 tests in `src/speed.test.ts` plus 7 adversarial red-team tests in `src/redteam/T20.test.ts` (20 total speed tests); section 13 cites official IAM and archived WMSC rule documents.
+
+Findings:
+None.
+
+Attacks tried that passed:
+1. Zero-second perfect deck: verified `memorizeMs = 0` produces valid 52-card perfect score and ranks ahead of all non-zero times.
+2. All-null answers deck: verified 52 null answers yields `perfect = false`, `cards = 0`.
+3. Fast partial vs slow perfect deck: verified 5-second 51-card partial deck strictly ranks behind 299-second 52-card perfect deck.
+4. Non-speed and malformed drills: verified drills without `mode: 'speed'`, decks not permutations of 52 cards, and durations exceeding 300,000 ms return neutral score and are ignored by `speedBest`.
+5. Staircase and ladder isolation: verified that injecting 10 perfect Speed Cards drills into player history has 0 effect on `unlockedLevel`, `recommendedLevel`, or ladder `personalBests`.
+6. Bidirectional prefix maximization: verified that asymmetric errors (e.g. 5 cards top-down vs 15 cards bottom-up) award the maximum matching prefix (15 cards).
+7. Stable tie-breaking: verified exact ties in `speedBest` preserve earlier stored drills.
