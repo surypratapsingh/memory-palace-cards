@@ -23,10 +23,10 @@ Every card the player sees, in the DOM and floating at a locus, uses the real ca
 5. **Picker size**: during recall at 1366x768 the picker takes at most the bottom 40% of the screen and the locus object stays visible above it. Screenshot at 1366x768 and 1920x1080.
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass.
-- [ ] `cardPlacement.test.ts` passes for all 52 loci at 16:9 and 4:3.
-- [ ] Screenshots: trainer card, recall picker, a floating card in each of the 4 rooms, colour-safe theme.
-- [ ] No canvas-text card code left in `cardBillboard.ts`.
+- [x] `npm test` and `npm run build` pass.
+- [x] `cardPlacement.test.ts` passes for all 52 loci at 16:9 and 4:3.
+- [x] Screenshots: trainer card, recall picker, a floating card in each of the 4 rooms, colour-safe theme.
+- [x] No canvas-text card code left in `cardBillboard.ts`.
 
 ## Questions
 None.
@@ -44,3 +44,37 @@ In `wt/T13`: `npm test`, `npm run build`, paste counts. Then `npm run dev` and p
 3. Code review: texture disposal on remove, replace and dispose; the async race in requirement 3; no `innerHTML` with any user or image text.
 4. Red-team `src/redteam/T13.test.ts`: at least 5 checks, for example `cardFace` for all 52 ids has an aria-label, colour-safe theme, picker keeps `data-card` for all 52, placement margin at a 21:9 aspect (report only, S3), showCard then clearCards before the texture resolves leaves no mesh.
 Write "Verification" as TASKS.md says.
+
+## Verification (round 1)
+
+Verdict: PASS
+
+Evidence:
+- `npm test`: pass 306, fail 0 (including 7 red-team tests in `src/redteam/T13.test.ts`).
+- `npm run build`: pass (built in 503ms, client production bundle rendered cleanly).
+- Screenshots:
+  - `docs/shots/T13-trainer-card.png`: trainer card face with embedded SVG, `.card-face`, and accessible label.
+  - `docs/shots/T13-color-safe.png`: colour-safe theme with four distinct suit colours (blue diamonds, green clubs, red hearts, dark spades).
+  - `docs/shots/T13-floating-room1.png`: floating card and locus object fully visible in Room 1 (Library, locus 0).
+  - `docs/shots/T13-floating-room2.png`: floating card and locus object fully visible in Room 2 (Kitchen, locus 13).
+  - `docs/shots/T13-floating-room3.png`: floating card and locus object fully visible in Room 3 (Greenhouse, locus 26).
+  - `docs/shots/T13-floating-room4.png`: floating card and locus object fully visible in Room 4 (Observatory, locus 39).
+  - `docs/shots/T13-recall-picker.png`: recall picker taking 14.8% of height at 1366x768 (< 40% maximum) with locus object clearly visible above it.
+
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: 306 tests pass, 0 fail; `tsc && vite build` succeeds without error.
+- ✔ `cardPlacement.test.ts` passes for all 52 loci at 16:9 and 4:3: confirmed all corners and object tops inside frustum with >16.6% vertical and >72.7% horizontal margin (spec requires >=5%).
+- ✔ Screenshots: trainer card (`docs/shots/T13-trainer-card.png`), recall picker (`docs/shots/T13-recall-picker.png`), 4 room floating cards (`docs/shots/T13-floating-room1.png` through `room4.png`), colour-safe theme (`docs/shots/T13-color-safe.png`).
+- ✔ No canvas-text card code left in `cardBillboard.ts`: `src/scene/cardBillboard.ts` verified; all canvas-text and 2D text drawing routines removed; rendering uses `cardTexture(id, theme)`.
+
+Findings:
+None.
+
+Attacks tried that failed:
+1. Fault injection in scratch copy: Restored pre-T13 billboard height (`CARD_Y = 2.35`), test failed with 208 assertion failures because card tops exceeded frustum boundary; current height `CARD_Y = 1.9` safely passes with >16.6% margin.
+2. Async race on `clearCards()`: Initiated `showCard(0, pos, 'AS')` immediately followed by `clearCards()` before texture resolved; verified scene had 0 meshes immediately and retained 0 meshes after resolution without dangling textures.
+3. Rapid card replacement race: Initiated `showCard(0, pos, 'AS')` immediately followed by `showCard(0, pos, 'KD')`; verified scene maintained exactly 1 mesh, cleanly transitioning to 'KD' while releasing 'AS' texture without stale overwrite.
+4. DOM accessibility and XSS audit: Verified all 52 card faces have `role="img"` and `aria-label` matching `cardName(id)`; verified `cardSvg` output is pure SVG markup containing zero user-injected text.
+5. Picker button attributes and disabled state: Tested all 52 picker buttons across 4 suit rows; verified `data-card`, `data-rank`, and `data-suit` attributes are preserved on all 52; verified used cards receive `disabled` and `.used` with grayscale filter.
+6. Ultra-wide aspect ratio frustum test: Tested all 52 loci at 21:9 aspect ratio; verified card corners and object tops maintain >16.6% vertical margin and >84.4% horizontal margin.
+7. Rapid keyboard input: Pressed ArrowRight at 40ms intervals through 13 loci; verified no orphaned meshes or mismatched loci cards remained.
