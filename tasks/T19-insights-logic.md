@@ -36,3 +36,34 @@ In `wt/T19`: `npm test`, `npm run build`, paste counts.
 1. Maths: check section 12 against the code by hand with a 3-drill example of your own.
 2. Red-team `src/redteam/T19.test.ts`: at least 5 adversarial tests, for example all answers null, a 52-card drill that is fully reversed (every answer a swap?), the same pair in both directions, 1000 drills (runs under 200 ms), a drill with `answers` longer than `sequence`.
 Write "Verification" as TASKS.md says.
+
+## Verification (round 1)
+Verdict: PASS
+Evidence:
+- `npm test` -> `tests 323, suites 4, pass 323, fail 0, duration_ms 4568.9555`
+- `npm run build` -> `built in 293ms` (`dist/assets/index-vfYXSwuK.js` 639.32 kB)
+- Math verification: Verified section 12 against `src/insights.ts` with independent 3-drill example:
+  - Drill 1 (10:00:00Z): seq [AS, 2S, 3S], ans [2S, AS, 4S], 9000ms -> swaps: (AS, 2S) count 2, sub: (3S, 4S) count 1.
+  - Drill 2 (11:00:00Z): seq [AS, 2S, 3S], ans [AS, 3S, 2S], 6000ms -> swaps: (2S, 3S) count 2.
+  - Drill 3 (12:00:00Z): seq [AS, 2S, 3S], ans [AS, 2S, null], 4500ms -> null is blank, not confusion.
+  - Hand-calculated confusions: `(2S, 3S)` swap count 2 (recent tie-break), `(AS, 2S)` swap count 2, `(3S, 4S)` substitution count 1. Matches code output.
+  - Hand-calculated weak cards: m = 6/9, r_AS = 13/24, r_2S = 16/24, r_3S = 19/24; max margin = 19/24 - 16/24 = 0.125 < 0.15; output `[]`. Matches code output.
+  - Hand-calculated speed trend: points [3.0, 2.0, 1.5], slope -0.75 s/card/drill, improving = false (< 5 points). Matches code output.
+- Mutation check: Altered prior strength to `PRIOR_K = 10` in scratch copy. Caught immediately by 4 test assertion failures in `insights.test.ts` and `redteam/T19.test.ts`. Reverted cleanly.
+
+Acceptance:
+- ✔ `npm test` and `npm run build` pass: `npm test` passes (323/323), `npm run build` passes in 293ms.
+- ✔ At least 12 tests including worked example: 20 tests in `src/insights.test.ts` plus 7 adversarial red-team tests in `src/redteam/T19.test.ts` (27 total insight tests).
+- ✔ MATHS.md section 12 written: formulas for confusions classification and grouping, empirical-Bayes weak cards calculation, and speed trend least-squares regression are fully documented and match implementation.
+
+Findings:
+None.
+
+Attacks tried that passed:
+1. All answers null across multiple drills: zero confusions emitted, card misses accounted for in shrinkage, neutral speed trend.
+2. 52-card fully reversed deck drill: correctly isolated only loci 25 and 26 (|25 - 26| = 1 <= 2) as swaps; the remaining 50 loci classified as substitutions.
+3. Bidirectional swap pairing: expected AS with given 2S and expected 2S with given AS aggregated into unified order-free entry in DECK order with count = 2.
+4. Scale stress test: 1,000 drills processed through `confusions`, `weakCards`, and `speedTrend` in under 40 ms (well within 200 ms budget).
+5. Mismatched structures and corrupt shapes: `answers` array longer than `sequence`, invalid timestamp strings, negative `memorizeMs`, and null/corrupt drill objects handled totally without throws.
+6. Speed trend improving boundary: verified that 4 decreasing samples leave `improving = false`, while 5 decreasing samples set `improving = true`.
+7. Empirical-Bayes margin tolerance: verified exact `WEAK_MARGIN = 0.15` inclusive boundary condition.
