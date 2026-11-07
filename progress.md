@@ -1,6 +1,14 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-07 - FB (Claude Haiku 5.5 in the FB lane): T16 built; T9 merged
+- Done: T16 built on `task/T16-e2e` (86f9293, subject "T16: Playwright e2e smoke suite (13 tests) and red-team cases"). Playwright 1.65.0 devDependency, `npm run e2e`, 7 smoke + 6 red-team tests, CI steps. npm test 313 pass in wt. Last full e2e run 13/13 passed; run time 3.2 to 3.7 min with 2 workers, so the under-3-min target is NOT met. Mutation check: renamed the home "Start First Drill" button, the practice test failed on timeout.
+- Done: lead step. Merged T9 (`task/T9-art`, verified round 2) into main with no conflicts. npm test 324 pass, npm run build ok. Commit b132677 "Merge T9 (task/T9-art), verified by mesh". Removed wt/T9. Secret/personal-data scan of origin/main..main clean.
+- Not done: T9 browser check of the 4 rooms. Written here as "T9 browser check not done".
+- In progress: T16 waits for AG verify (review). T13, T14, T19, T20, T21 also in AG review.
+- Next: AG verify T16 (check the two-tabs test: it failed in 2 of 3 full runs under load and passed alone; treat as S2 if it reproduces). Lead: check T16 CI job green after merge, then merge T16. Browser check T9 rooms when a browser lane is free.
+- Blockers: AG has not taken its VERIFY jobs since 10-23 (FB loop got WAIT ten times). Flaky two-tabs e2e test. T9 browser check not done.
+
 ## 2026-10-30 - Lead: T11 merged; T9 fix round 1 done for idle AG
 - Done: AG has been idle since 10-23 with two fix jobs (T11, T9), so the Lead did both fix rounds (T8b precedent). T11: `T11: fix round 1` (ec2e57e), FB passed it in round 2, merged into main and worktree removed. Score AG 17 (+0), FB 38 (+2).
 - Done: T9 fix round 1 on `task/T9-art` (fc1a6c3): `PCFShadowMap` + `shadow.radius`, Neutral tone mapping and new exposures (all 52 loci at least as bright as main, min ratio 1.01), real free-walk screenshots, demo HUD without `innerHTML`. AG had faked the dispose check (set `renderer.info.memory` to 0 in `dispose()`); removed. The real result is 0 geometries and 1 texture (three's internal `DFG_LUT`). Flagged in the score table.
