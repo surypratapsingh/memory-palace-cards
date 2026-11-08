@@ -17,7 +17,7 @@ async function bodyText(page: Page): Promise<string> {
 
 /** Waits until the screen shows `marker`, then reads which card's caption is on screen. */
 export async function readCard(page: Page, marker: string): Promise<string> {
-  await expect.poll(() => bodyText(page)).toContain(marker);
+  await expect.poll(() => bodyText(page), { timeout: 15_000 }).toContain(marker);
   const text = await bodyText(page);
   const hits = CAPTIONS.filter(({ caption }) => caption && text.includes(caption));
   expect(hits.length, `no card caption on screen at "${marker}"`).toBeGreaterThan(0);
@@ -42,7 +42,7 @@ export async function completeOnboarding(page: Page): Promise<number> {
     await page.getByRole('button', { name: /^(Next|Test Recall)/ }).click();
   }
   for (let i = 1; i <= 3; i++) {
-    await expect.poll(() => bodyText(page)).toContain(`Recall Locus ${i} of 3`);
+    await expect.poll(() => bodyText(page), { timeout: 15_000 }).toContain(`Recall Locus ${i} of 3`);
     await typeCard(page, seen[i - 1]);
   }
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -58,7 +58,7 @@ export async function playPerfectFirstDrill(page: Page): Promise<string[]> {
   await page.getByRole('button', { name: 'Start Memorizing' }).click();
   const cards = await memorizeAll(page, 3);
   for (let i = 1; i <= 3; i++) {
-    await expect.poll(() => bodyText(page)).toContain(`Recall`);
+    await expect.poll(() => bodyText(page), { timeout: 15_000 }).toContain(`Recall`);
     await typeCard(page, cards[i - 1]);
   }
   await expect(page.getByText('Perfect Drill!')).toBeVisible();

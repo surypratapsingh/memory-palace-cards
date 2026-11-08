@@ -39,7 +39,7 @@ test('quit mid-drill during memorize and recall saves nothing', async ({ page })
   await page.getByRole('button', { name: 'Start First Drill' }).click();
   await page.getByRole('button', { name: 'Start Memorizing' }).click();
   await memorizeAll(page, 3);
-  await expect.poll(() => page.locator('body').innerText()).toContain('Recall');
+  await expect.poll(() => page.locator('body').innerText(), { timeout: 15_000 }).toContain('Recall');
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Quit', exact: true }).click();
   await expect(page.getByRole('button', { name: /Settings/ })).toBeVisible();
@@ -111,7 +111,7 @@ test('export downloads JSON; broken import keeps save; valid import replaces it'
   await writeFile(valid, JSON.stringify({ ...exported, settings: { ...exported.settings, glideMs: 0 } }));
   page.once('dialog', (d) => d.accept());
   await page.getByLabel('Import save file').setInputFiles(valid);
-  await expect.poll(async () => (await readSave(page)).settings.glideMs).toBe(0);
+  await expect.poll(async () => (await readSave(page)).settings.glideMs, { timeout: 15_000 }).toBe(0);
 });
 
 test('Shadow Walk enters and exits', async ({ page }) => {

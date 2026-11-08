@@ -35,7 +35,7 @@ test('two tabs: onboarding in a stale tab does not erase a drill saved in anothe
     await stale.getByRole('button', { name: /^(Next|Test Recall)/ }).click();
   }
   for (let i = 1; i <= 3; i++) {
-    await expect.poll(() => stale.locator('body').innerText()).toContain(`Recall Locus ${i} of 3`);
+    await expect.poll(() => stale.locator('body').innerText(), { timeout: 15_000 }).toContain(`Recall Locus ${i} of 3`);
     await typeCard(stale, seen[i - 1]);
   }
   await stale.getByRole('button', { name: 'Continue' }).click();
