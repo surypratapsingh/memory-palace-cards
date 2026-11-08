@@ -88,3 +88,9 @@ test('card images are well formed', () => {
     assert.ok(c.hook.length > 0, `hook for ${c.card}`);
   }
 });
+
+test('importJson drops drill entries that are not drills instead of crashing later', () => {
+  const good = { at: '2026-01-01T00:00:00.000Z', seed: 's', daily: false, sequence: ['AS'], answers: ['AS'], memorizeMs: 1, recallMs: 1 };
+  const text = JSON.stringify({ ...emptySave(), drills: [null, 5, { sequence: 'AS' }, good] });
+  assert.deepEqual(importJson(text).drills, [good]);
+});

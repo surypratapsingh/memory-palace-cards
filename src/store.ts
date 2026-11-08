@@ -88,7 +88,9 @@ function parse(text: string): SaveData {
     version: 1,
     images: src.images != null && typeof src.images === 'object' ? src.images : {} as Record<CardId, string>,
     srs: src.srs != null && typeof src.srs === 'object' ? src.srs : {} as Record<CardId, SrsState>,
-    drills: Array.isArray(src.drills) ? src.drills : [],
+    // Hand-edited or damaged entries would crash levelOf/ghosts/insights; drop them.
+    drills: (src.drills as unknown[]).filter((d): d is SaveData['drills'][number] =>
+      d != null && typeof d === 'object' && Array.isArray((d as { sequence?: unknown }).sequence) && Array.isArray((d as { answers?: unknown }).answers)),
     locusStats: src.locusStats != null && typeof src.locusStats === 'object' ? (src.locusStats as Record<number, { tries: number; misses: number }>) : {} as Record<number, { tries: number; misses: number }>,
     streak: src.streak != null && typeof src.streak === 'object' ? {
       lastDay: typeof (src.streak as { lastDay: string }).lastDay === 'string' ? (src.streak as { lastDay: string }).lastDay : '',
