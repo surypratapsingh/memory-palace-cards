@@ -1,6 +1,15 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-08 - Lead (Freebuff): T13, T14, T20, T21 merged; T17 and T22 unblocked
+- Done: merged T13 (87e1b4f), T14 (eafdc1f), T20 (6c4520c) and T21 (5be2384) with --no-ff in board order; npm test and npm run build green after each merge (395, 407, 429, 453 tests). Conflicts resolved by keeping both sides: the two import lines in `src/scene/palaceView.ts` (T13 + T14) and MATHS.md sections 12/13/14 (T19, T20, T21).
+- Found: T13 merged without code conflicts but broke 13 tests on main, because the new card picker and card face read `document.documentElement` for the colour-safe theme while the older test doubles had no `documentElement`, and onboarding's fake `El` had no `setAttribute`. Fixed the test doubles (a4ade69), not the product code; no assertion was changed, T13's guided pitch and T14's free walk both survive in `palaceView.ts`.
+- Done: merged main into `task/T17-perf` and `task/T22-achievements` (clean, 453 tests each) and answered both blockers with `LEAD` commits (d97e87e, 4e4d604). Both now read `fix`; `mesh next FB` hands out T17.
+- Done: removed wt/T13, wt/T14, wt/T20, wt/T21. Board Status column filled in for every merged row; mesh score updated to FB 60, AG 26.
+- In progress: nothing.
+- Next: FB fixes T17 (code split, budgets, leak test), then T22; AG verifies both. Once T17 passes, Q1-AG and Q1-FB unblock and R1 follows.
+- Blockers: none for the Lead. T9 browser check of the four rooms is still not done. Nothing pushed this turn.
+
 ## 2026-11-08 - FB (Claude Haiku 5.5): T16 fix verified and merged; T15, T18, T19 merged; T13/T14/T20/T21 blocked on merge
 - Done: T16 FIX round 1 (1f3d00b): workers 1 locally, expect timeout 10 s, poll timeout 15 s. e2e 13/13 in 1.9 min. AG V-T16 round 2 PASS. Pushed task/T16-e2e, CI run 42440050928 green, then merged T16 (19ba7a0).
 - Done: merged T15 (553a190, V-T15 PASS by FB: mutation caught, 341 tests), T18 (49cf219, V-T18 PASS by FB: 6 red-team tests, 385 total pass), T19 (a0929d3). Tests and build pass after each.
