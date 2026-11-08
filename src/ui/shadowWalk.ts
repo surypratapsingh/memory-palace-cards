@@ -1,4 +1,6 @@
+import { LOCI } from '../data/palace.ts';
 import { cardLabel } from '../deck.ts';
+import { ambience, stopAll } from '../sound.ts';
 import { imageFor } from '../store.ts';
 import type { CardId, PalaceView, SaveData } from '../types.ts';
 
@@ -128,6 +130,10 @@ export function mountShadowWalk(
 
   function handleLocusClick(index: number): void {
     if (!active) return;
+    const locus = LOCI[index];
+    if (locus) {
+      ambience(locus.room, data.settings.sound);
+    }
     if (cardsByLocus.has(index)) {
       if (pendingLocus === index) {
         revealCard(index);
@@ -146,6 +152,7 @@ export function mountShadowWalk(
   function leave(): void {
     if (!active) return;
     active = false;
+    stopAll();
     clearPendingReveal();
     cardsByLocus.clear();
     view.setFreeWalk(false);
@@ -170,6 +177,7 @@ export function mountShadowWalk(
 
   return () => {
     active = false;
+    stopAll();
     unsubscribeLocusClick();
     window.removeEventListener('keydown', onKeyDown);
     exitBtn.removeEventListener('click', leave);

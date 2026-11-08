@@ -2,6 +2,7 @@ import { DECK } from '../deck.ts';
 import { CARD_IMAGES } from '../data/cardImages.ts';
 import { imageFor, save } from '../store.ts';
 import { isDue, newSrs, review, Rating, strength, type Grade } from '../srs.ts';
+import { play, stopAll } from '../sound.ts';
 import type { CardId, SaveData } from '../types.ts';
 import { cardFace } from './cardFace.ts';
 
@@ -261,6 +262,7 @@ export function mountTrainer(root: HTMLElement, data: SaveData, onExit: (data: S
   function exit(): void {
     if (closed) return;
     persist();
+    stopAll();
     unmount();
     onExit(data);
   }
@@ -288,6 +290,7 @@ export function mountTrainer(root: HTMLElement, data: SaveData, onExit: (data: S
     } else if (screen === 'recall' && event.key === ' ') {
       event.preventDefault();
       screen = 'reveal';
+      play('flip', data.settings.sound);
       render();
     } else if (screen === 'reveal' && ['1', '2', '3', '4'].includes(event.key)) {
       event.preventDefault();
@@ -303,6 +306,7 @@ export function mountTrainer(root: HTMLElement, data: SaveData, onExit: (data: S
   function unmount(): void {
     if (closed) return;
     closed = true;
+    stopAll();
     document.removeEventListener('keydown', onKeyDown);
     shell.remove();
   }

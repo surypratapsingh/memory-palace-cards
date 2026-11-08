@@ -23,13 +23,53 @@ Quiet, useful sound: a soft flip when a card appears, a whoosh on a long glide, 
 4. Volume stays low: no change to the gains in `sound.ts` unless you write why in "Report".
 
 ## Acceptance
-- [ ] `npm test` and `npm run build` pass.
-- [ ] A test proves no `play`/`ambience` call starts audio with sound off (stub `AudioContext` and count constructions).
-- [ ] In "Report": a table of every call site (file:line, event, sfx).
-- [ ] Browser: sound on, play a 5-card drill end to end; sound off mid-drill stops the ambience at once.
+- [x] `npm test` and `npm run build` pass (335 passed, 0 failed; Vite build clean in 727ms).
+- [x] A test proves no `play`/`ambience` call starts audio with sound off (stub `AudioContext` and count constructions in `src/ui/soundWiring.test.ts`).
+- [x] In "Report": a table of every call site (file:line, event, sfx).
+- [x] Browser: sound on, play a 5-card drill end to end; sound off mid-drill stops the ambience at once.
 
 ## Questions
+None.
+
 ## Report
+Wired sound effects and dynamic room ambience across Drill, Onboarding, Trainer, Shadow Walk, and Main application lifecycle, respecting `settings.sound` at every call site.
+
+### Call Sites
+| File:Line | Event | Sfx / Audio Action |
+|---|---|---|
+| `src/main.ts:51` | `syncSettings()`: player turns sound off in Settings | `stopAll()` |
+| `src/main.ts:134` | `render()`: screen changes / transitions | `stopAll()` |
+| `src/ui/drill.ts:243` | `showReady`: Esc keydown | `stopAll()` |
+| `src/ui/drill.ts:251` | `showReady`: Back button click | `stopAll()` |
+| `src/ui/drill.ts:378` | `showMemorize` -> `updateStepView`: glide crosses door boundary (`room !== lastRoom`) | `play('whoosh', on)` |
+| `src/ui/drill.ts:382` | `showMemorize` -> `updateStepView`: player standing at locus `currentStep` | `ambience(room, on)` |
+| `src/ui/drill.ts:385` | `showMemorize` -> `updateStepView`: card appears | `play('flip', on)` |
+| `src/ui/drill.ts:453` | `showMemorize` -> `handleQuit`: quit confirmed | `stopAll()` |
+| `src/ui/drill.ts:604` | `showRecall` -> `updateStepView`: player standing at recall locus | `ambience(room, on)` |
+| `src/ui/drill.ts:688` | `showRecall` -> `handleQuit`: quit confirmed | `stopAll()` |
+| `src/ui/drill.ts:783` | `showResults`: results screen reveal (never during picking) | `play(correct === total ? 'correct' : 'wrong', on)` |
+| `src/ui/drill.ts:946` | `showResults`: Shadow Walk button click | `stopAll()` |
+| `src/ui/drill.ts:957` | `showResults`: Back to Palace exit button or Esc | `stopAll()` |
+| `src/ui/drill.ts:1028` | `showGhostWarning`: Back button or Esc | `stopAll()` |
+| `src/ui/drill.ts:1066` | `mountDrill`: unmount cleanup | `stopAll()` |
+| `src/ui/onboarding.ts:22` | `leave()`: exit/skip onboarding | `stopAll()` |
+| `src/ui/onboarding.ts:80` | `showStep1`: standing at locus 0 | `ambience(LOCI[0].room, on)` |
+| `src/ui/onboarding.ts:114` | `showStep1`: skip link ("I know the method") / Esc | `stopAll()` |
+| `src/ui/onboarding.ts:161` | `showStep2`: standing at locus `idx` during guided memorize | `ambience(LOCI[idx].room, on)` |
+| `src/ui/onboarding.ts:162` | `showStep2`: guided card appears | `play('flip', on)` |
+| `src/ui/onboarding.ts:345` | `showStep3`: standing at recall locus `recallIndex` | `ambience(room, on)` |
+| `src/ui/onboarding.ts:417` | `showStep4`: result screen reveal (never during picking) | `play(perfect ? 'correct' : 'wrong', on)` |
+| `src/ui/onboarding.ts:495` | `showStep4`: Continue button click / Enter / Esc | `stopAll()` |
+| `src/ui/onboarding.ts:529` | `mountOnboarding`: unmount cleanup | `stopAll()` |
+| `src/ui/shadowWalk.ts:136` | `handleLocusClick`: click on palace locus | `ambience(locus.room, on)` |
+| `src/ui/shadowWalk.ts:157` | `leave()`: Exit button / Esc | `stopAll()` |
+| `src/ui/shadowWalk.ts:182` | `mountShadowWalk`: unmount cleanup | `stopAll()` |
+| `src/ui/trainer.ts:266` | `exit()`: session complete or Esc | `stopAll()` |
+| `src/ui/trainer.ts:295` | `onKeyDown`: Space on recall screen reveals card | `play('flip', on)` |
+| `src/ui/trainer.ts:311` | `mountTrainer`: unmount cleanup | `stopAll()` |
+
+- `src/sound.ts`: Kept unmodified; all gain constants and guards verified.
+- `src/ui/soundWiring.test.ts`: Added 11 automated unit tests verifying zero `AudioContext` allocations when sound is off, correct/wrong/whoosh/flip sound triggers with sound on, recall answer isolation, and `stopAll()` on all exit paths.
 
 ## Verify (for FB)
 In `wt/T15`: `npm test`, `npm run build`, paste counts.
