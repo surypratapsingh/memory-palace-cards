@@ -7,6 +7,8 @@ const TEX_H = 358;
 
 const promiseCache = new Map<string, Promise<THREE.Texture>>();
 const textureCache = new Set<THREE.Texture>();
+const textureReferences = new Map<THREE.Texture, number>();
+const textureKeys = new Map<THREE.Texture, string>();
 const activeBlobUrls = new Set<string>();
 let generation = 0;
 
@@ -48,9 +50,11 @@ function renderSvgToTexture(svgMarkup: string, cacheKey: string): Promise<THREE.
 
       if (callGen !== generation) {
         texture.dispose();
-      } else {
-        textureCache.add(texture);
+        reject(new Error('Card texture was disposed before loading completed'));
+        return;
       }
+      textureCache.add(texture);
+      textureKeys.set(texture, cacheKey);
       resolve(texture);
     };
 
@@ -72,7 +76,24 @@ function renderSvgToTexture(svgMarkup: string, cacheKey: string): Promise<THREE.
 
 export function cardTexture(id: CardId, theme: CardTheme = 'classic'): Promise<THREE.Texture> {
   const key = `card:${id}:${theme}`;
-  return renderSvgToTexture(cardSvg(id, { theme, width: TEX_W }), key);
+  return renderSvgToTexture(cardSvg(id, { theme, width: TEX_W }), key).then((texture) => {
+    textureReferences.set(texture, (textureReferences.get(texture) ?? 0) + 1);
+    return texture;
+  });
+}
+
+export function releaseCardTexture(texture: THREE.Texture): void {
+  const references = textureReferences.get(texture);
+  if (references === undefined) return;    if (references > 1) {
+      textureReferences.set(texture, references - 1);
+      return;
+    }
+    textureReferences.delete(texture);
+  textureCache.delete(texture);
+  const key = textureKeys.get(texture);
+  textureKeys.delete(texture);
+  if (key) promiseCache.delete(key);
+  texture.dispose();
 }
 
 export function cardBackTexture(): Promise<THREE.Texture> {
@@ -87,6 +108,8 @@ export function disposeCardTextures(): void {
     tex.dispose();
   }
   textureCache.clear();
+  textureReferences.clear();
+  textureKeys.clear();
 
   for (const url of activeBlobUrls) {
     URL.revokeObjectURL(url);

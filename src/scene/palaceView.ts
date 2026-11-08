@@ -80,6 +80,7 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
   const initVp = viewpoint(0);
   camera.position.set(initVp[0], EYE_HEIGHT, initVp[1]);
   camera.rotation.y = Math.atan2(LOCI[0].face[0], LOCI[0].face[1]);
+  const guidedPitch = Math.atan2(1.3 - EYE_HEIGHT, 1.8);
 
   // PointerLockControls for free walk
   const controls = new PointerLockControls(camera, renderer.domElement);
@@ -243,6 +244,7 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
 
       camera.position.y = EYE_HEIGHT;
       camera.rotation.y = lerpAngle(activeGlide.startYaw, activeGlide.targetYaw, eased);
+      camera.rotation.x = guidedPitch;
 
       if (tNorm >= 1) {
         currentLocusIndex = activeGlide.targetIndex;
@@ -329,6 +331,7 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
       if (glideMs <= 0) {
         camera.position.set(targetVp[0], EYE_HEIGHT, targetVp[1]);
         camera.rotation.y = targetYaw;
+        camera.rotation.x = guidedPitch;
         currentLocusIndex = index;
         return new Promise<void>((resolve) => {
           let resolved = false;
