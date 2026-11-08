@@ -3,7 +3,7 @@ import { LADDER, score } from './deck.ts';
 
 /** Ladder index of a drill: LADDER.indexOf(d.sequence.length), or -1 if not a ladder size. */
 export function levelOf(d: DrillResult): number {
-  return LADDER.indexOf(d.sequence.length);
+  return d.mode === 'speed' ? -1 : LADDER.indexOf(d.sequence.length);
 }
 
 /** A drill is perfect when score(d.sequence, d.answers).run === d.sequence.length. */
@@ -132,7 +132,8 @@ export function rankTitle(bestLevel: number): string {
 /** Share text. Must never contain card names or symbols (no spoilers). */
 export function shareText(d: DrillResult): string {
   const { correct, run, total } = score(d.sequence, d.answers);
-  const header = d.daily ? `Memory Palace · Daily Deck ${d.seed}` : 'Memory Palace · Practice';
+  const header = d.mode === 'speed' ? 'Memory Palace · Speed Cards' :
+    d.daily ? `Memory Palace · Daily Deck ${d.seed}` : 'Memory Palace · Practice';
   const elapsedSeconds = Math.floor(d.memorizeMs / 1000);
   const time = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
   const squares = d.sequence.map((card, i) => d.answers[i] === card ? '🟩' : '🟥');

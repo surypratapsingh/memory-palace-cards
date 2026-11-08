@@ -41,7 +41,7 @@ function harness(answerFor: (dealt: CardId[]) => CardId[]) {
   const g = globalThis as Record<string, unknown>;
   const saved = { document: g.document, window: g.window, localStorage: g.localStorage };
   const set = (k: string, v: unknown) => Object.defineProperty(globalThis, k, { configurable: true, writable: true, value: v });
-  set('document', { createElement: () => new El() });
+  set('document', { createElement: () => new El(), documentElement: { classList: { contains: () => false } } });
   set('window', {
     addEventListener: (_: string, f: never) => keys.add(f),
     removeEventListener: (_: string, f: never) => keys.delete(f),

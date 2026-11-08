@@ -1,6 +1,8 @@
+import { LOCI } from '../data/palace.ts';
 import { cardLabel, deal, localDay, score } from '../deck.ts';
 import { applyResult, cardFromKeys, drillSeed } from '../drill-logic.ts';
 import { updateStreak } from '../progress.ts';
+import { ambience, play, stopAll } from '../sound.ts';
 import { imageFor, save } from '../store.ts';
 import type { CardId, DrillResult, PalaceView, SaveData } from '../types.ts';
 import { createCardPicker, type CardPickerInstance } from './cardPicker.ts';
@@ -16,7 +18,10 @@ export function mountOnboarding(
   let currentData = initialData;
   // Set once an attempt is saved; leaving mid-retry must hand that save back, not skip it.
   let lastResult: DrillResult | null = null;
-  const leave = () => (lastResult ? onComplete(currentData, lastResult) : onSkip());
+  const leave = () => {
+    stopAll();
+    return lastResult ? onComplete(currentData, lastResult) : onSkip();
+  };
   const modifiedLoci = new Set<number>();
 
   const overlay = document.createElement('div');
@@ -71,6 +76,7 @@ export function mountOnboarding(
 
     view.setFreeWalk(false);
     safeGlideTo(0);
+    ambience(LOCI[0].room, currentData.settings.sound);
 
     const panel = document.createElement('div');
     panel.className = 'onboarding-panel onboarding-modal-center';
@@ -105,6 +111,7 @@ export function mountOnboarding(
 
     const skipAction = () => {
       window.removeEventListener('keydown', onKeyDown);
+      stopAll();
       onSkip();
     };
 
@@ -150,6 +157,8 @@ export function mountOnboarding(
       if (unmounted) return;
       clearOverlay();
       safeGlideTo(idx);
+      ambience(LOCI[idx].room, currentData.settings.sound);
+      play('flip', currentData.settings.sound);
 
       const card = sequence[idx];
       const caption = imageFor(currentData, card);
@@ -331,6 +340,10 @@ export function mountOnboarding(
     function updateRecallStep(): void {
       if (unmounted) return;
       safeGlideTo(recallIndex);
+      const roomLocus = LOCI[recallIndex];
+      if (roomLocus) {
+        ambience(roomLocus.room, currentData.settings.sound);
+      }
       const locus = view.loci[recallIndex];
       badge.textContent = locus?.room ?? 'Palace';
       locusTitle.textContent = `Recall Locus ${recallIndex + 1} of 3: ${locus?.name ?? ''}`;
@@ -399,6 +412,7 @@ export function mountOnboarding(
     clearOverlay();
 
     const { correct, total } = score(sequence, answers);
+    play(correct === total ? 'correct' : 'wrong', currentData.settings.sound);
     for (let i = 0; i < total; i++) {
       const isRight = answers[i] === sequence[i];
       view.setLocusMood(i, isRight ? 'normal' : 'weak');
@@ -476,6 +490,7 @@ export function mountOnboarding(
         currentPhaseCleanup();
         currentPhaseCleanup = null;
       }
+      stopAll();
       onComplete(currentData, result);
     };
 
@@ -509,6 +524,7 @@ export function mountOnboarding(
 
   return () => {
     unmounted = true;
+    stopAll();
     if (currentPhaseCleanup) {
       currentPhaseCleanup();
       currentPhaseCleanup = null;
