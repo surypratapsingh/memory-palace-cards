@@ -29,6 +29,37 @@ Lead measurement, 2026-10-23: one JS chunk, 639 kB minified, 164 kB gzip (three.
 ## Questions
 BLOCKED: dependency merges. `git merge task/T13-card-art` is clean. `git merge task/T14-free-walk` conflicts in `src/scene/palaceView.ts` (T13 and T14 both change it), and `git merge task/T16-e2e` cannot run until that is resolved. Lead: resolve the T13/T14 conflict on main (or on task/T14-free-walk) and say which one wins, then mesh can start T17 on a clean base. Not resolved here: palaceView.ts is a 3D file outside this packet.
 ## Report
+Build round 0 (FB, commit "T17: fix round 0").
+
+Done:
+- Code split: `src/main.ts` loads `src/scene/palaceView.ts` (three.js) with `import()`. Home, train and settings render without it. Drill, Shadow Walk and onboarding show "Opening the palace…" (role=status, spinner 1.5 s, off under reduced motion), then mount. On import failure: readable error plus Retry button. The palace import starts in the background after first render; home redraws once it loads to show ghost cards.
+- `scripts/budget.mjs` (new; gzip via `node:zlib`; exit 1 with table). Script `budget` in package.json. CI step "Bundle budget" after Build in `.github/workflows/ci.yml`.
+- Tests: `scripts/budget.test.mjs` (fake dist in temp folder), `scripts/budget.redteam.test.mjs` (6 red-team checks; lives in scripts/ because tsc includes src).
+- Leak test `e2e/perf.spec.ts`: 10 drills of 3 cards. No DEV hook added: the test installs `window.__THREE_DEVTOOLS__` before load and reads the renderer that three.js reports. Nothing in src or dist changed for the test.
+
+Numbers:
+
+| Metric | Before (Lead, 2026-10-23) | After |
+|---|---|---|
+| Entry chunk | single chunk, 639 kB min, 164 kB gzip (all JS) | `index-*.js` 103.8 kB raw, 32.0 kB gzip (budget.mjs); Vite 106.2 kB min, 32.9 kB gzip |
+| Palace chunk (three.js + palaceView) | in the single chunk | `palaceView-*.js` 603.7 kB raw, 155.2 kB gzip (lazy) |
+| All JS gzip | 164 kB | 187 kB (budget limit 200 kB) |
+| Time to home screen | not measured | not measured (gap) |
+| Draw calls per frame | not measured | max 75 to 79 across drills (drill loci 1 to 3, level 0) |
+| Leak run (geometries / textures) | - | baseline after drill 1: 43 / 13 to 14; after drill 10: 43 / 12 to 14 (limit +4) |
+
+Checks run in `wt/T17`:
+- `npm test`: 462 pass, 0 fail.
+- `npm run build`: OK. Vite still warns, for the lazy `palaceView` chunk (618 kB min). The main chunk no longer warns. Warning limit not changed.
+- `npm run budget`: budget OK.
+- `npm run e2e`: 13 pass. 1 fail: `smoke.spec.ts:49` daily deck, 90 s test timeout under full-run load. Same test alone: pass in 38.6 s. Treat as flaky until AG reruns.
+
+Gaps and choices (AG, please check):
+- Leak baseline taken after drill 1 (warm-up), not before drill 1.
+- Draw-call check at loci 0, 13, 26, 39 not done: test cannot move the camera there without a hook. Drill loci 1 to 3 sampled instead.
+- Time to home screen not measured.
+- Mutation check (remove `dispose()` in `cardBillboard.ts`; add 300 kB to `main.ts`) not run. AG runs it per Verify item 2.
+- Red-team lives in `scripts/`, not `src/redteam/`, for the reason above.
 
 ## Verify (for AG)
 In `wt/T17`: `npm test`, `npm run build`, `npm run budget`, `npm run e2e`; paste counts.

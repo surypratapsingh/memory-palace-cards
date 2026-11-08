@@ -47,3 +47,31 @@ button:hover, button:focus-visible { border-color: var(--accent); }
 :root.color-safe [data-strength='fading']::after { content: '!'; }
 :root.color-safe [data-strength='solid']::after { content: '✓'; }
 :root.color-safe [data-strength='gilded']::after { content: '★'; }
+
+/* Palace loading and retry state (shown while the 3D palace is imported). */
+.palace-state {
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  min-height: 100%;
+  padding: 2rem;
+  text-align: center;
+}
+.palace-state p[role='status']::before {
+  content: '';
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  vertical-align: -0.15em;
+  animation: palace-spin 1.5s linear infinite;
+}
+@keyframes palace-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .palace-state p[role='status']::before { animation: none; }
+}
