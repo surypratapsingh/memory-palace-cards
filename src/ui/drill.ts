@@ -1,6 +1,8 @@
+import { LOCI } from '../data/palace.ts';
 import { cardLabel, deal, isRed, LADDER, localDay, score } from '../deck.ts';
 import { applyResult, cardFromKeys, drillSeed } from '../drill-logic.ts';
 import { ghostWarning, weakLoci } from '../living.ts';
+import { ambience, play, stopAll } from '../sound.ts';
 import { imageFor, save } from '../store.ts';
 import type { CardId, DrillResult, PalaceView, SaveData } from '../types.ts';
 import { createCardPicker, type CardPickerInstance } from './cardPicker.ts';
@@ -238,13 +240,17 @@ export function mountDrill(
           toMemorize();
         } else if (e.key === 'Escape') {
           e.preventDefault();
+          stopAll();
           onExit(currentData, null);
         }
       };
 
       window.addEventListener('keydown', onKeyDown);
       startBtn.addEventListener('click', toMemorize);
-      backBtn.addEventListener('click', () => onExit(currentData, null));
+      backBtn.addEventListener('click', () => {
+        stopAll();
+        onExit(currentData, null);
+      });
 
       roundCleanup = () => {
         window.removeEventListener('keydown', onKeyDown);
@@ -264,6 +270,7 @@ export function mountDrill(
       const atIso = startDate.toISOString();
 
       let currentStep = 0;
+      let lastRoom: string | null = null;
       let captionsOn = currentData.settings.captions;
       let timerInterval: ReturnType<typeof setInterval> | null = null;
       let quitCleanup: (() => void) | null = null;
@@ -360,10 +367,23 @@ export function mountDrill(
         timerEl.textContent = formatTime(elapsed);
       }, 200);
 
-      function updateStepView(): void {
+      function updateStepView(cardAppeared = true): void {
         if (unmounted) return;
         const locus = view.loci[currentStep];
         const card = sequence[currentStep];
+
+        const roomLocus = LOCI[currentStep];
+        const room = roomLocus?.room ?? null;
+        if (lastRoom !== null && room !== null && room !== lastRoom) {
+          play('whoosh', currentData.settings.sound);
+        }
+        lastRoom = room;
+        if (room !== null) {
+          ambience(room, currentData.settings.sound);
+        }
+        if (cardAppeared) {
+          play('flip', currentData.settings.sound);
+        }
 
         locusBadge.textContent = locus?.room ?? '';
         locusTitle.textContent = `Locus ${currentStep + 1} / ${n}: ${locus?.name ?? ''}`;
@@ -411,7 +431,7 @@ export function mountDrill(
       function toggleCaptions(): void {
         captionsOn = !captionsOn;
         captionToggleBtn.textContent = `Captions [H]: ${captionsOn ? 'ON' : 'OFF'}`;
-        updateStepView();
+        updateStepView(false);
       }
 
       function finishMemorize(): void {
@@ -429,6 +449,7 @@ export function mountDrill(
         quitCleanup = showQuitConfirm(() => {
           if (timerInterval) clearInterval(timerInterval);
           window.removeEventListener('keydown', onKeyDown);
+          stopAll();
           onExit(currentData, null);
         });
       }
@@ -578,6 +599,10 @@ export function mountDrill(
       function updateStepView(): void {
         if (unmounted) return;
         const locus = view.loci[recallStep];
+        const roomLocus = LOCI[recallStep];
+        if (roomLocus) {
+          ambience(roomLocus.room, currentData.settings.sound);
+        }
         locusBadge.textContent = locus?.room ?? '';
         locusTitle.textContent = `Locus ${recallStep + 1} of ${n}: ${locus?.name ?? ''}`;
 
@@ -658,6 +683,7 @@ export function mountDrill(
         quitCleanup = showQuitConfirm(() => {
           window.removeEventListener('keydown', onKeyDown);
           picker.destroy();
+          stopAll();
           onExit(currentData, null);
         });
       }
@@ -752,6 +778,7 @@ export function mountDrill(
 
       // Score and highlight weak loci
       const { correct, run, total } = score(sequence, answers);
+      play(correct === total ? 'correct' : 'wrong', currentData.settings.sound);
       for (let i = 0; i < total; i++) {
         const isMiss = answers[i] !== sequence[i];
         if (isMiss) {
@@ -914,6 +941,7 @@ export function mountDrill(
 
       const doShadowWalk = () => {
         window.removeEventListener('keydown', onKeyDown);
+        stopAll();
         resetPalaceVisuals();
         if (onShadowWalk) {
           onShadowWalk(currentData, result);
@@ -924,6 +952,7 @@ export function mountDrill(
 
       const doExit = () => {
         window.removeEventListener('keydown', onKeyDown);
+        stopAll();
         resetPalaceVisuals();
         onExit(currentData, result);
       };
@@ -994,6 +1023,7 @@ export function mountDrill(
 
       const doBack = () => {
         window.removeEventListener('keydown', onKeyDown);
+        stopAll();
         onExit(currentData, null);
       };
 
@@ -1031,6 +1061,7 @@ export function mountDrill(
   // Return unmount function
   return () => {
     unmounted = true;
+    stopAll();
     currentGlideToken++;
     if (activeQuitCleanup) {
       activeQuitCleanup();

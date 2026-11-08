@@ -10,6 +10,7 @@ import { updateStreak } from './progress.ts';
 import { applySettings, sanitizeSettings } from './settings.ts';
 import { createPalaceView } from './scene/palaceView.ts';
 import { load, save, setSaveErrorHandler } from './store.ts';
+import { stopAll } from './sound.ts';
 import type { PalaceView, SaveData } from './types.ts';
 import { mountDrill } from './ui/drill.ts';
 import { mountHome } from './ui/home.ts';
@@ -46,6 +47,9 @@ const swapWatchdogs = new Set<ReturnType<typeof setTimeout>>();
 
 function syncSettings(): void {
   data.settings = sanitizeSettings(data.settings);
+  if (!data.settings.sound) {
+    stopAll();
+  }
   view.setGlideMs(data.settings.glideMs);
   applySettings(data.settings, document.documentElement);
 }
@@ -126,6 +130,7 @@ function mountScreen(screen: Screen, root: HTMLElement): () => void {
 
 function render(screen: Screen, force = false): void {
   if (closed || (!force && screen === currentScreen)) return;
+  stopAll();
   const from = currentElement;
   currentScreen = screen;
   const to = document.createElement('section');

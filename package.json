@@ -8,13 +8,15 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "node --test \"src/**/*.test.ts\" \"scripts/*.test.mjs\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "three": "^0.186.1",
     "ts-fsrs": "^5.4.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@types/three": "^0.186.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.4"
