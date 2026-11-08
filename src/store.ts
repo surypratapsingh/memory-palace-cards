@@ -87,7 +87,9 @@ function parse(text: string): SaveData {
   const result: SaveData = {
     version: 1,
     images: src.images != null && typeof src.images === 'object' ? src.images : {} as Record<CardId, string>,
-    srs: src.srs != null && typeof src.srs === 'object' ? src.srs : {} as Record<CardId, SrsState>,
+    // An srs entry without a due date makes isDue/strength/trainer sorting misbehave; drop it so the card is simply new.
+    srs: Object.fromEntries(Object.entries(src.srs as object).filter(([, v]) =>
+      v != null && typeof v === 'object' && typeof (v as { due?: unknown }).due === 'string')) as Record<CardId, SrsState>,
     // Hand-edited or damaged entries would crash levelOf/ghosts/insights; drop them.
     drills: (src.drills as unknown[]).filter((d): d is SaveData['drills'][number] =>
       d != null && typeof d === 'object' && Array.isArray((d as { sequence?: unknown }).sequence) && Array.isArray((d as { answers?: unknown }).answers)),

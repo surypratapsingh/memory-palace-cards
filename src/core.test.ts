@@ -94,3 +94,9 @@ test('importJson drops drill entries that are not drills instead of crashing lat
   const text = JSON.stringify({ ...emptySave(), drills: [null, 5, { sequence: 'AS' }, good] });
   assert.deepEqual(importJson(text).drills, [good]);
 });
+
+test('importJson drops srs entries without a due date', () => {
+  const ok = JSON.parse(JSON.stringify(newSrs(new Date('2026-01-01T00:00:00Z'))));
+  const text = JSON.stringify({ ...emptySave(), srs: { AS: null, KS: 'x', QS: {}, JS: ok } });
+  assert.deepEqual(Object.keys(importJson(text).srs), ['JS']);
+});
