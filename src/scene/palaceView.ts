@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import type { CardId, CreatePalaceView, LocusInfo, LocusMood, PalaceView } from '../types.ts';
-import { LOCI, EYE_HEIGHT, viewpoint, isWalkable, glidePath } from '../data/palace.ts';
+import { LOCI, EYE_HEIGHT, viewpoint, glidePath } from '../data/palace.ts';
 import { easeInOutCubic, lerpAngle } from './ease.ts';
 import {
   buildLocusObject,
@@ -16,6 +16,8 @@ import { CardBillboardManager } from './cardBillboard.ts';
 import { buildPalaceWorld, type PalaceWorld } from './palaceWorld.ts';
 import { buildAtmosphere } from './atmosphere.ts';
 import { lampPositions } from './decor.ts';
+import { createFreeWalk } from './freeWalk.ts';
+import { nearestFree } from './collide.ts';
 
 interface ActiveGlide {
   path: [number, number][];
@@ -73,6 +75,12 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
   let glideMs = 600;
   let freeWalkEnabled = false;
   let isSimulatedLock = false;
+  const freeWalk = createFreeWalk();
+  let dragging = false;
+  let lastPointerX = 0;
+  let lastPointerY = 0;
+  let dragPitch = 0;
+  let dragPointerId: number | null = null;
   let activeGlide: ActiveGlide | null = null;
   const clickCallbacks: ((index: number) => void)[] = [];
 
@@ -110,79 +118,99 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
   // Intercept pointerlockerror during capture phase to prevent noisy Three.js
   // console errors when running inside restricted iframes / embedded previews
   const onPointerLockError = (e: Event) => {
+    isSimulatedLock = true;
     e.stopImmediatePropagation();
   };
   document.addEventListener('pointerlockerror', onPointerLockError, true);
 
-  // Keyboard state for free walk
-  const keys = {
-    w: false,
-    a: false,
-    s: false,
-    d: false,
-    ArrowUp: false,
-    ArrowLeft: false,
-    ArrowDown: false,
-    ArrowRight: false,
-  };
+  const isEditableTarget = (target: EventTarget | null): boolean =>
+    target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && freeWalkEnabled) {
-      if (controls.isLocked) {
-        controls.unlock();
-      }
+    if (!freeWalkEnabled || isEditableTarget(e.target)) return;
+    if (e.code === 'Escape') {
+      e.preventDefault();
+      if (controls.isLocked) controls.unlock();
       isSimulatedLock = false;
+      dragging = false;
+      freeWalk.clear();
+      endPointerDrag();
+      return;
     }
-    if (e.key in keys) {
-      keys[e.key as keyof typeof keys] = true;
-    }
+    freeWalk.keyDown(e.code);
   };
 
   const onKeyUp = (e: KeyboardEvent) => {
-    if (e.key in keys) {
-      keys[e.key as keyof typeof keys] = false;
-    }
+    if (isEditableTarget(e.target)) return;
+    freeWalk.keyUp(e.code);
   };
 
+  const endPointerDrag = () => {
+    if (dragPointerId !== null && renderer.domElement.hasPointerCapture?.(dragPointerId)) {
+      renderer.domElement.releasePointerCapture(dragPointerId);
+    }
+    dragging = false;
+    dragPointerId = null;
+  };
+  const onBlur = () => {
+    freeWalk.clear();
+    endPointerDrag();
+  };
+  const onVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') onBlur();
+  };
+  const onPointerLockChange = () => {
+    if (document.pointerLockElement !== renderer.domElement) onBlur();
+  };
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
+  window.addEventListener('blur', onBlur);
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  document.addEventListener('pointerlockchange', onPointerLockChange);
 
-  // Free walk click-to-lock
-  const onCanvasClick = (e: MouseEvent) => {
-    if (freeWalkEnabled && !controls.isLocked && !isSimulatedLock) {
-      try {
-        const promise = controls.lock() as unknown;
-        if (promise && typeof (promise as Promise<unknown>).catch === 'function') {
-          (promise as Promise<unknown>).catch(() => {
-            isSimulatedLock = true;
-          });
-        }
-      } catch {
-        isSimulatedLock = true;
-      }
-      return;
-    }
+  let dragMoved = false;
+  const onPointerDown = (e: PointerEvent) => {
+    if (!freeWalkEnabled || controls.isLocked || dragPointerId !== null || e.button !== 0) return;
+    dragging = true;
+    dragMoved = false;
+    dragPointerId = e.pointerId;
+    lastPointerX = e.clientX;
+    lastPointerY = e.clientY;
+    renderer.domElement.setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: PointerEvent) => {
+    if (!dragging || e.pointerId !== dragPointerId || controls.isLocked) return;
+    const dx = e.clientX - lastPointerX;
+    const dy = e.clientY - lastPointerY;
+    lastPointerX = e.clientX;
+    lastPointerY = e.clientY;
+    if (Math.abs(dx) + Math.abs(dy) > 2) dragMoved = true;
+    camera.rotation.y -= dx * 0.003;
+    dragPitch = THREE.MathUtils.clamp(dragPitch - dy * 0.003, -Math.PI / 3, Math.PI / 3);
+    camera.rotation.x = dragPitch;
+  };
+  const onPointerUp = (e: PointerEvent) => {
+    if (dragPointerId !== e.pointerId) return;
+    endPointerDrag();
+  };
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+  renderer.domElement.addEventListener('pointermove', onPointerMove);
+  renderer.domElement.addEventListener('pointerup', onPointerUp);
+  renderer.domElement.addEventListener('pointercancel', onPointerUp);
 
-    // Raycast locus click
+  const raycastLocus = (clientX: number, clientY: number, locked: boolean): void => {
     const raycaster = new THREE.Raycaster();
-    if (controls.isLocked || isSimulatedLock) {
-      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-    } else {
-      const rect = renderer.domElement.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
-    }
-
+    const rect = renderer.domElement.getBoundingClientRect();
+    const point = locked
+      ? new THREE.Vector2(0, 0)
+      : new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(point, camera);
     const intersects = raycaster.intersectObjects(locusGroup.children, true);
     for (const hit of intersects) {
       let curr: THREE.Object3D | null = hit.object;
       while (curr && curr !== locusGroup) {
         if (typeof curr.userData?.locusIndex === 'number') {
-          const hitIdx = curr.userData.locusIndex;
-          for (const cb of clickCallbacks) {
-            cb(hitIdx);
-          }
+          for (const cb of clickCallbacks) cb(curr.userData.locusIndex);
           return;
         }
         curr = curr.parent;
@@ -190,6 +218,32 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
     }
   };
 
+  const onCanvasClick = (e: MouseEvent) => {
+    if (!freeWalkEnabled) return;
+    if (dragMoved) {
+      dragMoved = false;
+      return;
+    }
+    if (!controls.isLocked && !isSimulatedLock) {
+      try {
+        const result = renderer.domElement.requestPointerLock?.();
+        if (result && typeof (result as Promise<void>).catch === 'function') {
+          void (result as Promise<void>).catch(() => {
+            isSimulatedLock = true;
+            raycastLocus(e.clientX, e.clientY, false);
+          });
+          if (!isSimulatedLock) return;
+        } else if (result !== undefined) {
+          return;
+        } else {
+          isSimulatedLock = true;
+        }
+      } catch {
+        isSimulatedLock = true;
+      }
+    }
+    raycastLocus(e.clientX, e.clientY, controls.isLocked);
+  };
   renderer.domElement.addEventListener('click', onCanvasClick);
 
   // ResizeObserver
@@ -256,44 +310,9 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
 
     // 2. Free walk update
     if (freeWalkEnabled) {
-      const moveForward = keys.w || keys.ArrowUp;
-      const moveBackward = keys.s || keys.ArrowDown;
-      const moveLeft = keys.a || keys.ArrowLeft;
-      const moveRight = keys.d || keys.ArrowRight;
-
-      if (moveForward || moveBackward || moveLeft || moveRight) {
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-        forward.y = 0;
-        forward.normalize();
-
-        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-        right.y = 0;
-        right.normalize();
-
-        const moveDir = new THREE.Vector3();
-        if (moveForward) moveDir.add(forward);
-        if (moveBackward) moveDir.sub(forward);
-        if (moveRight) moveDir.add(right);
-        if (moveLeft) moveDir.sub(right);
-
-        if (moveDir.lengthSq() > 0) {
-          moveDir.normalize();
-          const speed = 3.0; // 3 m/s
-          const dx = moveDir.x * speed * delta;
-          const dz = moveDir.z * speed * delta;
-
-          const oldX = camera.position.x;
-          const oldZ = camera.position.z;
-
-          // Wall slide: try x move then z move separately
-          if (isWalkable(oldX + dx, oldZ)) {
-            camera.position.x = oldX + dx;
-          }
-          if (isWalkable(camera.position.x, oldZ + dz)) {
-            camera.position.z = oldZ + dz;
-          }
-        }
-      }
+      const next = freeWalk.step(camera.position, camera.rotation.y, delta);
+      camera.position.x = next.x;
+      camera.position.z = next.z;
       camera.position.y = EYE_HEIGHT;
     }
 
@@ -388,12 +407,17 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
     },
 
     setFreeWalk(on: boolean): void {
+      if (freeWalkEnabled === on) return;
       freeWalkEnabled = on;
-      if (!on) {
+      if (on) {
+        const [x, z] = nearestFree(camera.position.x, camera.position.z);
+        camera.position.set(x, EYE_HEIGHT, z);
+        dragPitch = camera.rotation.x;
+      } else {
+        freeWalk.clear();
+        endPointerDrag();
         isSimulatedLock = false;
-        if (controls.isLocked) {
-          controls.unlock();
-        }
+        if (controls.isLocked) controls.unlock();
       }
     },
 
@@ -419,7 +443,16 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
       // 3. Remove event listeners
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      document.removeEventListener('pointerlockchange', onPointerLockChange);
+      renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+      renderer.domElement.removeEventListener('pointermove', onPointerMove);
+      renderer.domElement.removeEventListener('pointerup', onPointerUp);
+      renderer.domElement.removeEventListener('pointercancel', onPointerUp);
       renderer.domElement.removeEventListener('click', onCanvasClick);
+      freeWalk.clear();
+      endPointerDrag();
       document.removeEventListener('pointerlockerror', onPointerLockError, true);
       if (origRequestPointerLock) {
         renderer.domElement.requestPointerLock = origRequestPointerLock;
