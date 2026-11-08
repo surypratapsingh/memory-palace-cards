@@ -1,0 +1,133 @@
+.palace-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  background: var(--bg, #0b0f19);
+  border-radius: 8px;
+  user-select: none;
+}
+
+.map-room {
+  fill: #131c2e;
+  stroke: var(--border, #334155);
+  stroke-width: 0.2;
+}
+
+.map-room-label {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.9px;
+  font-weight: 700;
+  fill: var(--muted, #94a3b8);
+  opacity: 0.55;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.map-door {
+  fill: var(--bg, #0b0f19);
+  stroke: none;
+}
+
+.map-route {
+  fill: none;
+  stroke: var(--border, #334155);
+  stroke-width: 0.08;
+  stroke-dasharray: 0.3 0.2;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.map-locus {
+  outline: none;
+}
+
+.map-locus[tabindex='0'] {
+  cursor: pointer;
+}
+
+.map-locus[tabindex='0']:hover .map-dot {
+  filter: brightness(1.25);
+}
+
+.map-locus[tabindex='0']:focus-visible .map-dot {
+  stroke: var(--accent, #38bdf8);
+  stroke-width: 0.22;
+}
+
+.map-highlight-ring {
+  fill: none;
+  stroke: var(--gold, #fbbf24);
+  stroke-width: 0.16;
+  stroke-dasharray: 0.35 0.15;
+}
+
+.map-dot {
+  stroke: #0b0f19;
+  stroke-width: 0.08;
+  transition: fill 0.15s ease, r 0.15s ease;
+}
+
+/* Heat levels */
+.map-locus[data-heat='neutral'] .map-dot {
+  fill: var(--muted, #94a3b8);
+}
+
+.map-locus[data-heat='cool'] .map-dot {
+  fill: var(--ok, #10b981);
+}
+
+.map-locus[data-heat='warm'] .map-dot {
+  fill: var(--gold, #fbbf24);
+}
+
+.map-locus[data-heat='hot'] .map-dot {
+  fill: var(--danger, #f43f5e);
+}
+
+/* Color-safe mode: Okabe-Ito palette and shape markers */
+:root.color-safe .map-locus[data-heat='cool'] .map-dot,
+html.color-safe .map-locus[data-heat='cool'] .map-dot {
+  fill: #009e73;
+}
+
+:root.color-safe .map-locus[data-heat='warm'] .map-dot,
+html.color-safe .map-locus[data-heat='warm'] .map-dot {
+  fill: #f0e442;
+  stroke: #1e293b;
+}
+
+:root.color-safe .map-locus[data-heat='hot'] .map-dot,
+html.color-safe .map-locus[data-heat='hot'] .map-dot {
+  fill: #d55e00;
+}
+
+/* Shape markers shown in color-safe mode */
+.map-marker {
+  display: none;
+  font-family: system-ui, sans-serif;
+  font-size: 0.4px;
+  font-weight: 800;
+  fill: #0b0f19;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+:root.color-safe .map-marker,
+html.color-safe .map-marker {
+  display: block;
+}
+
+/* Locus numbers */
+.map-locus-num {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.42px;
+  font-weight: 600;
+  fill: var(--text, #f8fafc);
+  opacity: 0.9;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
