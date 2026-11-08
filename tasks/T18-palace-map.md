@@ -67,3 +67,11 @@ In `wt/T18`: `npm test`, `npm run build`, paste counts.
 1. Code review: no `innerHTML`; listeners removed; heat values outside 0..1 or NaN clamp or show neutral.
 2. Red-team `src/redteam/T18.test.ts`: at least 5 tests, for example heat with index 99 or -1 is ignored, highlight empty, `update()` after `destroy()` does not throw, route order matches `LOCI`, aria-labels are unique.
 Write "Verification" as TASKS.md says.
+
+## Verification (round 1)
+Verdict: PASS
+Evidence: `npm test` -> "tests 362, pass 362, fail 0" (builder 356 + 6 red-team); `npm run build` -> exit 0.
+Acceptance: ✔ tests and build pass; ✔ builder tests cover 52 dots in route order, update without rebuild, destroy listeners, no innerHTML (`src/ui/palaceMap.test.ts` 1-5); ✔ screenshots listed under `docs/shots/T18-*.png` (not re-viewed by FB).
+Code review: `createElementNS` only, no `innerHTML`, `textContent` for labels. Click and keydown handlers removed in destroy. Keys: Enter/Space pick, arrows and Home/End move focus. Colour-safe: heat has dash patterns in `palaceMap.css`.
+Findings: none open.
+Attacks tried that failed: heat keys outside 0..51, NaN and 1e9 heat values; highlight -1, 52, 1.5, NaN; destroy twice then update; two independent maps; numbers:false and no-options build; viewBox present.
