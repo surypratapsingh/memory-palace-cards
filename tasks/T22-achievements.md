@@ -21,6 +21,7 @@ A short list of milestones that mark real skill, derived from the save, so the p
 - [ ] `achievements(emptySave(), now)` returns all badges unearned, none with progress over its total.
 
 ## Questions
+BLOCKED: dependency merge `git merge task/T20-speed` conflicts in MATHS.md (T19 added section 12 and T20 added section 13 at the same place, both appended after section 11). `git merge task/T21-journey` conflicts the same way. Lead: merge T19, T20, T21 into main (resolve MATHS.md there, keep sections 12 and 13 and the T21 section), then mesh can give T22 a clean base. Not resolved here because MATHS.md is Lead-owned.
 ## Report
 
 ## Verify (for AG)
