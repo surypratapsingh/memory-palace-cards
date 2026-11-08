@@ -76,3 +76,13 @@ In `wt/T15`: `npm test`, `npm run build`, paste counts.
 1. Code review: every call passes the setting, not `true`; no correct/wrong cue during recall; `stopAll()` on every exit path (Esc, Quit button, route change, result Continue).
 2. Red-team `src/redteam/T15.test.ts`: at least 5 tests, for example sound off never constructs `AudioContext`; `ambience` with the same room twice starts one pad; `stopAll()` twice does not throw; `stopAll()` then `play` with sound on works again; `ambience(null, true)` stops the pad.
 Write "Verification" as TASKS.md says.
+
+## Verification (round 1)
+Verdict: PASS
+Evidence: `npm test` -> "tests 341, pass 341, fail 0" (335 builder + 6 red-team); `npm run build` -> exit 0.
+Mutation: `src/ui/drill.ts:385` changed to `play('flip', true)` (sound ignored) -> `npm test` "pass 340, fail 1" (caught). Undone with `git checkout -- src/ui/drill.ts`.
+Acceptance: ✔ tests and build pass; ✔ no-audio-with-sound-off test (`src/ui/soundWiring.test.ts`, plus `src/redteam/T15.test.ts` 1); ✔ call-site table present; browser playtest not repeated here (builder evidence only).
+Code review: every `play`/`ambience` call passes `settings.sound` (only `true` is in `trainer.ts` `addImageDisplay`, unrelated). Correct/wrong cue only on results or reveal screens, never during recall picking. `stopAll()` on Esc, Quit, Back, Shadow Walk, Continue, unmount, and every `render()`. `src/sound.ts` unchanged.
+Findings:
+1. [S3] Report call-site table: several line numbers are off by 1-2 (e.g. drill quit `452` not `453`, ghost warning `1026` not `1028`, onboarding result `415` not `417`, trainer `293` not `295`, main `133` not `134`). Fix the table. DEFER Q1 is also acceptable.
+Attacks tried that failed: sound off builds no AudioContext for any sfx or ambience; stopAll twice; ambience(null, true); repeated ambience with sound off; sound on with AudioContext undefined; stopAll then sound off stays silent; hardcoded sound-on flip caught by existing tests.
