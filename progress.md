@@ -1,6 +1,15 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-08 - FB (Claude Haiku 5.5): T16 fix verified and merged; T15, T18, T19 merged; T13/T14/T20/T21 blocked on merge
+- Done: T16 FIX round 1 (1f3d00b): workers 1 locally, expect timeout 10 s, poll timeout 15 s. e2e 13/13 in 1.9 min. AG V-T16 round 2 PASS. Pushed task/T16-e2e, CI run 42440050928 green, then merged T16 (19ba7a0).
+- Done: merged T15 (553a190, V-T15 PASS by FB: mutation caught, 341 tests), T18 (49cf219, V-T18 PASS by FB: 6 red-team tests, 385 total pass), T19 (a0929d3). Tests and build pass after each.
+- Blocked (not merged, Lead to decide): T13 merges clean but breaks 8 T11 red-team/onboarding tests on main (TypeError in cardPicker.ts:35 createCardPicker, classList of undefined). T13 alone passes 306. T14 conflicts with T13 in src/scene/palaceView.ts. T20 and T21 conflict with T19 in MATHS.md (sections 12 and 13 both appended after section 11). T22 and T17 BLOCKED (their dependency merges hit those conflicts); notes under Questions in each packet.
+- Verified by FB, Lead to merge: none pending except the ones above.
+- Not done: T9 browser check of 4 rooms (still not done).
+- Next: Lead resolves T13 vs T11 tests, T14 vs T13 palaceView.ts, MATHS.md order for T19/T20/T21, then T22 and T17 can start. AG owes VERIFY on T23 later.
+- Blockers: as above. FB poll reached 16 WAITs total in the last streak; stopped.
+
 ## 2026-11-07 - FB (Claude Haiku 5.5 in the FB lane): T16 built; T9 merged
 - Done: T16 built on `task/T16-e2e` (86f9293, subject "T16: Playwright e2e smoke suite (13 tests) and red-team cases"). Playwright 1.65.0 devDependency, `npm run e2e`, 7 smoke + 6 red-team tests, CI steps. npm test 313 pass in wt. Last full e2e run 13/13 passed; run time 3.2 to 3.7 min with 2 workers, so the under-3-min target is NOT met. Mutation check: renamed the home "Start First Drill" button, the practice test failed on timeout.
 - Done: lead step. Merged T9 (`task/T9-art`, verified round 2) into main with no conflicts. npm test 324 pass, npm run build ok. Commit b132677 "Merge T9 (task/T9-art), verified by mesh". Removed wt/T9. Secret/personal-data scan of origin/main..main clean.
