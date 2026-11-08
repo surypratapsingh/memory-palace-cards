@@ -1,6 +1,14 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-08 - FB (Claude Haiku 5.5, MP-HAIKU lane): T22 fix round 0 built, awaiting AG verify
+
+- Done: `src/achievements.ts` (17 badges, stable ids, progress capped); `src/achievements.test.ts` (acceptance + earned/unearned per badge); `src/redteam/T22.test.ts` (8 checks).
+- Tested: `node --test` on both files 44 pass; `npm test` 497 pass; `npm run build` OK.
+- Could not do: nothing from the packet.
+- Unsure of: badge count is 17 (packet said about 15). Speed badges need a valid 52-card speed drill.
+- Next: AG VERIFY T22 (packet Verify section). Then FB takes the next mesh job.
+
 ## 2026-11-08 - FB (Claude Haiku 5.5): T16 fix verified and merged; T15, T18, T19 merged; T13/T14/T20/T21 blocked on merge
 - Done: T16 FIX round 1 (1f3d00b): workers 1 locally, expect timeout 10 s, poll timeout 15 s. e2e 13/13 in 1.9 min. AG V-T16 round 2 PASS. Pushed task/T16-e2e, CI run 42440050928 green, then merged T16 (19ba7a0).
 - Done: merged T15 (553a190, V-T15 PASS by FB: mutation caught, 341 tests), T18 (49cf219, V-T18 PASS by FB: 6 red-team tests, 385 total pass), T19 (a0929d3). Tests and build pass after each.
