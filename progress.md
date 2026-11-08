@@ -1,6 +1,12 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-09 - H-MPT (Claude Haiku 5.5): real-fail tests on h/real-fail-tests
+- Done: four items from H-TECH FAIL lines, one commit each: billboard opacity clamp test (3a3d579), free-walk nearestFree test (80b4c76), palaceView free-walk wiring test (d4e74f0), MATHS.md w20 vs ts-fsrs default test (ed5827a). Each plant was caught and then restored. npm test 457 pass.
+- In progress: nothing.
+- Next: a VERIFY lane should plant the same faults on h/real-fail-tests. The palaceView test is a source-text check; a real behaviour test needs a browser (e2e).
+- Blockers: none. Nothing pushed or merged.
+
 ## 2026-11-08 - Lead (Freebuff): T13, T14, T20, T21 merged; T17 and T22 unblocked
 - Done: merged T13 (87e1b4f), T14 (eafdc1f), T20 (6c4520c) and T21 (5be2384) with --no-ff in board order; npm test and npm run build green after each merge (395, 407, 429, 453 tests). Conflicts resolved by keeping both sides: the two import lines in `src/scene/palaceView.ts` (T13 + T14) and MATHS.md sections 12/13/14 (T19, T20, T21).
 - Found: T13 merged without code conflicts but broke 13 tests on main, because the new card picker and card face read `document.documentElement` for the colour-safe theme while the older test doubles had no `documentElement`, and onboarding's fake `El` had no `setAttribute`. Fixed the test doubles (a4ade69), not the product code; no assertion was changed, T13's guided pitch and T14's free walk both survive in `palaceView.ts`.
