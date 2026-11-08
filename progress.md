@@ -1,6 +1,13 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-08 - Friend (Claude): Pages deploy fix; T13/T14/T20/T21 not mergeable from this clone
+- Done: Deploy Pages "Run tests" failure on 6348112 was a flake, not a Node-version problem: CI passed on the same commit while the Pages job failed, and under Node 24.22.2 locally `T19 red-team 4` (1,000-drill stress test, wall-clock `< 200 ms`) took 354 ms in a full parallel run (30-120 ms alone). Bound raised to 2 s (`src/redteam/T19.test.ts`); it still catches an algorithmic blow-up. Both workflows: `actions/checkout@v5`, `actions/setup-node@v5`; Node stays 24 (tests need 22.6+ for type stripping). `npm test` 385/385 pass, `npm run build` ok on Node 24.
+- Found (needs the owner): the earlier Deploy Pages run on 19ba7a0 passed tests and build, then `actions/deploy-pages` failed with 404 "Ensure GitHub Pages has been enabled". Set Settings > Pages > Source to "GitHub Actions"; otherwise the site will still not deploy once tests are green.
+- Not done: Task B. `mesh status` shows T13, T14, T20, T21 as `todo` (not verified), and their branches are not in this clone or on GitHub (`origin` has only `main` and `task/T16-e2e`; no `wt/`). Nothing verified was left to merge, and the conflicts listed in the entry below (T13 vs T11 tests, T14 vs T13 `palaceView.ts`, MATHS.md order for T19/T20/T21) need a Lead decision anyway.
+- Next: Lead pushes the branch, enables Pages, then resolves the blocked merges from the machine that holds `wt/T13`, `wt/T14`, `wt/T20`, `wt/T21`.
+- Blockers: Pages not enabled (owner); task branches absent from this clone.
+
 ## 2026-11-08 - FB (Claude Haiku 5.5): T16 fix verified and merged; T15, T18, T19 merged; T13/T14/T20/T21 blocked on merge
 - Done: T16 FIX round 1 (1f3d00b): workers 1 locally, expect timeout 10 s, poll timeout 15 s. e2e 13/13 in 1.9 min. AG V-T16 round 2 PASS. Pushed task/T16-e2e, CI run 42440050928 green, then merged T16 (19ba7a0).
 - Done: merged T15 (553a190, V-T15 PASS by FB: mutation caught, 341 tests), T18 (49cf219, V-T18 PASS by FB: 6 red-team tests, 385 total pass), T19 (a0929d3). Tests and build pass after each.
