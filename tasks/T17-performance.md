@@ -27,6 +27,7 @@ Lead measurement, 2026-10-23: one JS chunk, 639 kB minified, 164 kB gzip (three.
 - [ ] "Report" has the numbers from requirement 5.
 
 ## Questions
+BLOCKED: dependency merges. `git merge task/T13-card-art` is clean. `git merge task/T14-free-walk` conflicts in `src/scene/palaceView.ts` (T13 and T14 both change it), and `git merge task/T16-e2e` cannot run until that is resolved. Lead: resolve the T13/T14 conflict on main (or on task/T14-free-walk) and say which one wins, then mesh can start T17 on a clean base. Not resolved here: palaceView.ts is a 3D file outside this packet.
 ## Report
 
 ## Verify (for AG)
