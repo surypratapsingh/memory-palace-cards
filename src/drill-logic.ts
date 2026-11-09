@@ -47,6 +47,7 @@ export function applyResult(data: SaveData, result: DrillResult): SaveData {
     locusStats: nextLocusStats,
     streak: { ...data.streak },
     settings: { ...data.settings },
+    ...(data.journey ? { journey: { ...data.journey } } : {}),
   };
 }
 
