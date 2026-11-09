@@ -140,3 +140,8 @@ export function shareText(d: DrillResult): string {
   for (let i = 0; i < squares.length; i += 13) lines.push(squares.slice(i, i + 13).join(''));
   return [header, `${total} cards · ${correct}/${total} · run ${run} · ${time}`, ...lines].join('\n');
 }
+
+/** Today's Daily Deck drill, if any. Daily drills are seeded with the local day ("YYYY-MM-DD"); `at` is UTC, so it cannot be compared with a local day. */
+export function dailyDrillOn(drills: readonly DrillResult[], today: string): DrillResult | undefined {
+  return drills.find((d) => d.daily && d.seed === today);
+}

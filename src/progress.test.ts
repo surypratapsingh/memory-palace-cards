@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { levelOf, isPerfect, unlockedLevel, recommendedLevel, personalBests, dayDiff, updateStreak, rankTitle, shareText, stepLevel } from './progress.ts';
+import { levelOf, isPerfect, unlockedLevel, recommendedLevel, personalBests, dayDiff, updateStreak, rankTitle, shareText, stepLevel, dailyDrillOn } from './progress.ts';
 import { DECK, LADDER, rng } from './deck.ts';
 import type { CardId, DrillResult } from './types.ts';
 
@@ -303,4 +303,13 @@ test('shareText: no card ids or suit symbols', () => {
   const hasSuitSymbolRegex = /[♠♥♦♣]/;
   assert.ok(!hasCardIdRegex.test(result), 'should not contain card IDs');
   assert.ok(!hasSuitSymbolRegex.test(result), 'should not contain suit symbols');
+});
+test('dailyDrillOn: matches the local-day seed, not the UTC date of `at`', () => {
+  const mk = (seed: string, at: string, daily = true) =>
+    ({ at, seed, daily, sequence: ['AS'], answers: ['AS'], memorizeMs: 1, recallMs: 1 }) as DrillResult;
+  // Daily played late on local Nov 8 in UTC-8 is stamped Nov 9 in UTC; it must not count as Nov 9's daily.
+  const yesterday = mk('2026-11-08', '2026-11-09T04:00:00.000Z');
+  assert.equal(dailyDrillOn([yesterday], '2026-11-09'), undefined);
+  assert.equal(dailyDrillOn([yesterday], '2026-11-08'), yesterday);
+  assert.equal(dailyDrillOn([mk('2026-11-09', '2026-11-09T10:00:00.000Z', false)], '2026-11-09'), undefined);
 });
