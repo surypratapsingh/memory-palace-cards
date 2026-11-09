@@ -71,3 +71,64 @@ test('T22 red-team 8: a corrupt srs entry does not crash and counts as new', () 
   const list = achievements(save, NOW);
   assert.deepEqual(find(list, 'cards-learning')?.progress, [0, 52]);
 });
+
+
+test('T22 red-team 9: titles have no exclamation marks per requirement 3', () => {
+  const list = achievements(emptySave(), NOW);
+  for (const a of list) {
+    assert.ok(!a.title.includes('!'), `Badge "${a.id}" title "${a.title}" must not contain exclamation marks`);
+  }
+});
+
+test('T22 red-team 10: unearned badges never carry an earnedAt timestamp', () => {
+  const list = achievements(emptySave(), NOW);
+  for (const a of list) {
+    assert.equal(a.earned, false);
+    assert.equal(a.earnedAt, undefined, `Unearned badge "${a.id}" must not have earnedAt`);
+  }
+});
+
+test('T22 red-team 11: progress tuple always has 0 <= done <= of with integer values', () => {
+  const drills = [drill(3, '2026-11-01T10:00:00.000Z'), drill(5, '2026-11-02T10:00:00.000Z')];
+  const save = { ...emptySave(), drills, streak: { lastDay: '2026-11-02', count: 15, freezes: 0 } };
+  const list = achievements(save, NOW);
+  for (const a of list) {
+    if (a.progress) {
+      const [done, of] = a.progress;
+      assert.ok(Number.isInteger(done), `done for ${a.id} must be integer`);
+      assert.ok(Number.isInteger(of), `of for ${a.id} must be integer`);
+      assert.ok(done >= 0, `done for ${a.id} must be >= 0`);
+      assert.ok(done <= of, `done for ${a.id} must be <= of`);
+    }
+  }
+});
+
+test('T22 red-team 12: earnedAt selects the earliest matching drill timestamp in save array', () => {
+  const drills = [
+    drill(3, '2026-11-01T10:00:00.000Z'),
+    drill(3, '2026-11-02T10:00:00.000Z'),
+    drill(3, '2026-11-03T10:00:00.000Z'),
+  ];
+  const list = achievements({ ...emptySave(), drills }, NOW);
+  assert.equal(find(list, 'perfect-3')?.earnedAt, '2026-11-01T10:00:00.000Z');
+});
+
+test('T22 red-team 13: speed deck badges require mode=speed and correct time thresholds', () => {
+  // Mode speed at 300 s (exact 5 min limit): perfect speed earned, but under-5 (< 300s) and under-2 (< 120s) NOT earned
+  const d300: DrillResult = {
+    ...drill(52, '2026-11-01T10:00:00.000Z', { mode: 'speed', memorizeMs: 300_000, recallMs: 60_000 }),
+  };
+  const list1 = achievements({ ...emptySave(), drills: [d300] }, NOW);
+  assert.equal(find(list1, 'speed-perfect')?.earned, true);
+  assert.equal(find(list1, 'speed-under-5')?.earned, false);
+  assert.equal(find(list1, 'speed-under-2')?.earned, false);
+
+  // Mode speed 119 s: all three speed badges earned
+  const d119: DrillResult = {
+    ...drill(52, '2026-11-02T10:00:00.000Z', { mode: 'speed', memorizeMs: 119_000, recallMs: 60_000 }),
+  };
+  const list2 = achievements({ ...emptySave(), drills: [d119] }, NOW);
+  assert.equal(find(list2, 'speed-perfect')?.earned, true);
+  assert.equal(find(list2, 'speed-under-5')?.earned, true);
+  assert.equal(find(list2, 'speed-under-2')?.earned, true);
+});

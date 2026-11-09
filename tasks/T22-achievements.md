@@ -43,3 +43,24 @@ Choices:
 In `wt/T22`: `npm test`, `npm run build`, paste counts.
 1. Red-team `src/redteam/T22.test.ts`: at least 5 tests, for example a drill dated in the future, a streak count of 1e9, a perfect 52 with `daily: true`, duplicate badge ids, `earnedAt` always one of the drill timestamps.
 Write "Verification" as TASKS.md says.
+
+
+## Verification (round 1)
+Verdict: PASS
+Evidence: npm test -> "pass 502, fail 0"; npm run build -> ok; 13 redteam tests pass.
+Acceptance:
+- [✔] npm test (502 pass, 0 fail) and npm run build (ok) pass; tests cover earned and unearned state for all 17 badges.
+- [✔] achievements(emptySave(), now) returns all badges unearned, none with progress over its total.
+Findings:
+None (S1: 0, S2: 0, S3: 0).
+Attacks tried that failed:
+1. Future-dated drill: kept as-is, attaches exact ISO string as earnedAt, does not earn unearned levels.
+2. Huge streak count (1e9): progress clamped to target (7/7, 30/30), never overflows total.
+3. Daily drill flag: perfect 52 with daily: true correctly earns perfect-52 badge.
+4. Badge ID collision: all 17 badge IDs are distinct.
+5. Timestamp provenance: earnedAt always originates from a drill in the save.
+6. Corrupt streak (NaN, negative): gracefully handled, progress floors to 0, earned=false.
+7. Corrupt srs entry: null srs entry does not throw, counts as new.
+8. Spec plain titles check: verified zero exclamation marks across all 17 badge titles.
+9. Earliest timestamp check: earnedAt matches earliest chronological drill that earned the milestone.
+10. Speed Cards boundary: 300 s limit correctly handles perfect vs under-5 vs under-2 thresholds.
