@@ -270,3 +270,30 @@ test('11. solidBoxes caches and returns the same array reference on repeated cal
   assert.equal(first, second);
   assert.ok(first.length > 52);
 });
+
+
+test('12. clampToWalkable recovers positions outside rooms or doors', () => {
+  const boxes = solidBoxes();
+  const [rx, rz] = moveBody(100, 100, 0, 0, boxes);
+  assert.equal(isFree(rx, rz, boxes), true);
+
+  const [dx, dz] = moveBody(-100, 0, 0, 0, boxes);
+  assert.equal(isFree(dx, dz, boxes), true);
+});
+
+test('13. nearestFree falls back to first room center if everything within 3m is blocked', () => {
+  const giantBox: Box2 = { x0: -10, x1: 10, z0: -10, z1: 10 };
+  const [fx, fz] = nearestFree(0, 0, [giantBox]);
+  const r0 = ROOMS[0].rect;
+  assert.equal(fx, (r0.x0 + r0.x1) / 2);
+  assert.equal(fz, (r0.z0 + r0.z1) / 2);
+});
+
+test('14. moveBody slides along wall when moving diagonally against obstacle', () => {
+  const box: Box2 = { x0: 2, x1: 4, z0: -2, z1: 2 };
+  const startX = 2 - BODY_RADIUS - 0.001;
+  const startZ = 0;
+  const [nx, nz] = moveBody(startX, startZ, 0.5, 0.5, [box]);
+  assert.ok(nx <= 2 - BODY_RADIUS + 1e-4);
+  assert.ok(nz > startZ + 0.3);
+});
