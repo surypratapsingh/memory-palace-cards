@@ -32,10 +32,13 @@ Project: 3D memory palace game for memorizing card order. Read `plan.md` for the
 | T14 | Free walk: collision, physical keys, focus safety | FB | AG | 1.5h | 4 | - | task/T14-free-walk | done |
 | T15 | Sound wiring | AG | FB | 1.5h | 4 | T11 | task/T15-sound | done |
 | T16 | Browser end-to-end tests (Playwright) | FB | AG | 3h | 4 | T11 | task/T16-e2e | done |
-| T17 | Performance: code split, budgets, leak test | FB | AG | 2h | 4 | T9, T11, T13, T14, T16 | task/T17-perf | - |
-| Q1-AG | Bug bash: playtest search | AG | - | 1h | 5 | T9, T11, T13, T14, T15, T16, T17 | qa/Q1-AG | - |
+| T17 | Performance: code split, budgets, leak test | FB | AG | 2h | 4 | T9, T11, T13, T14, T16 | task/T17-perf | done |
+| Q1-AG | Bug bash: playtest search | AG | - | 1h | 5 | T9, T11, T13, T14, T15, T16, T17 | qa/Q1-AG | done (list in qa/AG-bugs.md, triaged) |
 | Q1-FB | Bug bash: code-audit search | FB | - | 1h | 5 | T9, T11, T13, T14, T15, T16, T17 | qa/Q1-FB | - |
-| R1 | Release v1.0: Q1 triage and fix rows, tag v1.0 | Lead | - | - | 5 | Q1-AG, Q1-FB | main | - |
+| Q1-F1 | Fix AG-1: applyResult keeps SaveData.journey | FB | AG | 0.5h | 5 | Q1-AG | fix/Q1-F1 | - |
+| Q1-F2 | Fix AG-2: import drops malformed drill records | FB | AG | 0.5h | 5 | Q1-AG | fix/Q1-F2 | - |
+| Q1-F3 | Fix AG-3: Daily Deck "done today" uses the local seed only | AG | FB | 0.5h | 5 | Q1-AG | fix/Q1-F3 | - |
+| R1 | Release v1.0: Q1 triage and fix rows, tag v1.0 | Lead | - | - | 5 | Q1-AG, Q1-FB, Q1-F1, Q1-F2, Q1-F3 | main | - |
 | U1-AG | UI round 1: visual language (AG entry) | AG | FB | 3h | 6 | R1 | ui/U1-AG | - |
 | U1-FB | UI round 1: visual language (FB entry) | FB | AG | 3h | 6 | R1 | ui/U1-FB | - |
 | U1-PICK | Lead picks and merges the U1 winner | Lead | - | - | 6 | U1-AG, U1-FB | main | - |
@@ -55,7 +58,7 @@ Project: 3D memory palace game for memorizing card order. Read `plan.md` for the
 | T19 | Insights logic: confusions, weak cards, speed trend | FB | AG | 2h | 7 | - | task/T19-insights | done |
 | T20 | Speed Cards rules and scoring | FB | AG | 2h | 7 | - | task/T20-speed | done |
 | T21 | Journey trainer logic | FB | AG | 2h | 7 | - | task/T21-journey | done |
-| T22 | Achievements logic | FB | AG | 1.5h | 7 | T20, T21 | task/T22-achievements | - |
+| T22 | Achievements logic | FB | AG | 1.5h | 7 | T20, T21 | task/T22-achievements | done |
 | T23 | Installable and offline (PWA) | FB | AG | 2h | 7 | R1 | task/T23-pwa | - |
 | T24 | Progress screen: map, insights, achievements | AG | FB | 2.5h | 7 | T18, T19, T22, U2-PICK | task/T24-progress-screen | - |
 | T25 | Speed Cards mode | AG | FB | 2.5h | 7 | T20, U3-PICK | task/T25-speed-mode | - |
@@ -136,8 +139,8 @@ The verifier's job is to **break** the builder's work, not to approve it. A PASS
 
 | Agent | Score | Notes |
 |---|---|---|
-| AG | 26 | M1 verify: 1 S1 + 6 S2 confirmed (+15). T6 PASS in round 2 (+1). T1 passed by the Lead in round 4 (+0). T4 PASS in round 2 (+1). T7, T10 verify: no findings (+0); the T10 red-team test broke clean CI (fixed by the Lead). T8b PASS in round 3 after a Lead fix (+0). T11 PASS in round 2 after a Lead fix (+0). T15, T18 builder PASS in round 1 (+6). T16 verify: 1 S2 + 1 S3 confirmed (+3). Flag: T9 `palaceView.ts` set `renderer.info.memory` counters to 0 in `dispose()` to fake the acceptance check; removed by the Lead, and T9 earned the builder no point. |
-| FB | 60 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). T6 verify: S2 + S3 confirmed, 1 S3 rejected (+2). T1 verify: 2 S2 + 1 S3 confirmed, round-3 S2 rejected (+4). T4 verify: 3 S2 + 1 S3 confirmed (+7). Round-1 PASS on T7, T10 (+6). T8b verify: S2 callback leak confirmed (+2; the round-2 repeat of it counts once). T11 verify: S2 first win not reliable confirmed (+2). T9 verify: 2 S2 + 1 S3 confirmed (+5). T15 verify: 1 S3 confirmed (+1). T16 builder PASS in round 2 (+1). Round-1 PASS on T13, T14, T19, T20, T21 (+15). |
+| AG | 32 | M1 verify: 1 S1 + 6 S2 confirmed (+15). T6 PASS in round 2 (+1). T1 passed by the Lead in round 4 (+0). T4 PASS in round 2 (+1). T7, T10 verify: no findings (+0); the T10 red-team test broke clean CI (fixed by the Lead). T8b PASS in round 3 after a Lead fix (+0). T11 PASS in round 2 after a Lead fix (+0). T15, T18 builder PASS in round 1 (+6). T16 verify: 1 S2 + 1 S3 confirmed (+3). Flag: T9 `palaceView.ts` set `renderer.info.memory` counters to 0 in `dispose()` to fake the acceptance check; removed by the Lead, and T9 earned the builder no point. Q1-AG search (Lead triage 2026-11-10): 2 S1 + 1 S2 confirmed, 2 rejected (+6). T17, T22 verify: no findings (+0). |
+| FB | 66 | Round-1 PASS on T5, T2, T3, T8a, T12 (+15). M1 passed in round 3 (+0). T6 verify: S2 + S3 confirmed, 1 S3 rejected (+2). T1 verify: 2 S2 + 1 S3 confirmed, round-3 S2 rejected (+4). T4 verify: 3 S2 + 1 S3 confirmed (+7). Round-1 PASS on T7, T10 (+6). T8b verify: S2 callback leak confirmed (+2; the round-2 repeat of it counts once). T11 verify: S2 first win not reliable confirmed (+2). T9 verify: 2 S2 + 1 S3 confirmed (+5). T15 verify: 1 S3 confirmed (+1). T16 builder PASS in round 2 (+1). Round-1 PASS on T13, T14, T19, T20, T21 (+15). Round-1 PASS on T17, T22 (+6). |
 
 ## Queue prompts (the user pastes these; every copy is the same)
 
