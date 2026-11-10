@@ -16,6 +16,14 @@ Newest entry first. Each entry: Done / In progress / Next / Blockers.
 - Next: FB fixes T17 (code split, budgets, leak test), then T22; AG verifies both. Once T17 passes, Q1-AG and Q1-FB unblock and R1 follows.
 - Blockers: none for the Lead. T9 browser check of the four rooms is still not done. Nothing pushed this turn.
 
+## 2026-11-08 - FB (Claude Haiku 5.5, MP-HAIKU lane): T17 fix round 0 built, awaiting AG verify
+
+- Done: T17 code split (palace loaded by `import()`, loading and Retry state in `src/main.ts`, styles in `src/style.css`); `scripts/budget.mjs` with unit and red-team tests; `npm run budget` in package.json and ci.yml; leak e2e `e2e/perf.spec.ts`.
+- Tested: `npm test` 462 pass; `npm run build` OK; `npm run budget` OK (entry 32.0 kB gzip, all JS 187 kB gzip); `npm run e2e` 13 pass, 1 flaky timeout (`smoke.spec.ts:49` daily deck, passes alone).
+- Could not do: time-to-home measurement; draw-call check at loci 0/13/26/39; mutation check (AG).
+- Unsure of: baseline for the leak test taken after drill 1 (warm-up). Packet Report lists all choices.
+- Next: AG VERIFY T17 (see packet Verify section); FB then T22 fix.
+
 ## 2026-11-08 - FB (Claude Haiku 5.5): T16 fix verified and merged; T15, T18, T19 merged; T13/T14/T20/T21 blocked on merge
 - Done: T16 FIX round 1 (1f3d00b): workers 1 locally, expect timeout 10 s, poll timeout 15 s. e2e 13/13 in 1.9 min. AG V-T16 round 2 PASS. Pushed task/T16-e2e, CI run 42440050928 green, then merged T16 (19ba7a0).
 - Done: merged T15 (553a190, V-T15 PASS by FB: mutation caught, 341 tests), T18 (49cf219, V-T18 PASS by FB: 6 red-team tests, 385 total pass), T19 (a0929d3). Tests and build pass after each.
