@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LOCI, viewpoint } from '../data/palace.ts';
 import { RUN_SPEED, WALK_SPEED } from './walkInput.ts';
-import { isFree } from './collide.ts';
+import { isFree, nearestFree } from './collide.ts';
 import { createFreeWalk } from './freeWalk.ts';
 
 test('KeyW is physical regardless of Shift, Caps Lock, and the event character', () => {
@@ -61,6 +61,15 @@ test('long and invalid frame durations cannot move through a wall', () => {
   const afterBadFrame = walk.step(afterLongFrame, 0, Number.NaN);
   assert.equal(isFree(afterBadFrame.x, afterBadFrame.z), true);
   assert.deepEqual(afterBadFrame, afterLongFrame);
+});
+
+test('a start inside solid geometry lands on nearestFree, not on a plain body push', () => {
+  // Body push alone gives a different free point here (3.012, 1.262); nearestFree gives (3.05, 1.25).
+  for (const [x, z] of [[3, 1.25], [4, 1.5]] as const) {
+    const walk = createFreeWalk();
+    const position = walk.step({ x, z }, 0, 0);
+    assert.deepEqual([position.x, position.z], nearestFree(x, z));
+  }
 });
 
 test('arrow keys and physical WASD codes combine without text-layout dependence', () => {

@@ -1,5 +1,11 @@
 # Decision Log
 Format per entry:
+## 2026-11-09 - palaceView wiring tested by source text, not by running it (H-MPT)
+- Decision: `src/scene/palaceView.test.ts` checks the `const freeWalk = createFreeWalk();` line in the source file.
+- Context: `createPalaceView` builds a WebGLRenderer, and node tests have no WebGL.
+- Alternatives rejected: mock the renderer (large fake, fragile); add a Playwright e2e test (not part of `npm test`, slower).
+- Consequences: catches removal of the wiring, not a broken controller at runtime. A behaviour test belongs in e2e if wanted.
+
 ## YYYY-MM-DD - Decision title
 - Decision:
 - Context:
