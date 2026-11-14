@@ -99,6 +99,8 @@ test('redteam T11 round 2: a retry saves each attempt once, with two distinct dr
     t.press(' ');
     t.attempt();
     assert.equal(t.done.length, 0, 'the result screen alone must not complete the flow');
+    // A fast runner can drive both attempts inside one millisecond; start the retry in a later one so the two `at` stamps differ.
+    const t0 = Date.now(); while (Date.now() === t0);
     t.root.find('Try again')!.click();
     assert.equal(t.done.length, 0);
     t.attempt();
