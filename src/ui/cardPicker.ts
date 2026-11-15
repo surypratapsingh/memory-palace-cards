@@ -17,6 +17,8 @@ export interface CardPickerInstance {
 export function createCardPicker(options: CardPickerOptions): CardPickerInstance {
   const container = document.createElement('div');
   container.className = 'card-picker';
+  container.setAttribute('role', 'group');
+  container.setAttribute('aria-label', 'Card picker');
 
   const cardButtons = new Map<CardId, HTMLButtonElement>();
   const clickHandlers = new Map<CardId, () => void>();
@@ -24,6 +26,8 @@ export function createCardPicker(options: CardPickerOptions): CardPickerInstance
   for (const suit of SUITS) {
     const row = document.createElement('div');
     row.className = 'picker-row';
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', suit === 'S' ? 'Spades' : suit === 'H' ? 'Hearts' : suit === 'D' ? 'Diamonds' : 'Clubs');
     for (const rank of RANKS) {
       const cardId = `${rank}${suit}` as CardId;
       const btn = document.createElement('button');
@@ -53,6 +57,50 @@ export function createCardPicker(options: CardPickerOptions): CardPickerInstance
     container.appendChild(row);
   }
 
+  const onKeyDown = (e: KeyboardEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (!target || !target.classList.contains('picker-card')) return;
+    const currentRank = target.dataset.rank as Rank | undefined;
+    const currentSuit = target.dataset.suit as Suit | undefined;
+    if (!currentRank || !currentSuit) return;
+
+    const rankIdx = RANKS.indexOf(currentRank);
+    const suitIdx = SUITS.indexOf(currentSuit);
+    if (rankIdx < 0 || suitIdx < 0) return;
+
+    let targetRank = currentRank;
+    let targetSuit = currentSuit;
+
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      targetRank = RANKS[(rankIdx + 1) % RANKS.length];
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      targetRank = RANKS[(rankIdx - 1 + RANKS.length) % RANKS.length];
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      targetSuit = SUITS[(suitIdx + 1) % SUITS.length];
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      targetSuit = SUITS[(suitIdx - 1 + SUITS.length) % SUITS.length];
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      targetRank = RANKS[0];
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      targetRank = RANKS[RANKS.length - 1];
+    } else {
+      return;
+    }
+
+    const nextCardId = `${targetRank}${targetSuit}` as CardId;
+    const nextBtn = cardButtons.get(nextCardId);
+    if (nextBtn && typeof nextBtn.focus === 'function') {
+      nextBtn.focus();
+    }
+  };
+  container.addEventListener('keydown', onKeyDown);
+
   function applyState(usedCards: ReadonlySet<CardId>, pendingRank?: string | null) {
     const normPending = pendingRank ? (pendingRank.toUpperCase() === '0' ? 'T' : pendingRank.toUpperCase()) : null;
     for (const [cardId, btn] of cardButtons.entries()) {
@@ -81,6 +129,7 @@ export function createCardPicker(options: CardPickerOptions): CardPickerInstance
       applyState(usedCards, pendingRank);
     },
     destroy() {
+      container.removeEventListener('keydown', onKeyDown);
       for (const [cardId, btn] of cardButtons.entries()) {
         const handler = clickHandlers.get(cardId);
         if (handler) {

@@ -233,6 +233,18 @@
   transform: translateY(-2px);
 }
 
+.picker-card:focus-visible {
+  outline: 2px solid var(--accent, #38bdf8);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+@media (forced-colors: active) {
+  .picker-card:focus-visible {
+    outline: 3px solid Highlight;
+  }
+}
+
 .picker-card.pending-highlight {
   border-color: var(--gold, #fbbf24);
   box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
