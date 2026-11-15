@@ -1,4 +1,4 @@
-import type { PalaceView, SaveData } from '../types.ts';
+import type { DrillResult, PalaceView, SaveData } from '../types.ts';
 import {
   unlockedLevel,
   recommendedLevel,
@@ -11,7 +11,6 @@ import { isDue, strength } from '../srs.ts';
 import { DECK, LADDER, cardLabel, localDay, score } from '../deck.ts';
 import { exportJson, importJson } from '../store.ts';
 import { sparklinePath } from './sparkline.ts';
-import './home.css';
 
 export interface HomeActions {
   train(): void;
@@ -29,6 +28,15 @@ function formatDuration(ms: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/**
+ * Daily Deck drill completed on a given local day, if any.
+ * Daily drills are seeded with the local day ("YYYY-MM-DD");
+ * `at` is UTC ISO, so it cannot be compared with a local day.
+ */
+export function dailyDrillOn(drills: readonly DrillResult[], today: string = localDay()): DrillResult | undefined {
+  return drills.find((d) => d.daily && d.seed === today);
 }
 
 export function mountHome(
@@ -162,9 +170,7 @@ export function mountHome(
     todayCard.appendChild(todayHeader);
 
     const today = localDay();
-    const todayDaily = data.drills.find(
-      (d) => d.daily && (d.seed === today || d.at.startsWith(today)),
-    );
+    const todayDaily = dailyDrillOn(data.drills, today);
 
     const unlocked = unlockedLevel(data.drills);
     const dailyBtn = document.createElement('button');
