@@ -313,6 +313,7 @@ export function buildAtmosphere(
     casters: readonly THREE.Object3D[];
     receivers: readonly THREE.Object3D[];
     lamps: readonly THREE.Vector3[];
+    shadowMapSize?: number;
   },
 ): Atmosphere {
   const initialMood = MOODS[0]!;
@@ -389,7 +390,8 @@ export function buildAtmosphere(
   const dirLight = new THREE.DirectionalLight(initialMood.keyColor, initialMood.keyIntensity);
   dirLight.name = 'atmosphere_key';
   dirLight.castShadow = true;
-  dirLight.shadow.mapSize.set(2048, 2048);
+  const shadowDim = opts.shadowMapSize ?? 2048;
+  dirLight.shadow.mapSize.set(shadowDim, shadowDim);
   dirLight.shadow.bias = -0.0005;
   dirLight.shadow.normalBias = 0.02;
   dirLight.shadow.radius = 3;
