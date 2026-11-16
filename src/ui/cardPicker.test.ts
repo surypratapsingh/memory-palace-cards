@@ -147,80 +147,116 @@ test('cardPicker: keyboard arrow navigation navigates ranks, suits, Home, and En
       throw new Error(`Card ${cardId} not found`);
     };
 
+    const resetFocus = () => {
+      for (const cardId of DECK) {
+        getBtn(cardId).focused = false;
+      }
+    };
+
     const container = picker.element as unknown as MockElement;
 
     // ArrowRight from AS -> 2S
-    const asBtn = getBtn('AS');
-    asBtn.focus();
+    resetFocus();
+    getBtn('AS').focus();
     let prevented = false;
     container.dispatchEvent({
       type: 'keydown',
       key: 'ArrowRight',
-      target: asBtn,
+      target: getBtn('AS'),
       preventDefault: () => { prevented = true; },
     });
     assert.ok(prevented);
     assert.equal(getBtn('2S').focused, true);
 
     // ArrowLeft from 2S -> AS
-    getBtn('2S').focused = false;
+    resetFocus();
+    getBtn('2S').focus();
+    prevented = false;
     container.dispatchEvent({
       type: 'keydown',
       key: 'ArrowLeft',
       target: getBtn('2S'),
-      preventDefault: () => {},
+      preventDefault: () => { prevented = true; },
     });
+    assert.ok(prevented);
     assert.equal(getBtn('AS').focused, true);
 
     // ArrowLeft wrap around from AS -> KS
-    getBtn('AS').focused = false;
+    resetFocus();
+    getBtn('AS').focus();
+    prevented = false;
     container.dispatchEvent({
       type: 'keydown',
       key: 'ArrowLeft',
       target: getBtn('AS'),
-      preventDefault: () => {},
+      preventDefault: () => { prevented = true; },
     });
+    assert.ok(prevented);
     assert.equal(getBtn('KS').focused, true);
 
     // ArrowDown from AS -> AH
-    getBtn('AS').focused = false;
+    resetFocus();
+    getBtn('AS').focus();
+    prevented = false;
     container.dispatchEvent({
       type: 'keydown',
       key: 'ArrowDown',
       target: getBtn('AS'),
-      preventDefault: () => {},
+      preventDefault: () => { prevented = true; },
     });
+    assert.ok(prevented);
     assert.equal(getBtn('AH').focused, true);
 
     // ArrowUp from AS -> AC (wrap around to Clubs)
-    getBtn('AS').focused = false;
+    resetFocus();
+    getBtn('AS').focus();
+    prevented = false;
     container.dispatchEvent({
       type: 'keydown',
       key: 'ArrowUp',
       target: getBtn('AS'),
-      preventDefault: () => {},
+      preventDefault: () => { prevented = true; },
     });
+    assert.ok(prevented);
     assert.equal(getBtn('AC').focused, true);
 
     // End key jumps to KS
-    getBtn('5S').focused = false;
+    resetFocus();
+    getBtn('5S').focus();
+    prevented = false;
     container.dispatchEvent({
       type: 'keydown',
       key: 'End',
       target: getBtn('5S'),
-      preventDefault: () => {},
+      preventDefault: () => { prevented = true; },
     });
+    assert.ok(prevented);
     assert.equal(getBtn('KS').focused, true);
 
     // Home key jumps to AS
-    getBtn('KS').focused = false;
+    resetFocus();
+    getBtn('KS').focus();
+    prevented = false;
     container.dispatchEvent({
       type: 'keydown',
       key: 'Home',
       target: getBtn('KS'),
-      preventDefault: () => {},
+      preventDefault: () => { prevented = true; },
     });
+    assert.ok(prevented);
     assert.equal(getBtn('AS').focused, true);
+
+    // Non-navigation key does not prevent default or alter focus
+    resetFocus();
+    getBtn('AS').focus();
+    prevented = false;
+    container.dispatchEvent({
+      type: 'keydown',
+      key: 'Tab',
+      target: getBtn('AS'),
+      preventDefault: () => { prevented = true; },
+    });
+    assert.equal(prevented, false);
 
     picker.destroy();
   } finally {
