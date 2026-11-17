@@ -48,6 +48,10 @@ button:hover, button:focus-visible { border-color: var(--accent); }
 :root.color-safe [data-strength='solid']::after { content: '✓'; }
 :root.color-safe [data-strength='gilded']::after { content: '★'; }
 
+/* "New version ready" line from the service worker. Non-blocking: it never reloads by itself. */
+.pwa-update { position: fixed; z-index: 1001; left: 1rem; bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; max-width: min(28rem, calc(100vw - 2rem)); padding: 0.6rem 0.9rem; border: 1px solid var(--accent); border-radius: 0.5rem; background: var(--panel); color: var(--text); box-shadow: 0 4px 20px #0008; }
+.pwa-update button:disabled { opacity: 0.6; cursor: default; }
+
 /* Palace loading and retry state (shown while the 3D palace is imported). */
 .palace-state {
   display: grid;

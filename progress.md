@@ -1,6 +1,14 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-17 - H15-MESH (Claude Haiku 5.5): T23 PWA built on branch H15-MESH/T23-pwa, awaiting verify
+- Done: T23 on `H15-MESH/T23-pwa` (worktree `wt/H15-MESH-T23`, cut from origin/main dc59805). Added `public/manifest.webmanifest`, `public/icon.svg`, `public/icon-192.png`, `public/icon-512.png`, `public/sw.js` (plain JS, about 50 lines, no dependency), `src/pwa.ts` (registration in production only, "New version ready" line with Reload), `src/pwa.test.ts` (19 tests; `sw.js` runs in a sandbox with fake caches and fetch), `e2e/pwa.spec.ts`, index.html links, one line in `src/main.ts`, `.pwa-update` rule in `src/style.css`.
+- Tested: `npm test` 540 pass; `npm run build` OK; `npm run budget` OK; full `npx playwright test` 15 of 15 pass, including the new offline test. Mutation checks: six breaks to `sw.js` and `pwa.ts` (404 cached, opaque cached, POST handled, skipWaiting on install, self-reload, cross-origin cached) and two more (navigation not cached, activate keeps old caches) were each caught by at least one test; files restored.
+- Not done: Chrome DevTools manifest and "Installable" check, `docs/shots/T23-1.png` (no DevTools here). Update flow (two builds, Reload click) not run in a browser; covered by unit tests only.
+- Gate note: TASKS.md lists T23 Needs R1 (v1.0 tag). R1 is not done (Q1-FB not run, fix rows not merged). Branch built on origin/main, not merged. Lead decides the merge after R1.
+- Next: AG verify (browser install and update check, red-team). Then Lead merge.
+- Blockers: T24 and T26 wait on U2-PICK, T25 waits on U3-PICK (UI rounds not started). C2 is a Lead gate; T27 to T29 wait on C2. Q2, R2, Q3, R3 wait on their rows.
+
 ## 2026-11-10 - Lead (Claude Sonnet 5.5, lane C-MESH of Round 12): merges, Q1-AG triage, board
 - Done (local only, nothing pushed, nothing tagged): merged `h/real-fail-tests` (f6ec741, 5 real test gaps closed), T17 (6ce5301) and T22 (8694d58) with --no-ff; `npm test` 457, 472, 521 pass and `npm run build` ok after each, `npm run budget` OK. T17 changes `src/main.ts` (palace loading state): not browser-checked (no Playwright browser here).
 - Done: triaged `qa/AG-bugs.md` (imported; the `qa/Q1-AG` branch itself is stale against main and was not merged). AG-1 (S1, `applyResult` drops `journey`), AG-2 (S1, malformed drill crashes Home) and AG-3 (S2, Daily Deck mixes UTC and local day) confirmed; AG-4 and AG-5 rejected, reasons in `tasks/Q1-bug-bash.md`. Fix rows Q1-F1 to Q1-F3 added above R1 and to its Needs. Mesh score: AG 32, FB 66.

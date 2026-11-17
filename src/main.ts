@@ -19,6 +19,7 @@ import { mountShadowWalk } from './ui/shadowWalk.ts';
 import { mountTrainer } from './ui/trainer.ts';
 import { countUp, feedback, swap } from './ui/motion.ts';
 import { initialScreen, next, type Screen } from './router.ts';
+import { registerServiceWorker } from './pwa.ts';
 
 const scene = document.querySelector<HTMLElement>('#scene');
 const ui = document.querySelector<HTMLElement>('#ui');
@@ -258,6 +259,7 @@ const motionObserver = new MutationObserver(() => {
 motionObserver.observe(uiRoot, { childList: true, subtree: true });
 
 render(initialScreen(data), true);
+void registerServiceWorker(import.meta.env.PROD);
 // Fetch the palace behind the first screen; home redraws once it can show ghost cards.
 void loadView().then(() => {
   if (currentScreen === 'home') render('home', true);
