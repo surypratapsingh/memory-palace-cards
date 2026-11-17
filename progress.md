@@ -1,6 +1,12 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-17 - H15-MESH wave 2 (Claude Haiku 5.5): T23 installable and update checks on H15-MESH/T23-pwa
+- Done: `e2e/pwa-installable.spec.ts` reads the manifest and installability over CDP (Page.getAppManifest, Page.getInstallabilityErrors). `e2e/pwa-update.spec.ts` runs the update flow in Chromium: a second worker script is written into dist/ for the test, the line shows, Reload swaps once. Full e2e 17 of 17; npm test 540 pass; build OK. Plants: missing 512 icon caught; auto skipWaiting caught.
+- Not done: docs/shots/T23-1.png. The update test checks reload count only; the line returns after reload because the test registers a second script URL.
+- Next: AG verify, then Lead merge after R1.
+- Blockers: as in the entry below.
+
 ## 2026-11-17 - H15-MESH (Claude Haiku 5.5): T23 PWA built on branch H15-MESH/T23-pwa, awaiting verify
 - Done: T23 on `H15-MESH/T23-pwa` (worktree `wt/H15-MESH-T23`, cut from origin/main dc59805). Added `public/manifest.webmanifest`, `public/icon.svg`, `public/icon-192.png`, `public/icon-512.png`, `public/sw.js` (plain JS, about 50 lines, no dependency), `src/pwa.ts` (registration in production only, "New version ready" line with Reload), `src/pwa.test.ts` (19 tests; `sw.js` runs in a sandbox with fake caches and fetch), `e2e/pwa.spec.ts`, index.html links, one line in `src/main.ts`, `.pwa-update` rule in `src/style.css`.
 - Tested: `npm test` 540 pass; `npm run build` OK; `npm run budget` OK; full `npx playwright test` 15 of 15 pass, including the new offline test. Mutation checks: six breaks to `sw.js` and `pwa.ts` (404 cached, opaque cached, POST handled, skipWaiting on install, self-reload, cross-origin cached) and two more (navigation not cached, activate keeps old caches) were each caught by at least one test; files restored.
