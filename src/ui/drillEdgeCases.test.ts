@@ -335,6 +335,38 @@ test('drill: ghost warning displays when recent drills exist and Play anyway but
   }
 });
 
+test('drill: Escape on the ready screen exits drill with null result', () => {
+  const { pressKey, cleanup } = setupMockDom();
+  try {
+    const root = new MockElement('div');
+    const view = createPalaceView();
+    // No recent drills, so mount goes straight to the ready panel (no ghost warning).
+    const data: SaveData = emptySave();
+    let exited = false;
+    let exitResult: DrillResult | null = 'not-called' as unknown as DrillResult;
+
+    const unmount = mountDrill(
+      root as unknown as HTMLElement,
+      view,
+      data,
+      { level: 0, daily: false },
+      (_data, res) => {
+        exited = true;
+        exitResult = res;
+      },
+    );
+
+    // Escape on the ready panel leaves the drill without a result.
+    pressKey('Escape');
+    assert.equal(exited, true, 'Escape on the ready screen exits the drill');
+    assert.equal(exitResult, null, 'Escape result is null, not a drill record');
+
+    unmount();
+  } finally {
+    cleanup();
+  }
+});
+
 test('drill: ghost warning Back button exits drill and stops audio', () => {
   const { cleanup } = setupMockDom();
   try {
