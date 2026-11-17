@@ -18,6 +18,12 @@ import { buildAtmosphere } from './atmosphere.ts';
 import { lampPositions } from './decor.ts';
 import { createFreeWalk } from './freeWalk.ts';
 import { nearestFree } from './collide.ts';
+import {
+  detectDeviceProfile,
+  createFrameMonitor,
+  type DeviceProfile,
+  type FrameStats,
+} from './perf.ts';
 
 interface ActiveGlide {
   path: [number, number][];
@@ -32,9 +38,16 @@ interface ActiveGlide {
 }
 
 export const createPalaceView: CreatePalaceView = (container: HTMLElement): PalaceView => {
+  // Device profile and performance budget for low-end phones
+  const profile = detectDeviceProfile();
+  let currentDpr = Math.min(
+    typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1,
+    profile.maxPixelRatio,
+  );
+
   // Renderer setup
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const renderer = new THREE.WebGLRenderer({ antialias: profile.tier !== 'low' });
+  renderer.setPixelRatio(currentDpr);
   renderer.setSize(container.clientWidth || 800, container.clientHeight || 600);
   container.appendChild(renderer.domElement);
 
@@ -65,6 +78,7 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
     casters: locusNodes.map((n) => n.group),
     receivers: world.receivers,
     lamps: lampPositions().map((p) => new THREE.Vector3(...p)),
+    shadowMapSize: profile.shadowMapSize,
   });
 
   // Card billboard manager
@@ -260,7 +274,9 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
   });
   resizeObserver.observe(container);
 
-  // Main animation loop
+  // Main animation loop & frame monitoring
+  const frameMonitor = createFrameMonitor(profile.targetFps);
+  let frameCount = 0;
   let lastTime = performance.now();
   const startTime = lastTime;
 
@@ -269,6 +285,18 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
     const delta = Math.min((now - lastTime) / 1000, 0.1);
     lastTime = now;
     const elapsedTime = (now - startTime) / 1000;
+    frameCount++;
+
+    frameMonitor.recordFrame(delta * 1000);
+
+    // Dynamic DPR scaling on mobile / low-end devices under thermal or GPU load
+    if (frameCount % 60 === 0 && profile.tier !== 'high') {
+      const nextDpr = frameMonitor.getRecommendedPixelRatio(currentDpr, profile);
+      if (Math.abs(nextDpr - currentDpr) >= 0.2) {
+        currentDpr = nextDpr;
+        renderer.setPixelRatio(currentDpr);
+      }
+    }
 
     // 1. Update active camera glide
     if (activeGlide) {
@@ -316,9 +344,11 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
       camera.position.y = EYE_HEIGHT;
     }
 
-    // 3. Update locus mood animations
+    // 3. Update locus mood animations (culled beyond cullDistanceX for phone performance)
     for (const node of locusNodes) {
-      updateLocusMoodVisuals(node, elapsedTime);
+      if (Math.abs(node.locus.pos[0] - camera.position.x) <= profile.cullDistanceX) {
+        updateLocusMoodVisuals(node, elapsedTime);
+      }
     }
 
     // 4. Update card billboards
@@ -490,5 +520,8 @@ export const createPalaceView: CreatePalaceView = (container: HTMLElement): Pala
     },
   };
   (view as unknown as { renderer?: THREE.WebGLRenderer }).renderer = renderer;
+  (view as unknown as { getPerformanceStats?: () => FrameStats; profile?: DeviceProfile }).getPerformanceStats = () =>
+    frameMonitor.getStats();
+  (view as unknown as { profile?: DeviceProfile }).profile = profile;
   return view;
 };

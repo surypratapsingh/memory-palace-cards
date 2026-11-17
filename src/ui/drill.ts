@@ -76,12 +76,16 @@ export function mountDrill(
     isConfirmingQuit = true;
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'drill-confirm-overlay';
+    modalOverlay.setAttribute('role', 'dialog');
+    modalOverlay.setAttribute('aria-modal', 'true');
+    modalOverlay.setAttribute('aria-labelledby', 'quit-dialog-title');
 
     const box = document.createElement('div');
     box.className = 'drill-confirm-box';
 
     const h3 = document.createElement('h3');
     h3.className = 'drill-title';
+    h3.id = 'quit-dialog-title';
     h3.textContent = 'Quit Drill?';
 
     const p = document.createElement('p');
@@ -95,11 +99,13 @@ export function mountDrill(
     cancelBtn.type = 'button';
     cancelBtn.className = 'drill-btn';
     cancelBtn.textContent = 'Continue Drill';
+    cancelBtn.setAttribute('aria-keyshortcuts', 'Escape');
 
     const quitBtn = document.createElement('button');
     quitBtn.type = 'button';
     quitBtn.className = 'drill-btn danger';
     quitBtn.textContent = 'Quit';
+    quitBtn.setAttribute('aria-keyshortcuts', 'Enter');
 
     btnRow.appendChild(cancelBtn);
     btnRow.appendChild(quitBtn);
@@ -108,6 +114,9 @@ export function mountDrill(
     box.appendChild(btnRow);
     modalOverlay.appendChild(box);
     overlay.appendChild(modalOverlay);
+    if (typeof cancelBtn.focus === 'function') {
+      cancelBtn.focus();
+    }
 
     let closed = false;
     const closeConfirm = () => {
@@ -325,11 +334,13 @@ export function mountDrill(
       captionToggleBtn.type = 'button';
       captionToggleBtn.className = 'drill-btn';
       captionToggleBtn.textContent = `Captions [H]: ${captionsOn ? 'ON' : 'OFF'}`;
+      captionToggleBtn.setAttribute('aria-keyshortcuts', 'h H');
 
       const quitBtn = document.createElement('button');
       quitBtn.type = 'button';
       quitBtn.className = 'drill-btn danger';
       quitBtn.textContent = 'Quit [Esc]';
+      quitBtn.setAttribute('aria-keyshortcuts', 'Escape');
 
       rightHud.appendChild(timerEl);
       rightHud.appendChild(captionToggleBtn);
@@ -345,6 +356,7 @@ export function mountDrill(
       prevBtn.type = 'button';
       prevBtn.className = 'drill-btn';
       prevBtn.textContent = '← Prev [Left]';
+      prevBtn.setAttribute('aria-keyshortcuts', 'ArrowLeft');
 
       const stepText = document.createElement('span');
       stepText.style.fontWeight = '700';
@@ -354,6 +366,7 @@ export function mountDrill(
       nextBtn.type = 'button';
       nextBtn.className = 'drill-btn primary';
       nextBtn.textContent = 'Next [Space] →';
+      nextBtn.setAttribute('aria-keyshortcuts', 'Space ArrowRight Enter');
 
       bottomHud.appendChild(prevBtn);
       bottomHud.appendChild(stepText);
@@ -539,16 +552,19 @@ export function mountDrill(
       skipBtn.type = 'button';
       skipBtn.className = 'drill-btn';
       skipBtn.textContent = 'Skip [-]';
+      skipBtn.setAttribute('aria-keyshortcuts', '-');
 
       const backBtn = document.createElement('button');
       backBtn.type = 'button';
       backBtn.className = 'drill-btn';
       backBtn.textContent = 'Back [⌫]';
+      backBtn.setAttribute('aria-keyshortcuts', 'Backspace');
 
       const quitBtn = document.createElement('button');
       quitBtn.type = 'button';
       quitBtn.className = 'drill-btn danger';
       quitBtn.textContent = 'Quit [Esc]';
+      quitBtn.setAttribute('aria-keyshortcuts', 'Escape');
 
       rightHud.appendChild(skipBtn);
       rightHud.appendChild(backBtn);
@@ -916,16 +932,19 @@ export function mountDrill(
       exitBtn.type = 'button';
       exitBtn.className = 'drill-btn';
       exitBtn.textContent = 'Back to Palace [Esc]';
+      exitBtn.setAttribute('aria-keyshortcuts', 'Escape');
 
       const shadowBtn = document.createElement('button');
       shadowBtn.type = 'button';
       shadowBtn.className = 'drill-btn';
-      shadowBtn.textContent = 'Shadow Walk';
+      shadowBtn.textContent = 'Shadow Walk [S]';
+      shadowBtn.setAttribute('aria-keyshortcuts', 's S');
 
       const againBtn = document.createElement('button');
       againBtn.type = 'button';
       againBtn.className = 'drill-btn primary';
       againBtn.textContent = 'Play Again [Space]';
+      againBtn.setAttribute('aria-keyshortcuts', 'Space Enter');
 
       btnRow.appendChild(exitBtn);
       btnRow.appendChild(shadowBtn);
@@ -964,6 +983,9 @@ export function mountDrill(
         } else if (e.key === 'Escape') {
           e.preventDefault();
           doExit();
+        } else if (e.key === 's' || e.key === 'S') {
+          e.preventDefault();
+          doShadowWalk();
         }
       };
 
