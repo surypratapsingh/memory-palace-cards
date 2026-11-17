@@ -463,6 +463,31 @@ test('mountTrainer: rating Again increments againCount and requeues card', () =>
   }
 });
 
+test('mountTrainer: reveal key 4 rates Easy and completes the card', () => {
+  const { pressKey, cleanup } = setupDOM();
+  try {
+    const root = new MockElement('DIV');
+    const data = emptySave();
+    for (const card of DECK) {
+      data.srs[card] = { ...newSrs(), due: '2099-01-01T00:00:00.000Z' };
+    }
+    data.srs['AS'] = { ...newSrs(), due: '2020-01-01T00:00:00.000Z' };
+    const unmount = mountTrainer(root as unknown as HTMLElement, data, () => {});
+
+    pressKey(' ');
+    // Key '4' is the Easy shortcut. Without it the screen stays on reveal.
+    pressKey('4');
+
+    assert.ok(root.findByText('Session complete'));
+    assert.ok(root.findByText('Reviewed 1 · Again 0 · New learned 0'));
+    assert.ok(new Date(data.srs['AS'].due).getTime() > Date.now());
+
+    unmount();
+  } finally {
+    cleanup();
+  }
+});
+
 test('mountTrainer: Again rating with lapses >= 4 triggers reforge screen and image saving via button and Enter key', () => {
   const { pressKey, cleanup } = setupDOM();
   try {
