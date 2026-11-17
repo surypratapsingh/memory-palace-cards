@@ -1,5 +1,12 @@
 # Decision Log
 Format per entry:
+
+## 2026-11-17 - PWA: hand-written runtime-cache service worker, no plugin (H15-MESH, T23)
+- Decision: `public/sw.js` (plain JS, about 50 lines) caches the shell, then fills the cache cache-first as same-origin GETs load. Navigations are network-first with the cached `index.html` as fallback. A new worker waits until the player clicks Reload (`SKIP_WAITING`). Registered from `src/pwa.ts` in production builds only.
+- Context: T23 forbids new npm dependencies (no Workbox, no vite-plugin-pwa).
+- Alternatives rejected: build-time precache list from a custom Vite plugin (more build code, buys only first-visit offline, which the spec does not require); automatic `skipWaiting` (reloads mid-drill, breaks requirement 4); vite-plugin-pwa (new dependency).
+- Consequences: a first-ever visit cannot work offline. After one online visit that loads every asset, play works offline. Old hashed assets stay cached until `CACHE` is bumped (a few hundred KB per release).
+
 ## 2026-11-09 - palaceView wiring tested by source text, not by running it (H-MPT)
 - Decision: `src/scene/palaceView.test.ts` checks the `const freeWalk = createFreeWalk();` line in the source file.
 - Context: `createPalaceView` builds a WebGLRenderer, and node tests have no WebGL.
