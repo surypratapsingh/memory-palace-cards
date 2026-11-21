@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { DECK, deal, isCardId, localDay, rng, score, shuffle } from './deck.ts';
 import { Rating, isDue, newSrs, recall, review, strength } from './srs.ts';
 import { emptySave, importJson, load, save, setSaveErrorHandler } from './store.ts';
+import { readFileSync } from 'node:fs';
+import { default_w } from 'ts-fsrs';
 
 const fakeStorage = () => {
   const m = new Map<string, string>();
@@ -311,4 +313,11 @@ test('§8 localDay: date at 23:30 and 00:30 gives right local day', () => {
   assert.equal(localDay(d2330), '2026-01-15', '23:30 should give same local day');
   const d0030 = new Date(2026, 0, 15, 0, 30);
   assert.equal(localDay(d0030), '2026-01-15', '00:30 should give same local day, not previous');
+});
+
+test('MATHS.md w20 matches the ts-fsrs weight srs.ts uses', () => {
+  const doc = readFileSync(new URL('../MATHS.md', import.meta.url), 'utf8');
+  const match = /w20 = ([0-9.]+)/.exec(doc);
+  assert.ok(match, 'MATHS.md states w20');
+  assert.equal(Number(match[1]), default_w[20]);
 });

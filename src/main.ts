@@ -8,7 +8,6 @@ import './ui/onboarding.css';
 import { localDay } from './deck.ts';
 import { updateStreak } from './progress.ts';
 import { applySettings, sanitizeSettings } from './settings.ts';
-import { createPalaceView } from './scene/palaceView.ts';
 import { load, save, setSaveErrorHandler } from './store.ts';
 import { stopAll } from './sound.ts';
 import type { PalaceView, SaveData } from './types.ts';
@@ -27,6 +26,7 @@ const saveError = document.querySelector<HTMLElement>('#save-error');
 if (!scene || !ui || !saveError) throw new Error('App shell is incomplete');
 const uiRoot = ui;
 const saveErrorBanner = saveError;
+const sceneRoot: HTMLElement = scene;
 
 let data: SaveData = load();
 const hasProgress = data.drills.length > 0 || Object.keys(data.srs).length > 0 ||
@@ -37,7 +37,8 @@ if (!hasProgress && globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').
 }
 data.settings = sanitizeSettings(data.settings);
 
-const view: PalaceView = createPalaceView(scene);
+// The palace (three.js) is loaded on demand; null until its import finishes.
+let view: PalaceView | null = null;
 let currentScreen: Screen = initialScreen(data);
 let currentElement: HTMLElement | null = null;
 let unmountCurrent: (() => void) | null = null;
@@ -50,23 +51,22 @@ function syncSettings(): void {
   if (!data.settings.sound) {
     stopAll();
   }
-  view.setGlideMs(data.settings.glideMs);
+  if (view) view.setGlideMs(data.settings.glideMs);
   applySettings(data.settings, document.documentElement);
 }
 syncSettings();
-view.setFreeWalk(false);
-void view.glideTo(0);
 
 setSaveErrorHandler(() => {
   saveErrorBanner.hidden = false;
 });
 
+// Home, train and settings do not need the palace; they render while it loads.
 function mountScreen(screen: Screen, root: HTMLElement): () => void {
   if (screen === 'home') {
-    view.setFreeWalk(false);
-    view.setLocusMood(0, 'normal');
-    view.clearCards();
-    void view.glideTo(0);
+    view?.setFreeWalk(false);
+    view?.setLocusMood(0, 'normal');
+    view?.clearCards();
+    void view?.glideTo(0);
     return mountHome(root, data, {
       train: () => navigate('train'),
       drill: (level, daily) => {
@@ -76,10 +76,10 @@ function mountScreen(screen: Screen, root: HTMLElement): () => void {
       settings: () => navigate('settings'),
       shadowWalk: () => navigate('shadowWalk'),
       replaceSave,
-    }, view);
+    }, view ?? undefined);
   }
   if (screen === 'train') {
-    view.setFreeWalk(false);
+    view?.setFreeWalk(false);
     return mountTrainer(root, data, (updated) => {
       data = updated;
       syncSettings();
@@ -87,24 +87,85 @@ function mountScreen(screen: Screen, root: HTMLElement): () => void {
     });
   }
   if (screen === 'settings') {
-    view.setFreeWalk(false);
+    view?.setFreeWalk(false);
     return mountSettings(root, data, (updated) => {
       data = updated;
       syncSettings();
       navigate('back');
     });
   }
+  return mountWhenPalaceReady(screen, root);
+}
+
+let viewLoad: Promise<PalaceView> | null = null;
+
+/** Imports the palace once. A failed import clears the cache, so the next call retries it. */
+function loadView(): Promise<PalaceView> {
+  viewLoad ??= import('./scene/palaceView.ts').then(({ createPalaceView }) => {
+    const palace = createPalaceView(sceneRoot);
+    palace.setGlideMs(data.settings.glideMs);
+    palace.setFreeWalk(false);
+    view = palace;
+    return palace;
+  }).catch((error: unknown) => {
+    viewLoad = null;
+    throw error;
+  });
+  return viewLoad;
+}
+
+function showPalaceState(root: HTMLElement, state: 'loading' | 'error', retry?: () => void): void {
+  const panel = document.createElement('div');
+  panel.className = 'palace-state';
+  const message = document.createElement('p');
+  message.setAttribute('role', state === 'loading' ? 'status' : 'alert');
+  message.textContent = state === 'loading'
+    ? 'Opening the palace…'
+    : 'The palace could not open. Check your connection, then retry.';
+  panel.append(message);
+  if (state === 'error' && retry) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Retry';
+    button.addEventListener('click', retry);
+    panel.append(button);
+  }
+  root.replaceChildren(panel);
+}
+
+function mountWhenPalaceReady(screen: Screen, root: HTMLElement): () => void {
+  let stopped = false;
+  let unmount: (() => void) | null = null;
+  const open = (): void => {
+    showPalaceState(root, 'loading');
+    loadView().then((palace) => {
+      if (stopped) return;
+      root.replaceChildren();
+      unmount = mountPalaceScreen(screen, root, palace);
+    }, () => {
+      if (!stopped) showPalaceState(root, 'error', open);
+    });
+  };
+  open();
+  return () => {
+    stopped = true;
+    unmount?.();
+    unmount = null;
+  };
+}
+
+function mountPalaceScreen(screen: Screen, root: HTMLElement, palace: PalaceView): () => void {
   if (screen === 'shadowWalk') {
-    return mountShadowWalk(root, view, data, () => {
+    return mountShadowWalk(root, palace, data, () => {
       navigate('back');
     });
   }
   if (screen === 'onboarding') {
-    view.setFreeWalk(false);
-    view.setLocusMood(0, 'normal');
-    view.clearCards();
-    void view.glideTo(0);
-    return mountOnboarding(root, view, data, (updated) => {
+    palace.setFreeWalk(false);
+    palace.setLocusMood(0, 'normal');
+    palace.clearCards();
+    void palace.glideTo(0);
+    return mountOnboarding(root, palace, data, (updated) => {
       data = updated;
       syncSettings();
       navigate('result');
@@ -112,8 +173,8 @@ function mountScreen(screen: Screen, root: HTMLElement): () => void {
       navigate('skip');
     });
   }
-  view.setFreeWalk(false);
-  return mountDrill(root, view, data, drillOptions, (updated, result) => {
+  palace.setFreeWalk(false);
+  return mountDrill(root, palace, data, drillOptions, (updated, result) => {
     data = updated;
     if (result) data.streak = updateStreak(data.streak, localDay());
     save(data);
@@ -197,6 +258,10 @@ const motionObserver = new MutationObserver(() => {
 motionObserver.observe(uiRoot, { childList: true, subtree: true });
 
 render(initialScreen(data), true);
+// Fetch the palace behind the first screen; home redraws once it can show ghost cards.
+void loadView().then(() => {
+  if (currentScreen === 'home') render('home', true);
+}, () => undefined);
 
 window.addEventListener('pagehide', () => {
   if (closed) return;
@@ -206,7 +271,7 @@ window.addEventListener('pagehide', () => {
   motionObserver.disconnect();
   unmountCurrent?.();
   unmountCurrent = null;
-  view.dispose();
+  view?.dispose();
 }, { once: true });
 
 export { view };

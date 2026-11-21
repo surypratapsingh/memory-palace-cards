@@ -15,6 +15,7 @@ class El {
   dataset: Record<string, string> = {};
   classList = { add() {}, remove() {} };
   children: El[] = [];
+  setAttribute() {}
   parentElement: El | null = null;
   private on = new Map<string, Set<() => void>>();
   appendChild(c: El) { c.parentElement = this; this.children.push(c); return c; }
@@ -34,7 +35,7 @@ function run(answersFor: (dealt: CardId[]) => CardId[]) {
   const g = globalThis as Record<string, unknown>;
   const old = { document: g.document, window: g.window, localStorage: g.localStorage };
   const set = (k: string, v: unknown) => Object.defineProperty(globalThis, k, { configurable: true, writable: true, value: v });
-  set('document', { createElement: () => new El() });
+  set('document', { createElement: () => new El(), documentElement: { classList: { contains: () => false } } });
   set('window', { addEventListener: (_: string, f: never) => keys.add(f), removeEventListener: (_: string, f: never) => keys.delete(f) });
   set('localStorage', { setItem() {} });
   const press = (key: string) => { for (const f of [...keys]) f({ key, preventDefault() {} } as KeyboardEvent); };
