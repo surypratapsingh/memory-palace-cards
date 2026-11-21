@@ -252,6 +252,7 @@ function setupMockDom() {
     removeEventListener: (type: string, fn: EventListener) => {
       docListeners.get(type)?.delete(fn);
     },
+    documentElement: { classList: { contains: () => false } },
   };
 
   const storageMap = new Map<string, string>();

@@ -1,4 +1,5 @@
 import { cardLabel, isRed, RANKS, SUITS } from '../deck.ts';
+import { SUIT_PATHS, suitColour } from './cardArt.ts';
 import type { CardId, Rank, Suit } from '../types.ts';
 
 export interface CardPickerOptions {
@@ -28,8 +29,13 @@ export function createCardPicker(options: CardPickerOptions): CardPickerInstance
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = isRed(cardId) ? 'picker-card red' : 'picker-card';
+      btn.setAttribute('aria-label', cardLabel(cardId));
       btn.textContent = cardLabel(cardId);
       btn.dataset.card = cardId;
+      const theme = document.documentElement.classList.contains('color-safe') ? 'four-colour' : 'classic';
+      const colour = suitColour(suit, theme);
+      const rankLabel = rank === 'T' ? '10' : rank;
+      btn.innerHTML = `<svg class="picker-mini-card" viewBox="0 0 48 68" aria-hidden="true" focusable="false"><rect x="1" y="1" width="46" height="66" rx="5" fill="#fffdf8" stroke="#d6d3d1"/><text x="5" y="15" fill="${colour}" font-size="12" font-family="system-ui,sans-serif" font-weight="700">${rankLabel}</text><path d="${SUIT_PATHS[suit]}" fill="${colour}" transform="translate(11 26) scale(.26)"/></svg>`;
       btn.dataset.rank = rank;
       btn.dataset.suit = suit;
 

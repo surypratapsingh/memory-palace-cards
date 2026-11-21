@@ -122,6 +122,16 @@ test('personalBests: fastest perfect drill per ladder level only', () => {
   assert.equal(bests[1].memorizeMs, 700);
 });
 
+test('Speed Cards drills do not affect ladder levels, unlocks, staircase, or ladder bests', () => {
+  const speedPerfect = { ...drill(0), mode: 'speed' as const };
+  assert.equal(levelOf(speedPerfect), -1);
+  assert.equal(unlockedLevel([speedPerfect]), 0);
+  assert.equal(recommendedLevel([speedPerfect, drill(0)]), 0);
+  assert.deepEqual(personalBests([speedPerfect]), {});
+  assert.equal(recommendedLevel([drill(0), drill(0)]), 1);
+  assert.equal(recommendedLevel([drill(0), speedPerfect, drill(0)]), 1);
+});
+
 test('stepLevel simulation follows MATHS.md target success probability and level', () => {
   let randomState = 1;
   const random = () => (randomState = randomState * 16807 % 2147483647) / 2147483647;
@@ -259,6 +269,11 @@ test('shareText: daily header', () => {
   };
   const result = shareText(dailyDrill);
   assert.ok(result.includes('Daily Deck 2026-10-20'), 'should have daily deck header');
+});
+
+test('shareText: Speed Cards header takes precedence over the daily header', () => {
+  const text = shareText({ ...perfect52, mode: 'speed' });
+  assert.equal(text.split('\n')[0], 'Memory Palace · Speed Cards');
 });
 
 test('shareText: practice header', () => {
