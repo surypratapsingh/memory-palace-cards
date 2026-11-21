@@ -10,6 +10,7 @@ import { ghosts, leeches } from '../living.ts';
 import { isDue, strength } from '../srs.ts';
 import { DECK, LADDER, cardLabel, localDay, score } from '../deck.ts';
 import { exportJson, importJson } from '../store.ts';
+import { copyWithFeedback } from './copyButton.ts';
 import { sparklinePath } from './sparkline.ts';
 import './home.css';
 
@@ -188,16 +189,7 @@ export function mountHome(
       copyBtn.type = 'button';
       copyBtn.className = 'home-btn-secondary';
       copyBtn.textContent = 'Copy Result';
-      addEvent(copyBtn, 'click', () => {
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(shareContent).then(() => {
-            copyBtn.textContent = 'Copied!';
-            setTimeout(() => {
-              copyBtn.textContent = 'Copy Result';
-            }, 2000);
-          });
-        }
-      });
+      addEvent(copyBtn, 'click', () => copyWithFeedback(copyBtn, shareContent, navigator.clipboard));
       shareActions.appendChild(copyBtn);
       todayCard.appendChild(shareActions);
     }

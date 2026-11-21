@@ -1,6 +1,11 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-22 - C-MP: Q1 code audit (partial), clipboard bug fixed
+- Found (Q1-FB charter items 1, 2, 4, 5): innerHTML hits take constants only; imports sanitize settings in `main.ts`; timers and listeners in drill, trainer, shadowWalk, settings, home are cleared on unmount. One real bug: the Home "Copy Result" button called `navigator.clipboard.writeText(...).then(...)` with no rejection handler (denied permission or insecure context gave an unhandled rejection and no feedback).
+- Done: `src/ui/copyButton.ts` (`copyWithFeedback`) with `copyButton.test.ts` (3 tests; plant: removing the reject handler fails 1); home.ts uses it. npm test pass, build ok.
+- Not done: Q1-FB items 3, 6, 7 (save-twice audit, flaky runs, MATHS formulas). Q1-F1 to F3 are covered by PRs #5, #2 and branch fix/Q1-F3, not rebuilt here.
+
 ## 2026-11-10 - Lead (Claude Sonnet 5.5, lane C-MESH of Round 12): merges, Q1-AG triage, board
 - Done (local only, nothing pushed, nothing tagged): merged `h/real-fail-tests` (f6ec741, 5 real test gaps closed), T17 (6ce5301) and T22 (8694d58) with --no-ff; `npm test` 457, 472, 521 pass and `npm run build` ok after each, `npm run budget` OK. T17 changes `src/main.ts` (palace loading state): not browser-checked (no Playwright browser here).
 - Done: triaged `qa/AG-bugs.md` (imported; the `qa/Q1-AG` branch itself is stale against main and was not merged). AG-1 (S1, `applyResult` drops `journey`), AG-2 (S1, malformed drill crashes Home) and AG-3 (S2, Daily Deck mixes UTC and local day) confirmed; AG-4 and AG-5 rejected, reasons in `tasks/Q1-bug-bash.md`. Fix rows Q1-F1 to Q1-F3 added above R1 and to its Needs. Mesh score: AG 32, FB 66.
