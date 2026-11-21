@@ -1,109 +1,19 @@
-// Card billboard floating above loci.
-// Renders card face (rank, suit, color) and optional 2-line caption.
-// Handles billboard facing, bob animation, and texture/material disposal to prevent GPU leaks.
+// Card billboards use the same authored SVG art as the DOM trainer.
 import * as THREE from 'three';
 import type { CardId } from '../types.ts';
-import { cardLabel, isRed } from '../deck.ts';
+import { cardTexture, disposeCardTextures, releaseCardTexture } from './cardTexture.ts';
+import type { CardTheme } from '../ui/cardArt.ts';
 
-const cardPlaneGeom = new THREE.PlaneGeometry(0.85, 1.15);
+const cardPlaneGeom = new THREE.PlaneGeometry(0.8, 0.65);
+const billboardHeight = 1.9;
 
 interface ActiveCard {
   mesh: THREE.Mesh;
-  texture: THREE.CanvasTexture;
+  texture: THREE.Texture | null;
   material: THREE.MeshBasicMaterial;
   baseY: number;
   locusIndex: number;
-}
-
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-  maxLines: number,
-): string[] {
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const width = ctx.measureText(testLine).width;
-    if (width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-      if (lines.length === maxLines - 1) {
-        break;
-      }
-    } else {
-      currentLine = testLine;
-    }
-  }
-
-  if (currentLine && lines.length < maxLines) {
-    lines.push(currentLine);
-  }
-
-  return lines;
-}
-
-function renderCardCanvas(card: CardId, caption?: string): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
-  canvas.width = 340;
-  canvas.height = 460;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return canvas;
-
-  // Background rounded card
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.roundRect(8, 8, 324, 444, 20);
-  ctx.fill();
-
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = '#cbd5e1';
-  ctx.stroke();
-
-  const red = isRed(card);
-  const colorStr = red ? '#dc2626' : '#1e293b';
-  const label = cardLabel(card);
-
-  // Top-left small label
-  ctx.fillStyle = colorStr;
-  ctx.font = 'bold 36px system-ui, sans-serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(label, 24, 24);
-
-  // Big center card label
-  ctx.font = 'bold 76px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const centerY = caption ? 170 : 230;
-  ctx.fillText(label, 170, centerY);
-
-  // Optional caption below (max 2 lines)
-  if (caption) {
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(30, 275);
-    ctx.lineTo(310, 275);
-    ctx.stroke();
-
-    ctx.fillStyle = '#334155';
-    ctx.font = 'bold 22px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-
-    const lines = wrapText(ctx, caption, 280, 2);
-    let startY = lines.length === 1 ? 330 : 305;
-    for (const line of lines) {
-      ctx.fillText(line, 170, startY);
-      startY += 32;
-    }
-  }
-
-  return canvas;
+  token: object;
 }
 
 export class CardBillboardManager {
@@ -120,34 +30,36 @@ export class CardBillboardManager {
     card: CardId | null,
     opts?: { caption?: string; opacity?: number },
   ): void {
-    // Remove existing card at this locus if present
     this.removeCard(index);
     if (!card) return;
 
     const clampedOpacity = Math.max(0, Math.min(1, opts?.opacity ?? 1));
-    const canvas = renderCardCanvas(card, opts?.caption);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.minFilter = THREE.LinearFilter;
-
+    const theme: CardTheme = document.documentElement.classList.contains('color-safe') ? 'four-colour' : 'classic';
+    const token = {};
     const material = new THREE.MeshBasicMaterial({
-      map: texture,
       transparent: true,
       opacity: clampedOpacity,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
-
     const mesh = new THREE.Mesh(cardPlaneGeom, material);
-    const baseY = 2.35;
-    mesh.position.set(pos[0], baseY, pos[1]);
+    mesh.position.set(pos[0], billboardHeight, pos[1]);
+    mesh.visible = false;
     this.scene.add(mesh);
+    const active: ActiveCard = { mesh, texture: null, material, baseY: billboardHeight, locusIndex: index, token };
+    this.cards.set(index, active);
 
-    this.cards.set(index, {
-      mesh,
-      texture,
-      material,
-      baseY,
-      locusIndex: index,
+    void cardTexture(card, theme).then((texture) => {
+      if (this.cards.get(index) !== active || active.token !== token) {
+        releaseCardTexture(texture);
+        return;
+      }
+      active.texture = texture;
+      material.map = texture;
+      material.needsUpdate = true;
+      mesh.visible = true;
+    }).catch(() => {
+      if (this.cards.get(index) === active) this.removeCard(index);
     });
   }
 
@@ -156,7 +68,7 @@ export class CardBillboardManager {
     if (!active) return;
 
     this.scene.remove(active.mesh);
-    active.texture.dispose();
+    if (active.texture) releaseCardTexture(active.texture);
     active.material.dispose();
     this.cards.delete(index);
   }
@@ -179,5 +91,6 @@ export class CardBillboardManager {
   dispose(): void {
     this.clearCards();
     cardPlaneGeom.dispose();
+    disposeCardTextures();
   }
 }

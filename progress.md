@@ -1,6 +1,46 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-10 - Lead (Claude Sonnet 5.5, lane C-MESH of Round 12): merges, Q1-AG triage, board
+- Done (local only, nothing pushed, nothing tagged): merged `h/real-fail-tests` (f6ec741, 5 real test gaps closed), T17 (6ce5301) and T22 (8694d58) with --no-ff; `npm test` 457, 472, 521 pass and `npm run build` ok after each, `npm run budget` OK. T17 changes `src/main.ts` (palace loading state): not browser-checked (no Playwright browser here).
+- Done: triaged `qa/AG-bugs.md` (imported; the `qa/Q1-AG` branch itself is stale against main and was not merged). AG-1 (S1, `applyResult` drops `journey`), AG-2 (S1, malformed drill crashes Home) and AG-3 (S2, Daily Deck mixes UTC and local day) confirmed; AG-4 and AG-5 rejected, reasons in `tasks/Q1-bug-bash.md`. Fix rows Q1-F1 to Q1-F3 added above R1 and to its Needs. Mesh score: AG 32, FB 66.
+- Found: PRs #2 (AG-3) and #5 (AG-1, AG-2) of `memory-palace-cards` already fix the three confirmed bugs with tests, and trial merges pass (522 and 524 tests). #3 and #6 fix two flaky tests, #4 repeats #3 plus a stale progress entry. Nothing changed on GitHub. Details in `surya-sleeping/reports/C-MESH.md`.
+- Done: `TASKS.md` queue prompts no longer hold a user-folder path.
+- In progress: nothing. R1 is NOT done: Q1-FB (code-audit search, FB) has not run, so no `R1:` commit and no tag. Gates U1-PICK to U5-PICK wait for R1.
+- Next: (1) the owner merges PRs #2 and #5 (or FB builds Q1-F1 to Q1-F3), then a second model verifies them; (2) FB runs Q1-FB (`node scripts/mesh.mjs next FB`); (3) Lead triages `qa/FB-bugs.md`, adds fix rows, then makes the `R1:` commit and tags v1.0 (owner pushes). Owner: the shared folder `memory_palace-game` sits on branch `ag-mesh/module-coverage` (b5564af, unverified AG-MESH tests); this turn worked in worktree `wt/LEAD`, which holds main (git allows one checkout of a branch). Before the next Lead turn in the shared folder, remove `wt/LEAD` (`git worktree remove wt/LEAD`) and switch the shared folder to main. `wt/T17` and `wt/T22` are merged and can be removed with `git worktree remove`.
+- Blockers: none for the Lead.
+
+## 2026-11-09 - H-MPT (Claude Haiku 5.5): real-fail tests on h/real-fail-tests
+- Done: four items from H-TECH FAIL lines, one commit each: billboard opacity clamp test (3a3d579), free-walk nearestFree test (80b4c76), palaceView free-walk wiring test (d4e74f0), MATHS.md w20 vs ts-fsrs default test (ed5827a). Each plant was caught and then restored. npm test 457 pass.
+- In progress: nothing.
+- Next: a VERIFY lane should plant the same faults on h/real-fail-tests. The palaceView test is a source-text check; a real behaviour test needs a browser (e2e).
+- Blockers: none. Nothing pushed or merged.
+
+## 2026-11-08 - Lead (Freebuff): T13, T14, T20, T21 merged; T17 and T22 unblocked
+- Done: merged T13 (87e1b4f), T14 (eafdc1f), T20 (6c4520c) and T21 (5be2384) with --no-ff in board order; npm test and npm run build green after each merge (395, 407, 429, 453 tests). Conflicts resolved by keeping both sides: the two import lines in `src/scene/palaceView.ts` (T13 + T14) and MATHS.md sections 12/13/14 (T19, T20, T21).
+- Found: T13 merged without code conflicts but broke 13 tests on main, because the new card picker and card face read `document.documentElement` for the colour-safe theme while the older test doubles had no `documentElement`, and onboarding's fake `El` had no `setAttribute`. Fixed the test doubles (a4ade69), not the product code; no assertion was changed, T13's guided pitch and T14's free walk both survive in `palaceView.ts`.
+- Done: merged main into `task/T17-perf` and `task/T22-achievements` (clean, 453 tests each) and answered both blockers with `LEAD` commits (d97e87e, 4e4d604). Both now read `fix`; `mesh next FB` hands out T17.
+- Done: removed wt/T13, wt/T14, wt/T20, wt/T21. Board Status column filled in for every merged row; mesh score updated to FB 60, AG 26.
+- In progress: nothing.
+- Next: FB fixes T17 (code split, budgets, leak test), then T22; AG verifies both. Once T17 passes, Q1-AG and Q1-FB unblock and R1 follows.
+- Blockers: none for the Lead. T9 browser check of the four rooms is still not done. Nothing pushed this turn.
+
+## 2026-11-08 - FB (Claude Haiku 5.5, MP-HAIKU lane): T17 fix round 0 built, awaiting AG verify
+
+- Done: T17 code split (palace loaded by `import()`, loading and Retry state in `src/main.ts`, styles in `src/style.css`); `scripts/budget.mjs` with unit and red-team tests; `npm run budget` in package.json and ci.yml; leak e2e `e2e/perf.spec.ts`.
+- Tested: `npm test` 462 pass; `npm run build` OK; `npm run budget` OK (entry 32.0 kB gzip, all JS 187 kB gzip); `npm run e2e` 13 pass, 1 flaky timeout (`smoke.spec.ts:49` daily deck, passes alone).
+- Could not do: time-to-home measurement; draw-call check at loci 0/13/26/39; mutation check (AG).
+- Unsure of: baseline for the leak test taken after drill 1 (warm-up). Packet Report lists all choices.
+- Next: AG VERIFY T17 (see packet Verify section); FB then T22 fix.
+
+## 2026-11-08 - FB (Claude Haiku 5.5, MP-HAIKU lane): T22 fix round 0 built, awaiting AG verify
+
+- Done: `src/achievements.ts` (17 badges, stable ids, progress capped); `src/achievements.test.ts` (acceptance + earned/unearned per badge); `src/redteam/T22.test.ts` (8 checks).
+- Tested: `node --test` on both files 44 pass; `npm test` 497 pass; `npm run build` OK.
+- Could not do: nothing from the packet.
+- Unsure of: badge count is 17 (packet said about 15). Speed badges need a valid 52-card speed drill.
+- Next: AG VERIFY T22 (packet Verify section). Then FB takes the next mesh job.
+
 ## 2026-11-08 - Friend (Claude): Pages deploy fix; T13/T14/T20/T21 not mergeable from this clone
 - Done: Deploy Pages "Run tests" failure on 6348112 was a flake, not a Node-version problem: CI passed on the same commit while the Pages job failed, and under Node 24.22.2 locally `T19 red-team 4` (1,000-drill stress test, wall-clock `< 200 ms`) took 354 ms in a full parallel run (30-120 ms alone). Bound raised to 2 s (`src/redteam/T19.test.ts`); it still catches an algorithmic blow-up. Both workflows: `actions/checkout@v5`, `actions/setup-node@v5`; Node stays 24 (tests need 22.6+ for type stripping). `npm test` 385/385 pass, `npm run build` ok on Node 24.
 - Found (needs the owner): the earlier Deploy Pages run on 19ba7a0 passed tests and build, then `actions/deploy-pages` failed with 404 "Ensure GitHub Pages has been enabled". Set Settings > Pages > Source to "GitHub Actions"; otherwise the site will still not deploy once tests are green.
