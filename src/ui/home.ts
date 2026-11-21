@@ -1,5 +1,6 @@
 import type { PalaceView, SaveData } from '../types.ts';
 import {
+  dailyDrillOn,
   unlockedLevel,
   recommendedLevel,
   personalBests,
@@ -162,9 +163,7 @@ export function mountHome(
     todayCard.appendChild(todayHeader);
 
     const today = localDay();
-    const todayDaily = data.drills.find(
-      (d) => d.daily && (d.seed === today || d.at.startsWith(today)),
-    );
+    const todayDaily = dailyDrillOn(data.drills, today);
 
     const unlocked = unlockedLevel(data.drills);
     const dailyBtn = document.createElement('button');
