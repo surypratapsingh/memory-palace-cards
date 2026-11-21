@@ -114,3 +114,9 @@ test('applyResult: handles answers shorter than sequence and all null answers', 
   assert.deepEqual(next.locusStats[1], { tries: 1, misses: 1 });
   assert.deepEqual(next.locusStats[2], { tries: 1, misses: 1 });
 });
+
+test('applyResult keeps the journey trainer state (contract C1)', () => {
+  const data = { ...emptySave(), journey: { 3: { due: '2026-01-01T00:00:00.000Z' } } as never };
+  const result: DrillResult = { at: '2026-01-01T00:00:00.000Z', seed: 's', daily: false, sequence: ['AS' as CardId], answers: ['AS' as CardId], memorizeMs: 1, recallMs: 1 };
+  assert.deepEqual(applyResult(data, result).journey, data.journey);
+});
