@@ -41,7 +41,7 @@ function harness(answerFor: (dealt: CardId[]) => CardId[]) {
   const g = globalThis as Record<string, unknown>;
   const saved = { document: g.document, window: g.window, localStorage: g.localStorage };
   const set = (k: string, v: unknown) => Object.defineProperty(globalThis, k, { configurable: true, writable: true, value: v });
-  set('document', { createElement: () => new El() });
+  set('document', { createElement: () => new El(), documentElement: { classList: { contains: () => false } } });
   set('window', {
     addEventListener: (_: string, f: never) => keys.add(f),
     removeEventListener: (_: string, f: never) => keys.delete(f),
@@ -99,6 +99,8 @@ test('redteam T11 round 2: a retry saves each attempt once, with two distinct dr
     t.press(' ');
     t.attempt();
     assert.equal(t.done.length, 0, 'the result screen alone must not complete the flow');
+    // A fast runner can drive both attempts inside one millisecond; start the retry in a later one so the two `at` stamps differ.
+    const t0 = Date.now(); while (Date.now() === t0);
     t.root.find('Try again')!.click();
     assert.equal(t.done.length, 0);
     t.attempt();
