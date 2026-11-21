@@ -97,13 +97,11 @@ test('redteam T11 round 2: a retry saves each attempt once, with two distinct dr
   const t = harness(wrong);
   try {
     t.press(' ');
-    t.attempt();
+    const first = t.attempt();
     assert.equal(t.done.length, 0, 'the result screen alone must not complete the flow');
-    // A fast runner can drive both attempts inside one millisecond; start the retry in a later one so the two `at` stamps differ.
-    const t0 = Date.now(); while (Date.now() === t0);
     t.root.find('Try again')!.click();
     assert.equal(t.done.length, 0);
-    t.attempt();
+    const second = t.attempt();
     assert.ok(t.root.find('Almost there'));
     assert.equal(t.done.length, 0);
     t.root.find('Continue')!.click();
@@ -112,7 +110,9 @@ test('redteam T11 round 2: a retry saves each attempt once, with two distinct dr
     const savedDrills = t.done[0].data.drills;
     assert.equal(savedDrills.length, 2, 'each attempt is saved exactly once');
     assert.notEqual(savedDrills[0].seed, savedDrills[1].seed, 'retry deals a fresh sequence');
-    assert.notEqual(savedDrills[0].at, savedDrills[1].at);
+    // Each saved record is its own attempt, in order: no clock needed to tell them apart.
+    assert.deepEqual(savedDrills[0].sequence, first);
+    assert.deepEqual(savedDrills[1].sequence, second);
   } finally { t.restore(); }
 });
 

@@ -1,6 +1,9 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-22 - C-MP: T11 retry test checks behaviour, not the clock
+- Done: `T11-round2.test.ts` retry test no longer busy-waits or compares `at` stamps; it asserts each saved drill holds the sequence of its own attempt, in order. Plant (saved sequence reversed in onboarding.ts) caught. npm test 521 pass, build ok. Replaces PR #6 and dc59805.
+
 ## 2026-11-22 - C-MP: stable T19 speed test
 - Done: T19 red-team 4 keeps the real 200 ms limit but takes the best of 5 runs after a warm-up, so one CI stall cannot fail it. Plant (extra loop in `confusions`) caught. npm test 521 pass, build ok. Replaces the 2 s loosening in PRs #3 and #4.
 
