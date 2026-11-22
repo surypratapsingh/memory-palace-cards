@@ -1,6 +1,9 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-22 - C-MP: MATHS section 11 (Chapman) tested
+- Done: audit of MATHS.md sections against tests: 1-10 and 12-14 already have tests (living.test, math.test, progress.test incl. staircase simulation, insights, speed, journey). Section 11 had none: added `scripts/recapture.mjs` (`chapman`) and `scripts/recapture.test.mjs` (worked example 22.4 / 6.4 hidden, m=0, 25% rule). Plant (drop the -1) fails all 3. Full suite 5 runs earlier: 521/521 each, no flaky test.
+
 ## 2026-11-10 - Lead (Claude Sonnet 5.5, lane C-MESH of Round 12): merges, Q1-AG triage, board
 - Done (local only, nothing pushed, nothing tagged): merged `h/real-fail-tests` (f6ec741, 5 real test gaps closed), T17 (6ce5301) and T22 (8694d58) with --no-ff; `npm test` 457, 472, 521 pass and `npm run build` ok after each, `npm run budget` OK. T17 changes `src/main.ts` (palace loading state): not browser-checked (no Playwright browser here).
 - Done: triaged `qa/AG-bugs.md` (imported; the `qa/Q1-AG` branch itself is stale against main and was not merged). AG-1 (S1, `applyResult` drops `journey`), AG-2 (S1, malformed drill crashes Home) and AG-3 (S2, Daily Deck mixes UTC and local day) confirmed; AG-4 and AG-5 rejected, reasons in `tasks/Q1-bug-bash.md`. Fix rows Q1-F1 to Q1-F3 added above R1 and to its Needs. Mesh score: AG 32, FB 66.
