@@ -5,8 +5,7 @@ import './ui/trainer.css';
 import './ui/settings.css';
 import './ui/drill.css';
 import './ui/onboarding.css';
-import { localDay } from './deck.ts';
-import { updateStreak } from './progress.ts';
+import { streakForResult } from './drill-logic.ts';
 import { applySettings, sanitizeSettings } from './settings.ts';
 import { load, save, setSaveErrorHandler } from './store.ts';
 import { stopAll } from './sound.ts';
@@ -176,13 +175,13 @@ function mountPalaceScreen(screen: Screen, root: HTMLElement, palace: PalaceView
   palace.setFreeWalk(false);
   return mountDrill(root, palace, data, drillOptions, (updated, result) => {
     data = updated;
-    if (result) data.streak = updateStreak(data.streak, localDay());
+    if (result) data = streakForResult(data, result);
     save(data);
     syncSettings();
     navigate(result ? 'result' : 'cancel');
   }, (updated, result) => {
     data = updated;
-    if (result) data.streak = updateStreak(data.streak, localDay());
+    if (result) data = streakForResult(data, result);
     save(data);
     syncSettings();
     navigate('shadowWalk');

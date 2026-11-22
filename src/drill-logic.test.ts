@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyResult, cardFromKeys, drillSeed } from './drill-logic.ts';
+import { applyResult, cardFromKeys, drillSeed, streakForResult } from './drill-logic.ts';
 import { emptySave } from './store.ts';
 import type { CardId, DrillResult } from './types.ts';
 
@@ -113,4 +113,14 @@ test('applyResult: handles answers shorter than sequence and all null answers', 
   assert.deepEqual(next.locusStats[0], { tries: 1, misses: 0 });
   assert.deepEqual(next.locusStats[1], { tries: 1, misses: 1 });
   assert.deepEqual(next.locusStats[2], { tries: 1, misses: 1 });
+});
+
+test('streakForResult counts the day the drill started, not the day it ended (midnight)', () => {
+  const started = new Date(2026, 10, 21, 23, 59, 50); // local 21 Nov, 10 s before midnight
+  const result: DrillResult = { at: started.toISOString(), seed: 's', daily: false, sequence: ['AS'], answers: ['AS'], memorizeMs: 1, recallMs: 1 };
+  const base = { ...emptySave(), streak: { lastDay: '2026-11-20', count: 4, freezes: 0 } };
+  // The player finishes on 22 Nov; the drill still belongs to 21 Nov, so the streak goes 4 -> 5 on 21 Nov.
+  const next = streakForResult(base, result);
+  assert.equal(next.streak.lastDay, '2026-11-21');
+  assert.equal(next.streak.count, 5);
 });

@@ -1,5 +1,6 @@
 import { localDay, RANKS, SUITS } from './deck.ts';
 import type { CardId, DrillResult, Rank, SaveData, Suit } from './types.ts';
+import { updateStreak } from './progress.ts';
 
 /** Keyboard card entry: rank key then suit key. Keys: A 2-9 T 0(=T) J Q K, then S H D C. Case-insensitive. Returns null for anything else. */
 export function cardFromKeys(rankKey: string, suitKey: string): CardId | null {
@@ -57,4 +58,9 @@ export function drillSeed(daily: boolean, now: Date = new Date()): string {
   }
   const rand = Math.random().toString(36).slice(2, 10);
   return `p-${now.getTime()}-${rand}`;
+}
+
+/** Streak update for a finished drill, counted on the local day the drill started (a drill that crosses midnight stays on its start day). */
+export function streakForResult(data: SaveData, result: DrillResult): SaveData {
+  return { ...data, streak: updateStreak(data.streak, localDay(new Date(result.at))) };
 }

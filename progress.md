@@ -1,6 +1,9 @@
 # Progress Log
 Newest entry first. Each entry: Done / In progress / Next / Blockers.
 
+## 2026-11-22 - C-MP: streak counts the drill's start day
+- Done: new `streakForResult` (drill-logic.ts) uses `localDay(new Date(result.at))`; main.ts uses it in both drill callbacks instead of `localDay()` at drill end. Test across midnight added; plant (back to now) fails it. T7 source-text check updated. npm test 522 pass, build ok.
+
 ## 2026-11-10 - Lead (Claude Sonnet 5.5, lane C-MESH of Round 12): merges, Q1-AG triage, board
 - Done (local only, nothing pushed, nothing tagged): merged `h/real-fail-tests` (f6ec741, 5 real test gaps closed), T17 (6ce5301) and T22 (8694d58) with --no-ff; `npm test` 457, 472, 521 pass and `npm run build` ok after each, `npm run budget` OK. T17 changes `src/main.ts` (palace loading state): not browser-checked (no Playwright browser here).
 - Done: triaged `qa/AG-bugs.md` (imported; the `qa/Q1-AG` branch itself is stale against main and was not merged). AG-1 (S1, `applyResult` drops `journey`), AG-2 (S1, malformed drill crashes Home) and AG-3 (S2, Daily Deck mixes UTC and local day) confirmed; AG-4 and AG-5 rejected, reasons in `tasks/Q1-bug-bash.md`. Fix rows Q1-F1 to Q1-F3 added above R1 and to its Needs. Mesh score: AG 32, FB 66.

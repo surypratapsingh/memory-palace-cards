@@ -77,7 +77,7 @@ test('redteam T7 4: source audit for main.ts: DOM XSS, save error banner, settin
   assert.match(mainSrc, /view\.setGlideMs\(/);
 
   // Verify streak tracking on completed drill result
-  assert.match(mainSrc, /updateStreak\(data\.streak,\s*localDay\(\)\)/);
+  assert.match(mainSrc, /streakForResult(data,s*result)/); // counts the drill start day (see drill-logic.test.ts)
 
   // Verify unmount of current screen before mounting new screen
   assert.match(mainSrc, /unmountCurrent\?\.\(\)/);
