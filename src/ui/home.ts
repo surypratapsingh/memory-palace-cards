@@ -10,6 +10,7 @@ import { ghosts, leeches } from '../living.ts';
 import { isDue, strength } from '../srs.ts';
 import { DECK, LADDER, cardLabel, localDay, score } from '../deck.ts';
 import { exportJson, importJson } from '../store.ts';
+import { dailyDoneToday } from '../drill-logic.ts';
 import { sparklinePath } from './sparkline.ts';
 import './home.css';
 
@@ -162,9 +163,7 @@ export function mountHome(
     todayCard.appendChild(todayHeader);
 
     const today = localDay();
-    const todayDaily = data.drills.find(
-      (d) => d.daily && (d.seed === today || d.at.startsWith(today)),
-    );
+    const todayDaily = dailyDoneToday(data.drills, today);
 
     const unlocked = unlockedLevel(data.drills);
     const dailyBtn = document.createElement('button');

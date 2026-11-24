@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyResult, cardFromKeys, drillSeed } from './drill-logic.ts';
+import { applyResult, cardFromKeys, dailyDoneToday, drillSeed } from './drill-logic.ts';
 import { emptySave } from './store.ts';
 import type { CardId, DrillResult } from './types.ts';
 
@@ -113,4 +113,12 @@ test('applyResult: handles answers shorter than sequence and all null answers', 
   assert.deepEqual(next.locusStats[0], { tries: 1, misses: 0 });
   assert.deepEqual(next.locusStats[1], { tries: 1, misses: 1 });
   assert.deepEqual(next.locusStats[2], { tries: 1, misses: 1 });
+});
+
+test('dailyDoneToday: local seed only, ignores UTC at (Q1-F3)', () => {
+  const d = (seed: string, at: string, daily = true) => ({ at, seed, daily, sequence: [], answers: [], memorizeMs: 0, recallMs: 0 }) as unknown as DrillResult;
+  assert.equal(dailyDoneToday([d('2026-01-01', '2026-01-02T00:30:00.000Z')], '2026-01-02'), undefined, 'yesterday seed, today UTC at');
+  const hit = d('2026-01-02', '2026-01-01T20:00:00.000Z');
+  assert.equal(dailyDoneToday([hit], '2026-01-02'), hit);
+  assert.equal(dailyDoneToday([d('2026-01-02', 'x', false)], '2026-01-02'), undefined, 'practice drill does not count');
 });

@@ -58,3 +58,7 @@ export function drillSeed(daily: boolean, now: Date = new Date()): string {
   const rand = Math.random().toString(36).slice(2, 10);
   return `p-${now.getTime()}-${rand}`;
 }
+
+/** The daily drill for `today` (local day). A daily drill's seed is its local day, so the UTC `at` is never compared. */
+export const dailyDoneToday = (drills: readonly DrillResult[], today: string): DrillResult | undefined =>
+  drills.find((d) => d.daily && d.seed === today);
