@@ -114,3 +114,14 @@ test('applyResult: handles answers shorter than sequence and all null answers', 
   assert.deepEqual(next.locusStats[1], { tries: 1, misses: 1 });
   assert.deepEqual(next.locusStats[2], { tries: 1, misses: 1 });
 });
+
+test('applyResult: keeps journey progress (Q1-F1)', () => {
+  const initial = { ...emptySave(), journey: { 3: { due: 'x' } } } as unknown as ReturnType<typeof emptySave>;
+  const result: DrillResult = {
+    at: '2026-01-01T00:00:00.000Z', seed: 's', daily: false, sequence: ['AS'] as CardId[], answers: ['AS'] as CardId[], correct: 1, ms: 1000,
+  } as unknown as DrillResult;
+  const next = applyResult(initial, result);
+  assert.deepEqual(next.journey, initial.journey);
+  assert.notEqual(next.journey, initial.journey, 'copy, not the same object');
+  assert.equal('journey' in applyResult(emptySave(), result), false, 'absent stays absent');
+});
