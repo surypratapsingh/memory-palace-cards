@@ -15,6 +15,12 @@ export const emptySave = (): SaveData => ({
   settings: { glideMs: 600, sound: false, colorSafe: false, captions: true },
 });
 
+/** A drill the app can read: object with string at and seed, array sequence and answers. */
+const validDrill = (x: unknown): boolean => {
+  const o = x as Record<string, unknown> | null;
+  return !!o && typeof o === 'object' && typeof o.at === 'string' && typeof o.seed === 'string' && Array.isArray(o.sequence) && Array.isArray(o.answers);
+};
+
 function parse(text: string): SaveData {
   let d: unknown;
   try {
@@ -88,7 +94,7 @@ function parse(text: string): SaveData {
     version: 1,
     images: src.images != null && typeof src.images === 'object' ? src.images : {} as Record<CardId, string>,
     srs: src.srs != null && typeof src.srs === 'object' ? src.srs : {} as Record<CardId, SrsState>,
-    drills: Array.isArray(src.drills) ? src.drills : [],
+    drills: Array.isArray(src.drills) ? src.drills.filter(validDrill) : [],
     locusStats: src.locusStats != null && typeof src.locusStats === 'object' ? (src.locusStats as Record<number, { tries: number; misses: number }>) : {} as Record<number, { tries: number; misses: number }>,
     streak: src.streak != null && typeof src.streak === 'object' ? {
       lastDay: typeof (src.streak as { lastDay: string }).lastDay === 'string' ? (src.streak as { lastDay: string }).lastDay : '',
